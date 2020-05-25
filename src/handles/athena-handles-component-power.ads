@@ -1,12 +1,12 @@
 with Athena.Money;
 
-package Athena.Handles.Component.Bridge is
+package Athena.Handles.Component.Power is
 
    procedure Create
      (Tag               : String;
       Tonnage           : Non_Negative_Real;
       Price             : Athena.Money.Price_Type;
-      Ship_Tonnage_Low  : Non_Negative_Real;
-      Ship_Tonnage_High : Non_Negative_Real);
+      Fuel_Per_Day      : Non_Negative_Real;
+      Power_Output      : Non_Negative_Real);
 
-end Athena.Handles.Component.Bridge;
+end Athena.Handles.Component.Power;

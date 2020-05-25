@@ -12,6 +12,22 @@ package Athena.Ships is
      (Ship : Ship_Handle_Class)
       return Non_Negative_Real;
 
+   function Idle_Power
+     (Ship : Ship_Handle_Class)
+      return Non_Negative_Real;
+
+   function Drive_Power
+     (Ship : Ship_Handle_Class)
+      return Non_Negative_Real;
+
+   function Jump_Power
+     (Ship : Ship_Handle_Class)
+      return Non_Negative_Real;
+
+   function Available_Power
+     (Ship : Ship_Handle_Class)
+      return Non_Negative_Real;
+
    function Available_Cargo_Space
      (Ship : Ship_Handle_Class)
       return Non_Negative_Real;

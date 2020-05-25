@@ -6,6 +6,7 @@ package body Athena.Handles.Component.Bridge is
          Ship_Tonnage_Low : Non_Negative_Real;
          Ship_Tonnage_High : Non_Negative_Real;
       end record;
+
    ------------
    -- Create --
    ------------

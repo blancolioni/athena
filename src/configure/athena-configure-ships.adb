@@ -8,6 +8,7 @@ with Athena.Handles.Component.Bridge;
 with Athena.Handles.Component.Computer;
 with Athena.Handles.Component.Jump_Drive;
 with Athena.Handles.Component.Maneuver;
+with Athena.Handles.Component.Power;
 
 with Athena.Handles.Design;
 with Athena.Handles.Design_Module;
@@ -55,6 +56,9 @@ package body Athena.Configure.Ships is
      (Config : Tropos.Configuration);
 
    procedure Configure_Maneuver_Drive
+     (Config : Tropos.Configuration);
+
+   procedure Configure_Power
      (Config : Tropos.Configuration);
 
    --  procedure Configure_Jump_Drive
@@ -248,24 +252,6 @@ package body Athena.Configure.Ships is
    --        Tag             => Config.Config_Name);
    --  end Configure_Fuel_Scoop;
    --
-   -------------------------
-   -- Configure_Generator --
-   -------------------------
-
-   --  procedure Configure_Generator
-   --    (Config : Tropos.Configuration)
-   --  is
-   --     function Get (Name : String) return Real
-   --     is (Get_Value (Config, Name));
-   --
-   --  begin
-   --     Athena.Db.Generator.Create
-   --       (Minimum_Tonnage => Get_Value (Config, "minimum_size"),
-   --        Fuel_Per_Ton    => Get ("fuel_per_ton_per_day"),
-   --        Price_Per_Ton   => Athena.Money.To_Price (Get ("price_per_ton")),
-   --        Tag             => Config.Config_Name,
-   --        Power_Per_Ton   => Get ("power_per_ton"));
-   --  end Configure_Generator;
 
    --------------------
    -- Configure_Hull --
@@ -351,6 +337,25 @@ package body Athena.Configure.Ships is
          Impulse         => Get ("impulse"));
    end Configure_Maneuver_Drive;
 
+   ---------------------
+   -- Configure_Power --
+   ---------------------
+
+   procedure Configure_Power
+     (Config : Tropos.Configuration)
+   is
+      function Get (Name : String) return Real
+      is (Get_Value (Config, Name));
+
+   begin
+      Athena.Handles.Component.Power.Create
+        (Tag               => Config.Config_Name,
+         Tonnage           => Get ("tonnage"),
+         Price             => Athena.Money.To_Price (Get ("price")),
+         Fuel_Per_Day      => Get ("fuel"),
+         Power_Output      => Get ("power-output"));
+   end Configure_Power;
+
    ------------------------
    -- Configure_Quarters --
    ------------------------
@@ -431,7 +436,7 @@ package body Athena.Configure.Ships is
       Configure ("armor", "armor", Configure_Armor'Access);
       Configure ("engines", "engine", Configure_Maneuver_Drive'Access);
       Configure ("jump-drives", "jump", Configure_Jump_Drive'Access);
-      --  Configure ("generators", "generator", Configure_Generator'Access);
+      Configure ("power", "power", Configure_Power'Access);
       Configure ("bridges", "bridge", Configure_Bridge'Access);
       Configure ("computers", "computer", Configure_Computer'Access);
       --  Configure ("quarters", "quarters", Configure_Quarters'Access);

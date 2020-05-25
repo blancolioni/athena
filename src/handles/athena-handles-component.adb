@@ -62,6 +62,16 @@ package body Athena.Handles.Component is
       return Non_Negative_Real
    is (Vector (Component.Reference).Impulse);
 
+   function Has_Power_Output
+     (Component : Component_Handle)
+      return Boolean
+   is (Vector (Component.Reference).Power_Output > 0.0);
+
+   function Power_Output
+     (Component : Component_Handle)
+      return Non_Negative_Real
+   is (Vector (Component.Reference).Power_Output);
+
    -------------------
    -- Add_Component --
    -------------------

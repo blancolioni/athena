@@ -108,8 +108,10 @@ package body Athena.Reports.Empires is
          Add_Cell (Table, Image (Athena.Ships.Tonnage (Ship)));
          Add_Cell (Table, Image (Athena.Ships.Get_Jump_Speed (Ship)));
          Add_Cell (Table, Image (Athena.Ships.Get_Impulse_Speed (Ship)));
-         Add_Cell (Table, Ship.Design.Hard_Points'Image);
-         Add_Cell (Table, Ship.Design.Firm_Points'Image);
+         Add_Cell (Table, Image (Athena.Ships.Available_Power (Ship)));
+         Add_Cell (Table, Image (Athena.Ships.Idle_Power (Ship)));
+         Add_Cell (Table, Image (Athena.Ships.Drive_Power (Ship)));
+         Add_Cell (Table, Image (Athena.Ships.Jump_Power (Ship)));
          Add_Cell (Table, Image (Ship.Design.Tank_Size));
          Add_Cell (Table, Image (Ship.Design.Cargo_Space));
       end Add_Ship;
@@ -122,8 +124,10 @@ package body Athena.Reports.Empires is
       Add_Heading (Table, "tons");
       Add_Heading (Table, "jmp");
       Add_Heading (Table, "imp");
-      Add_Heading (Table, "h/p");
-      Add_Heading (Table, "f/p");
+      Add_Heading (Table, "power");
+      Add_Heading (Table, "idle");
+      Add_Heading (Table, "drives");
+      Add_Heading (Table, "jump");
       Add_Heading (Table, "tank");
       Add_Heading (Table, "cargo");
       Empire.Iterate_Ships (Add_Ship'Access);

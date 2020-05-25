@@ -14,6 +14,23 @@ package body Athena.Ships is
       return Total_Cargo_Space (Ship);
    end Available_Cargo_Space;
 
+   ---------------------
+   -- Available_Power --
+   ---------------------
+
+   function Available_Power
+     (Ship : Ship_Handle_Class)
+      return Non_Negative_Real
+   is
+   begin
+      if Ship.Power_Module.Has_Element then
+         return Ship.Power_Module.Component.Power_Output
+           * Ship.Power_Module.Condition;
+      else
+         return 0.0;
+      end if;
+   end Available_Power;
+
    -------------------
    -- Current_Cargo --
    -------------------
@@ -26,6 +43,34 @@ package body Athena.Ships is
    begin
       return Ship.Current_Cargo (Cargo);
    end Current_Cargo;
+
+   -----------------
+   -- Drive_Power --
+   -----------------
+
+   function Drive_Power
+     (Ship : Ship_Handle_Class)
+      return Non_Negative_Real
+   is
+      Total : Non_Negative_Real := 0.0;
+
+      procedure Add_Power (Drive : Athena.Handles.Module.Module_Handle);
+
+      ---------------
+      -- Add_Power --
+      ---------------
+
+      procedure Add_Power (Drive : Athena.Handles.Module.Module_Handle) is
+      begin
+         if Drive.Condition > 0.0 then
+            Total := Total + Drive.Component.Power_Consumption;
+         end if;
+      end Add_Power;
+
+   begin
+      Ship.Iterate_Maneuver_Drives (Add_Power'Access);
+      return Total;
+   end Drive_Power;
 
    --------------------
    -- Get_Jump_Speed --
@@ -79,6 +124,18 @@ package body Athena.Ships is
       end if;
    end Get_Jump_Speed;
 
+   ----------------
+   -- Idle_Power --
+   ----------------
+
+   function Idle_Power
+     (Ship : Ship_Handle_Class)
+      return Non_Negative_Real
+   is
+   begin
+      return Ship.Design.Tonnage * 0.2;
+   end Idle_Power;
+
    --------------
    -- Is_Armed --
    --------------
@@ -91,6 +148,24 @@ package body Athena.Ships is
    begin
       return False;
    end Is_Armed;
+
+   ----------------
+   -- Jump_Power --
+   ----------------
+
+   function Jump_Power
+     (Ship : Ship_Handle_Class)
+      return Non_Negative_Real
+   is
+   begin
+      if Ship.Jump_Drive.Has_Element
+        and then Ship.Jump_Drive.Condition > 0.0
+      then
+         return Ship.Jump_Drive.Component.Power_Consumption;
+      else
+         return 0.0;
+      end if;
+   end Jump_Power;
 
    ----------------
    -- Load_Cargo --

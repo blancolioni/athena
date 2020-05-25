@@ -1,7 +1,7 @@
 hull = standard
 tonnage = 100
 armor = { type = steel points = 1 }
-fuel_tank = 50
+fuel_tank = 64
 default-script = escape
 default-rank = 9
 
@@ -10,4 +10,5 @@ components = {
     computer-5
     impulse-2
     jump-1
+    chemical-10
 }

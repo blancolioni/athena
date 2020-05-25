@@ -30,6 +30,7 @@ package body Athena.Handles.Ship is
          Modules     : Module_Lists.List;
          Drives      : Module_Lists.List;
          Jump_Drive  : Module_Reference;
+         Power       : Module_Reference;
          Tank_Size   : Non_Negative_Real;
          Cargo_Space : Non_Negative_Real;
          Fleet       : Fleet_Reference;
@@ -128,6 +129,11 @@ package body Athena.Handles.Ship is
       return Athena.Handles.Module.Module_Handle
    is (Athena.Handles.Module.Get (Vector (Ship.Reference).Jump_Drive));
 
+   function Power_Module
+     (Ship : Ship_Handle)
+      return Athena.Handles.Module.Module_Handle
+   is (Athena.Handles.Module.Get (Vector (Ship.Reference).Power));
+
    function Current_Cargo
      (Ship  : Ship_Handle;
       Cargo : Cargo_Class)
@@ -206,6 +212,7 @@ package body Athena.Handles.Ship is
                  Modules       => <>,
                  Drives        => <>,
                  Jump_Drive    => Null_Module_Reference,
+                 Power         => Null_Module_Reference,
                  Tank_Size     => Design.Tank_Size,
                  Cargo_Space   => Design.Cargo_Space,
                  Carrying      => (others => 0.0),
@@ -237,6 +244,11 @@ package body Athena.Handles.Ship is
          end if;
          if Module.Component.Has_Impulse then
             Rec.Drives.Append (Module.Reference);
+         end if;
+         if Module.Component.Has_Power_Output
+           and then Rec.Power = Null_Module_Reference
+         then
+            Rec.Power := Module.Reference;
          end if;
       end Add_Design_Module;
 

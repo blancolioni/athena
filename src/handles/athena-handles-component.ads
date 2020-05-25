@@ -55,6 +55,15 @@ package Athena.Handles.Component is
       return Non_Negative_Real
      with Pre => Component.Has_Impulse;
 
+   function Has_Power_Output
+     (Component : Component_Handle)
+      return Boolean;
+
+   function Power_Output
+     (Component : Component_Handle)
+      return Non_Negative_Real
+     with Pre => Component.Has_Power_Output;
+
    function Get_By_Tag
      (Tag : String)
       return Component_Handle'Class;
@@ -104,6 +113,11 @@ private
    is (0.0);
 
    function Impulse
+     (Rec : Root_Component_Record)
+      return Non_Negative_Real
+   is (0.0);
+
+   function Power_Output
      (Rec : Root_Component_Record)
       return Non_Negative_Real
    is (0.0);
