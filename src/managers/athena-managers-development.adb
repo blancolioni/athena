@@ -1,6 +1,4 @@
-with Athena.Orders;
-
-with Athena.Handles.Colony;
+with Athena.Handles.Colony.Actions;
 with Athena.Handles.Empire;
 
 package body Athena.Managers.Development is
@@ -36,7 +34,9 @@ package body Athena.Managers.Development is
          Colony : constant Athena.Handles.Colony.Colony_Handle :=
                     Athena.Handles.Colony.Get (Reference);
       begin
-         if Colony.Industry < Colony.Population then
+         if not Colony.Has_Actions
+           and then Colony.Industry < Colony.Population
+         then
             declare
                Required : constant Non_Negative_Real :=
                             Colony.Population - Colony.Industry;
@@ -45,10 +45,9 @@ package body Athena.Managers.Development is
                  ("ordering " & Image (Required)
                   & " industry for colony on " & Colony.Star.Name);
 
-               Athena.Orders.Order_Industry
-                 (Colony   => Reference,
-                  Quantity => Colony.Population - Colony.Industry,
-                  Priority => Manager.Priority);
+               Colony.Add_Action
+                 (Athena.Handles.Colony.Actions.Build_Industry_Action
+                    (Quantity => Colony.Population));
             end;
          end if;
       end Check_Colony;
@@ -56,6 +55,8 @@ package body Athena.Managers.Development is
    begin
       Athena.Handles.Empire.Get (Manager.Empire)
         .Iterate_Colonies (Check_Colony'Access);
+      Manager.Set_Next_Update_Delay
+        (Athena.Calendar.Days (1));
    end Create_Orders;
 
    ---------------------------------
@@ -70,7 +71,8 @@ package body Athena.Managers.Development is
         (Name     => +"develop",
          Priority => 1080,
          Empire   => Athena.Handles.Null_Empire_Reference,
-         Messages => <>);
+         Next_Update => Athena.Calendar.Clock,
+         Messages => Message_Lists.Empty_List);
    end Default_Development_Manager;
 
 end Athena.Managers.Development;

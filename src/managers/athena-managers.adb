@@ -135,4 +135,29 @@ package body Athena.Managers is
       To.Messages.Append (Message);
    end Send_Message;
 
+   ---------------------
+   -- Set_Next_Update --
+   ---------------------
+
+   procedure Set_Next_Update
+     (Manager   : in out Root_Manager_Type'Class;
+      Update_At : Athena.Calendar.Time)
+   is
+   begin
+      Manager.Next_Update := Update_At;
+   end Set_Next_Update;
+
+   ---------------------------
+   -- Set_Next_Update_Delay --
+   ---------------------------
+
+   procedure Set_Next_Update_Delay
+     (Manager      : in out Root_Manager_Type'Class;
+      Update_Delay : Duration)
+   is
+      use type Athena.Calendar.Time;
+   begin
+      Manager.Set_Next_Update (Athena.Calendar.Clock + Update_Delay);
+   end Set_Next_Update_Delay;
+
 end Athena.Managers;

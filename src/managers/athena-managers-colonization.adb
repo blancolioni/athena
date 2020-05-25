@@ -142,6 +142,7 @@ package body Athena.Managers.Colonization is
            (Targets.First_Element.Star, True);
       end if;
 
+      Manager.Set_Next_Update_Delay (Athena.Calendar.Days (5.0));
    end Create_Orders;
 
    ----------------------------------
@@ -157,6 +158,7 @@ package body Athena.Managers.Colonization is
           (Name     => +"explore",
            Empire   => <>,
            Priority => 1030,
+           Next_Update => Athena.Calendar.Clock,
            Messages => <>);
    end Default_Colonization_Manager;
 

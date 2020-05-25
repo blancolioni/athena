@@ -1,7 +1,7 @@
-with Ada.Calendar.Formatting;
 with Ada.Directories;
 with Ada.Text_IO;
 
+with Athena.Calendar;
 with Athena.Options;
 
 package body Athena.Logging is
@@ -31,8 +31,8 @@ package body Athena.Logging is
       if Logging_Enabled then
          Ada.Text_IO.Put_Line
            (Log_File,
-            Ada.Calendar.Formatting.Image
-              (Ada.Calendar.Clock, True)
+            Athena.Calendar.Image
+              (Athena.Calendar.Clock, True)
             & Character'Val (9)
             & Message);
       end if;

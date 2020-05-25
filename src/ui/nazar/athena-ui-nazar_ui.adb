@@ -16,7 +16,7 @@ with Nazar.Signals;
 
 with Athena.UI.Models.Galaxy;
 
-with Athena.Updates;
+--  with Athena.Updates;
 
 with Athena.Options;
 with Athena.Paths;
@@ -219,7 +219,7 @@ package body Athena.UI.Nazar_UI is
       if Athena.Options.Auto_Update then
          Update_Task.Run_Update;
       else
-         Athena.Updates.Run_Update;
+         --  Athena.Updates.Run_Update;
 
          Nazar.Main.With_Render_Lock
            (Reload_Models'Access);
@@ -298,14 +298,14 @@ package body Athena.UI.Nazar_UI is
             exit;
          or
             accept Run_Update;
-            Athena.Updates.Run_Update;
+            --  Athena.Updates.Run_Update;
 
             Nazar.Main.With_Render_Lock
               (Reload_Models'Access);
 
          or
             delay Update_Interval;
-            Athena.Updates.Run_Update;
+            --  Athena.Updates.Run_Update;
 
             Nazar.Main.With_Render_Lock
               (Reload_Models'Access);

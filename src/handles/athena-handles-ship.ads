@@ -1,5 +1,7 @@
 with Ada.Streams.Stream_IO;
 
+with Athena.Updates;
+
 with Athena.Handles.Design;
 with Athena.Handles.Empire;
 with Athena.Handles.Module;
@@ -11,6 +13,7 @@ package Athena.Handles.Ship is
      new Root_Athena_Handle
      and Has_Name_Interface
      and Has_Identifier_Interface
+     and Athena.Updates.Update_Interface
    with private;
 
    function Reference (Ship : Ship_Handle) return Ship_Reference;
@@ -160,10 +163,14 @@ private
    type Ship_Handle is
      new Root_Athena_Handle
      and Has_Identifier_Interface
+     and Athena.Updates.Update_Interface
      and Has_Name_Interface with
       record
          Reference : Ship_Reference := 0;
       end record;
+
+   overriding procedure Activate
+     (Ship : Ship_Handle);
 
    overriding function Identifier
      (Ship : Ship_Handle)

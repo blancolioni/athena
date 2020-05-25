@@ -1,5 +1,7 @@
 with Ada.Streams.Stream_IO;
 
+with Athena.Updates;
+
 with Athena.Handles.Star;
 with Athena.Handles.Empire;
 
@@ -7,6 +9,7 @@ package Athena.Handles.Colony is
 
    type Colony_Handle is
      new Root_Athena_Handle
+     and Athena.Updates.Update_Interface
    with private;
 
    function Reference (Colony : Colony_Handle) return Colony_Reference;
@@ -57,6 +60,29 @@ package Athena.Handles.Colony is
      (Colony    : Colony_Handle;
       New_Owner : Athena.Handles.Empire.Empire_Handle);
 
+   type Root_Colony_Action is abstract tagged private;
+
+   function Execute
+     (Action : Root_Colony_Action;
+      Colony   : Colony_Handle'Class)
+      return Boolean
+      is abstract;
+
+   function Has_Actions (Colony : Colony_Handle) return Boolean;
+
+   function First_Action
+     (Colony : Colony_Handle)
+      return Root_Colony_Action'Class
+     with Pre => Colony.Has_Actions;
+
+   procedure Add_Action
+     (Colony   : Colony_Handle;
+      Action : Root_Colony_Action'Class)
+     with Post => Colony.Has_Actions;
+
+   procedure Delete_First_Action (Colony : Colony_Handle)
+     with Pre => Colony.Has_Actions;
+
    function Create
      (Star      : Athena.Handles.Star.Star_Handle;
       Owner     : Athena.Handles.Empire.Empire_Handle;
@@ -78,10 +104,14 @@ package Athena.Handles.Colony is
 private
 
    type Colony_Handle is
-     new Root_Athena_Handle with
+     new Root_Athena_Handle
+     and Athena.Updates.Update_Interface with
       record
          Reference : Colony_Reference := 0;
       end record;
+
+   overriding procedure Activate
+     (Colony : Colony_Handle);
 
    overriding function Short_Name
      (Colony : Colony_Handle)
@@ -96,5 +126,10 @@ private
 
    function Empty_Handle return Colony_Handle
    is (False, 0);
+
+   type Root_Colony_Action is abstract tagged
+      record
+         null;
+      end record;
 
 end Athena.Handles.Colony;

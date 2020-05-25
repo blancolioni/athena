@@ -238,7 +238,7 @@ package body Athena.Colonies is
    ----------------------
 
    procedure Produce_Material
-     (Colony   : Athena.Handles.Colony.Colony_Handle;
+     (Colony   : Athena.Handles.Colony.Colony_Handle'Class;
       Quantity : Non_Negative_Real)
    is
       use Athena.Money;
@@ -257,20 +257,20 @@ package body Athena.Colonies is
          New_Material  : constant Non_Negative_Real :=
                            Colony.Material + Produced;
       begin
-         Log (Colony,
-              "ordered "
-              & Image (Quantity)
-              & " material"
-              & "; available construct "
-              & Image (Colony.Construct)
-              & " resource "
-              & Image (Colony.Star.Resource * 100.0) & "%"
-              & " cash "
-              & Athena.Money.Show (Colony.Owner.Cash)
-              & "; produced "
-              & Image (Produced)
-              & "; new material stock "
-              & Image (New_Material));
+         Colony.Log
+           ("ordered "
+            & Image (Quantity)
+            & " material"
+            & "; available construct "
+            & Image (Colony.Construct)
+            & " resource "
+            & Image (Colony.Star.Resource * 100.0) & "%"
+            & " cash "
+            & Athena.Money.Show (Colony.Owner.Cash)
+            & "; produced "
+            & Image (Produced)
+            & "; new material stock "
+            & Image (New_Material));
 
          Colony.Set_Material (New_Material);
          Colony.Set_Construct (New_Construct);
@@ -279,15 +279,15 @@ package body Athena.Colonies is
       end;
    exception
       when others =>
-         Log (Colony,
-              "exception while producing material: max = "
-              & Image (Max)
-              & "; construct = "
-              & Image (Colony.Construct)
-              & "; cash = "
-              & Athena.Money.Show (Colony.Owner.Cash)
-              & "; resource = "
-              & Image (Colony.Star.Resource));
+         Colony.Log
+           ("exception while producing material: max = "
+            & Image (Max)
+            & "; construct = "
+            & Image (Colony.Construct)
+            & "; cash = "
+            & Athena.Money.Show (Colony.Owner.Cash)
+            & "; resource = "
+            & Image (Colony.Star.Resource));
          raise;
 
    end Produce_Material;

@@ -2,6 +2,7 @@ private with Ada.Containers.Indefinite_Doubly_Linked_Lists;
 private with Ada.Strings.Unbounded;
 private with Athena.Real_Images;
 
+with Athena.Calendar;
 with Athena.Handles;
 
 package Athena.Managers is
@@ -15,14 +16,26 @@ package Athena.Managers is
       return String
       is abstract;
 
+   procedure Create_Orders
+     (Manager : in out Root_Manager_Type)
+   is abstract;
+
    procedure Initialize
      (Manager : in out Root_Manager_Type;
       Name    : String;
       Empire  : Athena.Handles.Empire_Reference);
 
-   procedure Create_Orders
-     (Manager : in out Root_Manager_Type)
-   is abstract;
+   function Next_Update
+     (Manager : Root_Manager_Type'Class)
+      return Athena.Calendar.Time;
+
+   procedure Set_Next_Update
+     (Manager   : in out Root_Manager_Type'Class;
+      Update_At : Athena.Calendar.Time);
+
+   procedure Set_Next_Update_Delay
+     (Manager      : in out Root_Manager_Type'Class;
+      Update_Delay : Duration);
 
    procedure Send_Message
      (To      : in out Root_Manager_Type'Class;
@@ -56,11 +69,17 @@ private
 
    type Root_Manager_Type is abstract tagged
       record
-         Name     : Ada.Strings.Unbounded.Unbounded_String;
-         Empire   : Athena.Handles.Empire_Reference;
-         Priority : Athena.Handles.Order_Priority;
-         Messages : Message_Lists.List;
+         Name        : Ada.Strings.Unbounded.Unbounded_String;
+         Empire      : Athena.Handles.Empire_Reference;
+         Priority    : Athena.Handles.Order_Priority;
+         Next_Update : Athena.Calendar.Time;
+         Messages    : Message_Lists.List;
       end record;
+
+   function Next_Update
+     (Manager : Root_Manager_Type'Class)
+      return Athena.Calendar.Time
+   is (Manager.Next_Update);
 
    function "+" (S : String) return Ada.Strings.Unbounded.Unbounded_String
                  renames Ada.Strings.Unbounded.To_Unbounded_String;

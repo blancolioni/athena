@@ -5,7 +5,7 @@ with Athena.Handles.Star;
 package Athena.Colonies is
 
    procedure Produce_Material
-     (Colony   : Athena.Handles.Colony.Colony_Handle;
+     (Colony   : Athena.Handles.Colony.Colony_Handle'Class;
       Quantity : Non_Negative_Real);
 
    function Can_Provide

@@ -1,5 +1,9 @@
 package Athena.Updates is
 
-   procedure Run_Update;
+   type Update_Interface is interface;
+
+   procedure Activate
+     (Update : Update_Interface)
+   is abstract;
 
 end Athena.Updates;

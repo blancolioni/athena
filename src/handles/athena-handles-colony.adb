@@ -1,18 +1,33 @@
 with Ada.Containers.Doubly_Linked_Lists;
+with Ada.Containers.Indefinite_Doubly_Linked_Lists;
 with Ada.Containers.Ordered_Maps;
 with Ada.Containers.Vectors;
 
+with Athena.Calendar;
+with Athena.Money;
+with Athena.Random;
+
+with Athena.Empires;
+
+with Athena.Updates.Events;
+
 package body Athena.Handles.Colony is
+
+   package Colony_Action_Lists is
+     new Ada.Containers.Indefinite_Doubly_Linked_Lists
+       (Root_Colony_Action'Class);
 
    type Colony_Record is
       record
-         Identifier : Object_Identifier;
-         Star       : Star_Reference;
-         Owner      : Empire_Reference;
-         Construct  : Non_Negative_Real := 0.0;
-         Pop        : Non_Negative_Real := 0.0;
-         Industry   : Non_Negative_Real := 0.0;
-         Material   : Non_Negative_Real := 0.0;
+         Identifier  : Object_Identifier;
+         Star        : Star_Reference;
+         Owner       : Empire_Reference;
+         Next_Update : Athena.Calendar.Time;
+         Construct   : Non_Negative_Real := 0.0;
+         Pop         : Non_Negative_Real := 0.0;
+         Industry    : Non_Negative_Real := 0.0;
+         Material    : Non_Negative_Real := 0.0;
+         Actions     : Colony_Action_Lists.List;
       end record;
 
    package Colony_Vectors is
@@ -67,6 +82,77 @@ package body Athena.Handles.Colony is
       return Non_Negative_Real
    is (Vector (Colony.Reference).Material);
 
+   function Has_Actions
+     (Colony : Colony_Handle)
+      return Boolean
+   is (not Vector (Colony.Reference).Actions.Is_Empty);
+
+   function First_Action
+     (Colony : Colony_Handle)
+      return Root_Colony_Action'Class
+   is (Vector (Colony.Reference).Actions.First_Element);
+
+   --------------
+   -- Activate --
+   --------------
+
+   overriding procedure Activate
+     (Colony : Colony_Handle)
+   is
+   begin
+      if Colony.Construct > 0.0 then
+         Athena.Empires.Earn
+           (Colony.Owner, Athena.Money.To_Money (Colony.Construct),
+            "unused production on " & Colony.Star.Name);
+      end if;
+
+      declare
+         Construct : constant Non_Negative_Real :=
+                       Real'Min (Colony.Industry, Colony.Population)
+                       + (Real'Max (Colony.Industry, Colony.Population)
+                          - Colony.Industry)
+                       / 4.0;
+         New_Pop   : constant Non_Negative_Real :=
+                       Colony.Population
+                         + 0.1 * Colony.Population * Colony.Star.Habitability
+                       / 360.0;
+         Max_Pop   : constant Non_Negative_Real :=
+                       Non_Negative_Real (Colony.Star.Space);
+      begin
+         Colony.Set_Construct (Construct / 360.0);
+         Colony.Set_Population (Real'Min (New_Pop, Max_Pop));
+         Colony.Log
+           ("update: construction = " & Image (Colony.Construct)
+            & "; pop = " & Image (Colony.Population));
+         Athena.Updates.Events.Update_With_Delay
+           (Athena.Calendar.Days (1.0), Colony);
+      end;
+
+      if Colony.Has_Actions then
+         declare
+            Action : constant Root_Colony_Action'Class :=
+                       Colony.First_Action;
+         begin
+            if Action.Execute (Colony) then
+               Colony.Delete_First_Action;
+            end if;
+         end;
+      end if;
+
+   end Activate;
+
+   ----------------
+   -- Add_Action --
+   ----------------
+
+   procedure Add_Action
+     (Colony   : Colony_Handle;
+      Action   : Root_Colony_Action'Class)
+   is
+   begin
+      Vector (Colony.Reference).Actions.Append (Action);
+   end Add_Action;
+
    ------------
    -- Create --
    ------------
@@ -79,20 +165,38 @@ package body Athena.Handles.Colony is
       Material  : Non_Negative_Real := 0.0)
       return Colony_Handle
    is
+      use type Athena.Calendar.Time;
    begin
       Vector.Append
         (Colony_Record'
-           (Identifier => Next_Identifier,
-            Star       => Star.Reference,
-            Owner      => Owner.Reference,
-            Construct  => 0.0,
-            Pop        => Pop,
-            Industry   => Industry,
-            Material   => Material));
+           (Identifier  => Next_Identifier,
+            Star        => Star.Reference,
+            Owner       => Owner.Reference,
+            Next_Update =>
+              Athena.Calendar.Clock
+            + Athena.Calendar.Days (Athena.Random.Unit_Random),
+            Construct   => 0.0,
+            Pop         => Pop,
+            Industry    => Industry,
+            Material    => Material,
+            Actions     => Colony_Action_Lists.Empty_List));
       Update_Maps (Vector.Last_Index);
 
-      return (True, Vector.Last_Index);
+      return Handle : constant Colony_Handle := (True, Vector.Last_Index) do
+         Athena.Updates.Events.Update_At
+           (Vector.Last_Element.Next_Update,
+            Handle);
+      end return;
    end Create;
+
+   -------------------------
+   -- Delete_First_Action --
+   -------------------------
+
+   procedure Delete_First_Action (Colony : Colony_Handle) is
+   begin
+      Vector (Colony.Reference).Actions.Delete_First;
+   end Delete_First_Action;
 
    -----------------
    -- Iterate_All --
@@ -117,6 +221,9 @@ package body Athena.Handles.Colony is
       Colony_Vectors.Vector'Read (Stream, Vector);
       for Ref in 1 .. Vector.Last_Index loop
          Update_Maps (Ref);
+         Athena.Updates.Events.Update_At
+           (Vector (Ref).Next_Update,
+            Colony_Handle'(True, Ref));
       end loop;
    end Load;
 

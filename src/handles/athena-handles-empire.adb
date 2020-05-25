@@ -5,6 +5,11 @@ with Ada.Strings.Unbounded;
 
 with WL.String_Maps;
 
+with Athena.Calendar;
+with Athena.Random;
+
+with Athena.Updates.Events;
+
 with Athena.Handles.Ship;
 with Athena.Handles.Star;
 
@@ -26,6 +31,16 @@ package body Athena.Handles.Empire is
 
    package Ship_Lists is
      new Ada.Containers.Doubly_Linked_Lists (Ship_Reference);
+
+   type Manager_Update is
+     new Athena.Updates.Update_Interface with
+      record
+         Empire  : Empire_Handle;
+         Manager : Manager_Class;
+      end record;
+
+   overriding procedure Activate
+     (Update : Manager_Update);
 
    type Empire_Record is
       record
@@ -114,6 +129,25 @@ package body Athena.Handles.Empire is
       return Athena.Handles.Knowledge.Knowledge_Handle
    is (Athena.Handles.Knowledge.Get
          (Vector (Empire.Reference).Knowledge));
+
+   --------------
+   -- Activate --
+   --------------
+
+   overriding procedure Activate
+     (Update : Manager_Update)
+   is
+      M : Athena.Managers.Root_Manager_Type'Class renames
+            Vector (Update.Empire.Reference)
+            .Managers (Update.Manager)
+            .Reference;
+   begin
+      M.Log ("activating");
+      M.Create_Orders;
+      Athena.Updates.Events.Update_At
+        (Clock  => M.Next_Update,
+         Update => Update);
+   end Activate;
 
    ----------------
    -- Add_Colony --
@@ -316,7 +350,21 @@ package body Athena.Handles.Empire is
    begin
       Empire_Vectors.Vector'Read (Stream, Vector);
       for I in 1 .. Vector.Last_Index loop
-         Map.Insert (Ada.Strings.Unbounded.To_String (Vector (I).Name), I);
+         declare
+            Rec : Empire_Record renames Vector (I);
+         begin
+            Map.Insert
+              (Ada.Strings.Unbounded.To_String (Rec.Name), I);
+            for M in Manager_Class loop
+               if not Rec.Managers (M).Is_Empty then
+                  Athena.Updates.Events.Update_At
+                    (Clock  => Rec.Managers (M).Element.Next_Update,
+                     Update =>
+                       Manager_Update'
+                         (Get (I), M));
+               end if;
+            end loop;
+         end;
       end loop;
    end Load;
 
@@ -448,6 +496,13 @@ package body Athena.Handles.Empire is
    begin
       Rec.Managers (Manager) :=
         Manager_Holders.To_Holder (To);
+      Rec.Managers (Manager).Reference.Set_Next_Update_Delay
+        (Athena.Calendar.Days (Athena.Random.Unit_Random));
+      Athena.Updates.Events.Update_At
+        (Rec.Managers (Manager).Element.Next_Update,
+         Manager_Update'
+           (Empire  => Empire,
+            Manager => Manager));
    end Set_Manager;
 
    -------------------------

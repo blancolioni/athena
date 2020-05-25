@@ -140,6 +140,7 @@ package body Athena.Managers.Transportation is
             end;
          end;
       end loop;
+      Manager.Set_Next_Update_Delay (Athena.Calendar.Days (10));
    end Create_Orders;
 
    ------------------------------------
@@ -155,6 +156,7 @@ package body Athena.Managers.Transportation is
           (Name     => +"transport",
            Empire   => <>,
            Priority => 1050,
+           Next_Update => Athena.Calendar.Clock,
            Messages => <>);
    end Default_Transportation_Manager;
 

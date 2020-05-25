@@ -3,6 +3,11 @@ with Ada.Containers.Indefinite_Doubly_Linked_Lists;
 with Ada.Containers.Vectors;
 with Ada.Strings.Unbounded;
 
+with Athena.Calendar;
+with Athena.Random;
+
+with Athena.Updates.Events;
+
 with Athena.Handles.Design_Module;
 
 package body Athena.Handles.Ship is
@@ -39,6 +44,7 @@ package body Athena.Handles.Ship is
          Carrying    : Cargo_Array;
          Progress    : Unit_Real;
          Actions     : Ship_Action_Lists.List;
+         Next_Update : Athena.Calendar.Time;
          Script      : Ada.Strings.Unbounded.Unbounded_String;
       end record;
 
@@ -146,6 +152,17 @@ package body Athena.Handles.Ship is
    function First_Action (Ship : Ship_Handle) return Root_Ship_Action'Class
    is (Vector (Ship.Reference).Actions.First_Element);
 
+   --------------
+   -- Activate --
+   --------------
+
+   overriding procedure Activate
+     (Ship : Ship_Handle)
+   is
+   begin
+      Ship.Log ("activating");
+   end Activate;
+
    ----------------
    -- Add_Action --
    ----------------
@@ -199,6 +216,7 @@ package body Athena.Handles.Ship is
       Script      : String)
       return Ship_Handle
    is
+      use Athena.Calendar;
       Rec : Ship_Record :=
               Ship_Record'
                 (Identifier    => Next_Identifier,
@@ -220,6 +238,8 @@ package body Athena.Handles.Ship is
                  Manager       => Manager,
                  Destination   => Destination.Reference,
                  Progress      => 0.0,
+                 Next_Update   =>
+                   Clock + Days (Athena.Random.Unit_Random),
                  Actions       => <>,
                  Script        => +Script);
 
@@ -255,7 +275,14 @@ package body Athena.Handles.Ship is
    begin
       Design.Iterate_Design_Modules (Add_Design_Module'Access);
       Vector.Append (Rec);
-      return (True, Vector.Last_Index);
+
+      return Handle : constant Ship_Handle :=
+        (True, Vector.Last_Index)
+      do
+         Athena.Updates.Events.Update_At
+           (Clock  => Rec.Next_Update,
+            Update => Handle);
+      end return;
    end Create;
 
    -------------------------
@@ -304,6 +331,11 @@ package body Athena.Handles.Ship is
    procedure Load (Stream : Ada.Streams.Stream_IO.Stream_Access) is
    begin
       Ship_Vectors.Vector'Read (Stream, Vector);
+      for Reference in 1 .. Vector.Last_Index loop
+         Athena.Updates.Events.Update_At
+           (Vector (Reference).Next_Update,
+            Get (Reference));
+      end loop;
    end Load;
 
    ----------

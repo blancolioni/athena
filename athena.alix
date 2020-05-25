@@ -10,6 +10,7 @@ source_dir = src/library
 source_dir = src/managers
 source_dir = src/orders
 source_dir = src/reports
+source_dir = src/sessions
 source_dir = src/ships
 source_dir = src/stars
 source_dir = src/ui

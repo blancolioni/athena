@@ -5,6 +5,7 @@ with WL.Processes;
 
 with Athena.Options;
 
+with Athena.Calendar;
 with Athena.Logging;
 with Athena.Logs;
 with Athena.Real_Images;
@@ -12,7 +13,7 @@ with Athena.Real_Images;
 with Athena.Server;
 
 --  with Athena.Encounters;
-with Athena.Updates;
+with Athena.Updates.Control;
 
 --  with Athena.Handles.Empire;
 --  with Athena.Handles.Encounter;
@@ -130,35 +131,48 @@ begin
 
    if Athena.Options.Update then
 
+      Athena.Logging.Start_Logging ("update");
+
       Athena.Handles.State.Load_State;
 
       declare
-         Count : constant Positive :=
-                   Natural'Max (Athena.Options.Update_Count, 1);
-         Process : WL.Processes.Process_Type;
-         Start   : constant Ada.Calendar.Time := Ada.Calendar.Clock;
+         Process     : WL.Processes.Process_Type;
+         Update_Days : constant Natural := Athena.Options.Update_Count;
+         Start       : constant Ada.Calendar.Time := Ada.Calendar.Clock;
       begin
-         Process.Start_Bar ("updating", Count);
-         for I in 1 .. Count  loop
-            Athena.Updates.Run_Update;
-            Process.Tick;
-         end loop;
-         Process.Finish;
+         if Update_Days > 0 then
+            Process.Start_Bar ("Updating", Update_Days * 24, True);
 
-         declare
-            use Ada.Calendar;
-         begin
-            Ada.Text_IO.Put_Line
-              ("executed" & Count'Image & " update"
-               & (if Count = 1 then "" else "s")
-               & " in "
-               & Athena.Real_Images.Approximate_Image
-                 (Real (Clock - Start))
-               & "s");
-         end;
+            for Day_Index in 1 .. Update_Days loop
+               for Hour_Index in 1 .. 24 loop
+                  for Minute_Index in 1 .. 60 loop
+                     Athena.Calendar.Advance (60.0);
+                     Athena.Updates.Control.Execute_Pending_Updates;
+                  end loop;
+                  Process.Tick;
+               end loop;
+               Process.Tick;
+            end loop;
+            Process.Finish;
+
+            declare
+               use Ada.Calendar;
+            begin
+               Ada.Text_IO.Put_Line
+                 ("advanced" & Update_Days'Image & " day"
+                  & (if Update_Days = 1 then "" else "s")
+                  & " in "
+                  & Athena.Real_Images.Approximate_Image
+                    (Real (Clock - Start))
+                  & "s");
+            end;
+
+         end if;
+
       end;
 
       Athena.Handles.State.Save_State;
+      Athena.Logging.Stop_Logging;
 
       return;
    end if;
