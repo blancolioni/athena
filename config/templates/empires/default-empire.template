@@ -1,0 +1,4 @@
+standard-designs = {
+    scout = scout
+    transport = transport
+}

@@ -1,0 +1,3 @@
+power_per_ton = 10
+price_per_ton = 500
+fuel_per_ton_per_day = 0.005

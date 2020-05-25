@@ -1,0 +1,33 @@
+# Object file
+*.o
+
+# Ada Library Information
+*.ali
+
+# Build files
+build
+
+# Databases
+*.marlowe
+
+# Backup files
+*~
+
+# Generated files
+athena.gpr
+src/kit/*
+src/driver/athena-paths.ads
+src/driver/athena-options.ad[bs]
+config/delauny.txt
+
+# Log file
+log
+games
+options.txt
+gmon.out
+gprof.txt
+test.txt
+config/voronoi.txt
+config/voronoi.txt
+.athena-options
+nazar.log

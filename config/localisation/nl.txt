@@ -1,0 +1,8 @@
+login-name,Naam
+password,Wachtword
+login,Ga
+name,Naam
+earth-radius,Radius
+earth-mass,Gewicht
+g,Grond g
+temperature,Temperatuur

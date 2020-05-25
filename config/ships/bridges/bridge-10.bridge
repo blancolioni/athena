@@ -1,0 +1,3 @@
+tonnage = 10
+ship_tonnage = { 100 200 }
+price = 10K

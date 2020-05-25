@@ -1,0 +1,11 @@
+game-folder = games
+game-id = test-game-1
+language = en
+randomise = yes
+galaxy-radius-x = 100
+galaxy-radius-y = 100
+star-count = 800
+create = no
+log-folder = log
+auto-update = yes
+update-interval = 60

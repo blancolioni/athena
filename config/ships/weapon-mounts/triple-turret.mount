@@ -1,0 +1,7 @@
+category = turret
+concealable = yes
+price = 200
+hardpoints = 1
+weapons = 1
+power = 1
+tonnage = 1

@@ -1,0 +1,19 @@
+application (name = Athena theme = Adwaita-dark) = {
+  vertical-box = {
+#	 toolbar
+     horizontal-box (no-expand) = {
+	    label (name = empire-label text = Empire)
+		label (name = cash-label text = Cash)
+		label (name = debt-label text = Debt)
+	    label (name = turn-label text = Turn pack-end)
+		}
+	 horizontal-box = {
+		grid = {
+           draw (attach-left = 0 attach-right = 12 attach-top = 0 attach-bottom = 12 name = galaxy)
+		}
+	 }
+     horizontal-box (no-expand) = {
+        button (name = update text = Update pack-end)
+		}
+  }
+}

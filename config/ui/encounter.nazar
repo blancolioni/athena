@@ -1,0 +1,17 @@
+application (name = Athena theme = Adwaita-dark) = {
+  vertical-box = {
+#	 toolbar
+     horizontal-box (no-expand) = {
+	    label (name = combatants-label text = Combatants)
+	    label (name = turn-label text = Turn pack-end)
+		}
+	 horizontal-box = {
+		grid = {
+           draw (attach-left = 0 attach-right = 12 attach-top = 0 attach-bottom = 12 name = encounter)
+		}
+	 }
+     horizontal-box (no-expand) = {
+        button (name = update text = Update pack-end)
+		}
+  }
+}

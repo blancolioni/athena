@@ -1,0 +1,6 @@
+category = turret
+fixed = yes
+concealable = yes
+price = 100
+hardpoints = 1
+weapons = 3
