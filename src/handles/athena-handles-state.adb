@@ -3,6 +3,8 @@ with Ada.Streams.Stream_IO;
 
 with Athena.Options;
 
+with Athena.Calendar;
+
 with Athena.Handles.Colony;
 with Athena.Handles.Component;
 with Athena.Handles.Design;
@@ -38,6 +40,14 @@ package body Athena.Handles.State is
       begin
          Athena_Turn_Number'Read (S, Turn_Number);
          Object_Identifier'Read (S, Current_Identifier);
+
+         declare
+            Clock : Athena.Calendar.Time;
+         begin
+            Athena.Calendar.Time'Read (S, Clock);
+            Athena.Calendar.Set_Clock (Clock);
+         end;
+
          Athena.Handles.Colony.Load (S);
          Athena.Handles.Component.Load (S);
          Athena.Handles.Design.Load (S);
@@ -81,6 +91,7 @@ package body Athena.Handles.State is
       begin
          Athena_Turn_Number'Write (S, Turn_Number);
          Object_Identifier'Write (S, Current_Identifier);
+         Athena.Calendar.Time'Write (S, Athena.Calendar.Clock);
          Athena.Handles.Colony.Save (S);
          Athena.Handles.Component.Save (S);
          Athena.Handles.Design.Save (S);
