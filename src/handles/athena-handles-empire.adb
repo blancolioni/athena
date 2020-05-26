@@ -124,12 +124,6 @@ package body Athena.Handles.Empire is
       return Non_Negative_Real
    is (0.0);
 
-   function Knowledge
-     (Empire : Empire_Handle)
-      return Athena.Handles.Knowledge.Knowledge_Handle
-   is (Athena.Handles.Knowledge.Get
-         (Vector (Empire.Reference).Knowledge));
-
    --------------
    -- Activate --
    --------------
@@ -339,6 +333,25 @@ package body Athena.Handles.Empire is
          Process (Ship);
       end loop;
    end Iterate_Ships;
+
+   ---------------
+   -- Knowledge --
+   ---------------
+
+   function Knowledge
+     (Empire : Empire_Handle)
+      return Athena.Handles.Knowledge.Knowledge_Handle
+   is
+   begin
+      return Result : constant Athena.Handles.Knowledge.Knowledge_Handle :=
+        Athena.Handles.Knowledge.Get
+          (Vector (Empire.Reference).Knowledge)
+      do
+         if not Result.Is_Loaded then
+            Result.Load;
+         end if;
+      end return;
+   end Knowledge;
 
    ----------
    -- Load --

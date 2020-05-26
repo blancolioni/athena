@@ -33,6 +33,10 @@ package Athena.Handles.Knowledge is
      (Empire : Empire_Reference)
      return Knowledge_Handle;
 
+   function Is_Loaded
+     (Handle : Knowledge_Handle)
+      return Boolean;
+
    procedure Load
      (Handle : Knowledge_Handle);
 

@@ -51,6 +51,7 @@ package body Athena.Handles.Knowledge is
    type Knowledge_Record is
       record
          Empire         : Empire_Reference;
+         Loaded         : Boolean           := False;
          Stars          : Star_Knowledge_Maps.Map;
          Neighbour_Map  : Neighbour_Maps.Map;
          Neighbour_List : Neighbour_Lists.List;
@@ -83,6 +84,11 @@ package body Athena.Handles.Knowledge is
       return String
    is (Athena.Handles.Empire.Get (Vector (Knowledge.Reference).Empire).Name
        & " Knowledge");
+
+   function Is_Loaded
+     (Handle : Knowledge_Handle)
+      return Boolean
+   is (Vector (Handle.Reference).Loaded);
 
    function Colonizing
      (Knowledge : Knowledge_Handle;
@@ -362,6 +368,8 @@ package body Athena.Handles.Knowledge is
       end loop;
 
       Threat_Sorting.Sort (Knowledge.Threat_List);
+
+      Knowledge.Loaded := True;
 
       Empire.Log
         ("knowledge: done");
