@@ -24,28 +24,30 @@ package body Athena.Handles.Ship is
 
    type Ship_Record is
       record
-         Identifier  : Object_Identifier;
-         Name        : Ada.Strings.Unbounded.Unbounded_String;
-         Alive       : Boolean;
-         Experience  : Non_Negative_Real;
-         Managed     : Boolean;
-         Star        : Star_Reference;
-         Owner       : Empire_Reference;
-         Design      : Design_Reference;
-         Modules     : Module_Lists.List;
-         Drives      : Module_Lists.List;
-         Jump_Drive  : Module_Reference;
-         Power       : Module_Reference;
-         Tank_Size   : Non_Negative_Real;
-         Cargo_Space : Non_Negative_Real;
-         Fleet       : Fleet_Reference;
-         Manager     : Athena.Handles.Manager_Class;
-         Destination : Star_Reference;
-         Carrying    : Cargo_Array;
-         Progress    : Unit_Real;
-         Actions     : Ship_Action_Lists.List;
-         Next_Update : Athena.Calendar.Time;
-         Script      : Ada.Strings.Unbounded.Unbounded_String;
+         Identifier      : Object_Identifier;
+         Name            : Ada.Strings.Unbounded.Unbounded_String;
+         Alive           : Boolean;
+         Executing       : Boolean;
+         Experience      : Non_Negative_Real;
+         Managed         : Boolean;
+         Star            : Star_Reference;
+         Owner           : Empire_Reference;
+         Design          : Design_Reference;
+         Modules         : Module_Lists.List;
+         Drives          : Module_Lists.List;
+         Jump_Drive      : Module_Reference;
+         Power           : Module_Reference;
+         Tank_Size       : Non_Negative_Real;
+         Cargo_Space     : Non_Negative_Real;
+         Fleet           : Fleet_Reference;
+         Manager         : Athena.Handles.Manager_Class;
+         Destination     : Star_Reference;
+         Carrying        : Cargo_Array;
+         Actions         : Ship_Action_Lists.List;
+         Action_Started  : Athena.Calendar.Time;
+         Action_Finished : Athena.Calendar.Time;
+         Next_Update     : Athena.Calendar.Time;
+         Script          : Ada.Strings.Unbounded.Unbounded_String;
       end record;
 
    package Ship_Vectors is
@@ -98,12 +100,12 @@ package body Athena.Handles.Ship is
    function Has_Star_Location
      (Ship : Ship_Handle)
       return Boolean
-   is (Vector (Ship.Reference).Progress = 0.0);
+   is (Vector (Ship.Reference).Destination = 0);
 
    function Has_Deep_Space_Location
      (Ship : Ship_Handle)
       return Boolean
-   is (Vector (Ship.Reference).Progress > 0.0);
+   is (Vector (Ship.Reference).Destination /= 0);
 
    function Has_Destination
      (Ship : Ship_Handle)
@@ -124,11 +126,6 @@ package body Athena.Handles.Ship is
      (Ship : Ship_Handle)
       return Athena.Handles.Star.Star_Handle
    is (Athena.Handles.Star.Get (Vector (Ship.Reference).Destination));
-
-   function Progress
-     (Ship : Ship_Handle)
-      return Unit_Real
-   is (Vector (Ship.Reference).Progress);
 
    function Jump_Drive
      (Ship : Ship_Handle)
@@ -159,8 +156,45 @@ package body Athena.Handles.Ship is
    overriding procedure Activate
      (Ship : Ship_Handle)
    is
+      use type Athena.Calendar.Time;
    begin
       Ship.Log ("activating");
+
+      if Vector (Ship.Reference).Executing then
+         if Vector (Ship.Reference).Action_Finished
+           > Athena.Calendar.Clock
+         then
+            Ship.Log
+              ("current action finishes at "
+               & Athena.Calendar.Image
+                 (Vector (Ship.Reference).Action_Finished, True));
+            return;
+         end if;
+
+         Ship.First_Action.On_Finished (Ship);
+         Ship.Delete_First_Action;
+         Vector (Ship.Reference).Executing := False;
+      end if;
+
+      if Ship.Has_Actions then
+         declare
+            Execution_Time : constant Duration :=
+              Ship.First_Action.Start (Ship);
+         begin
+            Vector (Ship.Reference).Executing := True;
+            Vector (Ship.Reference).Action_Started :=
+              Athena.Calendar.Clock;
+            Vector (Ship.Reference).Action_Finished :=
+              Athena.Calendar.Clock + Execution_Time;
+            Athena.Updates.Events.Update_With_Delay
+              (Execution_Time, Ship);
+            return;
+         end;
+      end if;
+
+      Athena.Updates.Events.Update_With_Delay
+        (Athena.Calendar.Days (1), Ship);
+
    end Activate;
 
    ----------------
@@ -171,8 +205,13 @@ package body Athena.Handles.Ship is
      (Ship   : Ship_Handle;
       Action : Root_Ship_Action'Class)
    is
+      Actions : Ship_Action_Lists.List renames Vector (Ship.Reference).Actions;
+      Schedule : constant Boolean := Actions.Is_Empty;
    begin
-      Vector (Ship.Reference).Actions.Append (Action);
+      Actions.Append (Action);
+      if Schedule then
+         Athena.Updates.Events.Update_With_Delay (0.0, Ship);
+      end if;
    end Add_Action;
 
    --------------------
@@ -198,7 +237,6 @@ package body Athena.Handles.Ship is
       Rec : Ship_Record renames Vector (Ship.Reference);
    begin
       Rec.Destination := 0;
-      Rec.Progress := 0.0;
    end Clear_Destination;
 
    ------------
@@ -222,6 +260,7 @@ package body Athena.Handles.Ship is
                 (Identifier    => Next_Identifier,
                  Name          => +Name,
                  Alive         => True,
+                 Executing     => False,
                  Experience    => 0.0,
                  Managed       => True,
                  Star          => Star.Reference,
@@ -237,9 +276,10 @@ package body Athena.Handles.Ship is
                  Fleet         => Fleet,
                  Manager       => Manager,
                  Destination   => Destination.Reference,
-                 Progress      => 0.0,
                  Next_Update   =>
                    Clock + Days (Athena.Random.Unit_Random),
+                 Action_Started  => Clock,
+                 Action_Finished => Clock,
                  Actions       => <>,
                  Script        => +Script);
 
@@ -338,6 +378,23 @@ package body Athena.Handles.Ship is
       end loop;
    end Load;
 
+   function Progress
+     (Ship : Ship_Handle)
+      return Unit_Real
+   is
+      use type Athena.Calendar.Time;
+   begin
+      if not Ship.Has_Deep_Space_Location then
+         return 0.0;
+      end if;
+
+      return Unit_Clamp
+        (Real (Athena.Calendar.Clock
+         - Vector (Ship.Reference).Action_Started)
+         / Real (Vector (Ship.Reference).Action_Finished
+           - Vector (Ship.Reference).Action_Started));
+   end Progress;
+
    ----------
    -- Save --
    ----------
@@ -372,7 +429,6 @@ package body Athena.Handles.Ship is
       Rec : Ship_Record renames Vector (Ship.Reference);
    begin
       Rec.Destination := Destination.Reference;
-      Rec.Progress := 0.0;
    end Set_Destination;
 
    --------------
@@ -387,19 +443,6 @@ package body Athena.Handles.Ship is
    begin
       Rec.Name := +New_Name;
    end Set_Name;
-
-   ------------------
-   -- Set_Progress --
-   ------------------
-
-   procedure Set_Progress
-     (Ship     : Ship_Handle;
-      Progress : Unit_Real)
-   is
-      Rec : Ship_Record renames Vector (Ship.Reference);
-   begin
-      Rec.Progress := Progress;
-   end Set_Progress;
 
    -----------------------
    -- Set_Star_Location --

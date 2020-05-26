@@ -109,11 +109,16 @@ package Athena.Handles.Ship is
      (Action : Root_Ship_Action'Class)
       return Boolean;
 
-   function Execute
+   function Start
      (Action : Root_Ship_Action;
       Ship   : Ship_Handle'Class)
-     return Boolean
+     return Duration
    is abstract;
+
+   procedure On_Finished
+     (Action : Root_Ship_Action;
+      Ship   : Ship_Handle'Class)
+   is null;
 
    function Has_Actions (Ship : Ship_Handle) return Boolean;
 
@@ -127,11 +132,6 @@ package Athena.Handles.Ship is
 
    procedure Delete_First_Action (Ship : Ship_Handle)
      with Pre => Ship.Has_Actions;
-
-   procedure Set_Progress
-     (Ship     : Ship_Handle;
-      Progress : Unit_Real)
-     with Pre => Progress < 1.0;
 
    procedure Add_Experience
      (Ship : Ship_Handle;

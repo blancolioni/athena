@@ -190,6 +190,9 @@ package body Athena.Ships is
    is
    begin
       Ship.Owner.Knowledge.Visit (Ship.Star_Location);
+      if Ship.Has_Manager then
+         Ship.Owner.Send_Signal (Ship.Manager);
+      end if;
    end On_Arrival;
 
    -------------
