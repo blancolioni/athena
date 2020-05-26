@@ -460,6 +460,27 @@ package body Athena.Handles.Empire is
    end Send_Message;
 
    -----------------
+   -- Send_Signal --
+   -----------------
+
+   procedure Send_Signal
+     (Empire  : Empire_Handle;
+      To      : Manager_Class)
+   is
+      Rec : Empire_Record renames
+        Vector (Empire.Reference);
+   begin
+      if not Rec.Managers (To).Is_Empty then
+         Rec.Managers (To).Reference.Set_Next_Update_Delay (0.0);
+         Athena.Updates.Events.Update_With_Delay
+           (0.0,
+            Manager_Update'
+              (Empire  => Empire,
+               Manager => To));
+      end if;
+   end Send_Signal;
+
+   -----------------
    -- Set_Capital --
    -----------------
 

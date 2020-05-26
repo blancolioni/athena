@@ -105,6 +105,10 @@ package Athena.Handles.Empire is
       To      : Manager_Class;
       Message : Athena.Managers.Message_Type'Class);
 
+   procedure Send_Signal
+     (Empire  : Empire_Handle;
+      To      : Manager_Class);
+
    function Get_By_Name
      (Name : String)
       return Empire_Handle;
