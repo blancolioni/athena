@@ -118,7 +118,7 @@ package body Athena.Ships is
          return Ship.Jump_Drive.Component.Jump
            * Ship.Jump_Drive.Condition
            / Tonnage (Ship)
-           * 400.0;
+           * 40.0;
       else
          return 0.0;
       end if;
@@ -190,9 +190,6 @@ package body Athena.Ships is
    is
    begin
       Ship.Owner.Knowledge.Visit (Ship.Star_Location);
-      if Ship.Has_Manager then
-         Ship.Owner.Send_Signal (Ship.Manager);
-      end if;
    end On_Arrival;
 
    -------------

@@ -526,7 +526,12 @@ package body Athena.Handles.Knowledge is
       end Add_Orbiting_Ship;
 
    begin
-      Rec.Visited := True;
+      if not Rec.Visited then
+         Rec.Visited := True;
+         Athena.Handles.Empire.Get (Vector (Knowledge.Reference).Empire)
+           .Send_Signal (Colonization_Manager);
+      end if;
+
       Rec.Last_Visit := Current_Turn;
       Rec.Ships.Clear;
       Star.Iterate_Orbiting_Ships (Add_Orbiting_Ship'Access);

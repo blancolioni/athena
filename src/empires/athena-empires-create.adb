@@ -25,6 +25,12 @@ package body Athena.Empires.Create is
       Color     : Athena.Color.Athena_Color;
       Template  : Tropos.Configuration)
    is
+      Init : constant Tropos.Configuration :=
+        Template.Child ("init");
+
+      function Get (Name : String) return Real
+      is (Real (Long_Float'(Init.Get (Name, 0.0))));
+
       Empire         : constant Handles.Empire.Empire_Handle :=
                          Athena.Handles.Empire.Create_Empire
                            (Name       => Name,
@@ -32,8 +38,9 @@ package body Athena.Empires.Create is
                             Adjective  => Adjective,
                             Star       => Star.Reference,
                             Cash       =>
-                              Athena.Money.To_Money (100.0),
-                            Debt       => Athena.Money.Zero,
+                              Athena.Money.To_Money (Get ("cash")),
+                            Debt       =>
+                              Athena.Money.To_Money (Get ("debt")),
                             Color      => Color);
 
    begin
@@ -46,8 +53,8 @@ package body Athena.Empires.Create is
                     Athena.Colonies.New_Colony
                       (At_Star    => Star,
                        Owner      => Empire,
-                       Pop        => 1000.0,
-                       Industry   => 100.0,
+                       Pop        => Get ("pop"),
+                       Industry   => Get ("ind"),
                        Material   => 100.0);
       begin
          Empire.Set_Capital (Colony.Reference);

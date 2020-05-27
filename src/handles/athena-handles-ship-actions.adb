@@ -134,7 +134,7 @@ package body Athena.Handles.Ship.Actions is
                when Colonists =>
                   declare
                      Required_Pop      : constant Non_Negative_Real :=
-                                           10.0 * Max_Quantity;
+                                           Max_Quantity;
                      Available_Pop     : constant Non_Negative_Real :=
                                            Colony.Population;
                      Loaded_Pop        : constant Non_Negative_Real :=
@@ -146,7 +146,7 @@ package body Athena.Handles.Ship.Actions is
                      Ship.Log ("loading " & Image (Loaded_Pop)
                                & " colonists");
                      Athena.Ships.Load_Cargo
-                       (Ship, Colonists, Loaded_Pop / 10.0);
+                       (Ship, Colonists, Loaded_Pop);
                      Ship.Log ("contains "
                                & Image
                                  (Athena.Ships.Current_Cargo
@@ -254,6 +254,10 @@ package body Athena.Handles.Ship.Actions is
 
    end Start;
 
+   -----------
+   -- Start --
+   -----------
+
    overriding function Start
      (Action : Unload_Cargo_Action;
       Ship   : Ship_Handle'Class)
@@ -291,7 +295,7 @@ package body Athena.Handles.Ship.Actions is
                              Athena.Colonies.New_Colony
                                (At_Star  => Ship.Star_Location,
                                 Owner    => Ship.Owner,
-                                Pop      => Unloaded_Quantity * 10.0,
+                                Pop      => Unloaded_Quantity,
                                 Industry => 0.0,
                                 Material => 0.0);
                begin

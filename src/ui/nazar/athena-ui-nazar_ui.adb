@@ -12,11 +12,13 @@ with Nazar.Views.Draw;
 with Nazar.Main;
 with Nazar.Signals;
 
+with Athena.Calendar;
+
 --  with Athena.UI.Models.Encounters;
 
 with Athena.UI.Models.Galaxy;
 
---  with Athena.Updates;
+with Athena.Updates.Control;
 
 with Athena.Options;
 with Athena.Paths;
@@ -142,7 +144,7 @@ package body Athena.UI.Nazar_UI is
 
          declare
             Model : constant Nazar.Models.Text.Nazar_Text_Model :=
-                      Athena.UI.Models.Current_Turn_Model;
+                      Athena.UI.Models.Current_Date_Model;
          begin
             Builder.Get_View ("turn-label").Set_Model (Model);
             Result.Models.Append (Nazar.Models.Nazar_Model (Model));
@@ -305,7 +307,8 @@ package body Athena.UI.Nazar_UI is
 
          or
             delay Update_Interval;
-            --  Athena.Updates.Run_Update;
+            Athena.Calendar.Advance (3600.0);
+            Athena.Updates.Control.Execute_Pending_Updates;
 
             Nazar.Main.With_Render_Lock
               (Reload_Models'Access);

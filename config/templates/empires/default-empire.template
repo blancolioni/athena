@@ -1,3 +1,9 @@
+init = {
+	pop = 2K
+	ind = 2K
+	cash = 1K
+}
+
 standard-designs = {
     scout = scout
     transport = transport

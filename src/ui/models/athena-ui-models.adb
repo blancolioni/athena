@@ -1,13 +1,14 @@
+with Athena.Calendar;
 with Athena.Money;
 
 package body Athena.UI.Models is
 
-   type Current_Turn_Model_Record is
+   type Current_Date_Model_Record is
      new Dynamic_Text_Model with null record;
 
    overriding function Current_Text
-     (Model : Current_Turn_Model_Record) return String
-   is ("Turn " & Athena.Handles.Current_Turn_Image);
+     (Model : Current_Date_Model_Record) return String
+   is (Athena.Calendar.Image (Athena.Calendar.Clock));
 
    type Current_Cash_Model_Record is
      new Dynamic_Text_Model with
@@ -51,6 +52,20 @@ package body Athena.UI.Models is
    end Current_Cash_Model;
 
    ------------------------
+   -- Current_Turn_Model --
+   ------------------------
+
+   function Current_Date_Model return Nazar.Models.Text.Nazar_Text_Model is
+   begin
+      return Model : constant Nazar.Models.Text.Nazar_Text_Model :=
+        new Current_Date_Model_Record
+      do
+         Model.Set_Text ("");
+         Model.Reload;
+      end return;
+   end Current_Date_Model;
+
+   ------------------------
    -- Current_Debt_Model --
    ------------------------
 
@@ -68,20 +83,6 @@ package body Athena.UI.Models is
          Model.Reload;
       end return;
    end Current_Debt_Model;
-
-   ------------------------
-   -- Current_Turn_Model --
-   ------------------------
-
-   function Current_Turn_Model return Nazar.Models.Text.Nazar_Text_Model is
-   begin
-      return Model : constant Nazar.Models.Text.Nazar_Text_Model :=
-        new Current_Turn_Model_Record
-      do
-         Model.Set_Text ("");
-         Model.Reload;
-      end return;
-   end Current_Turn_Model;
 
    ------------
    -- Reload --

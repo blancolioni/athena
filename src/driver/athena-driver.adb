@@ -132,7 +132,6 @@ begin
    if Athena.Options.Update then
 
       Athena.Logging.Start_Logging ("update");
-
       Athena.Handles.State.Load_State;
 
       declare
@@ -236,6 +235,7 @@ begin
    --        return;
    --     end if;
 
+   Athena.Logging.Start_Logging ("gui");
    Athena.Handles.State.Load_State;
 
    declare
@@ -248,6 +248,8 @@ begin
    end;
 
    Athena.Handles.State.Save_State;
+
+   Athena.Logging.Stop_Logging;
 
 exception
 

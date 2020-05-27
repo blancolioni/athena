@@ -44,21 +44,22 @@ package body Athena.Handles.Empire is
 
    type Empire_Record is
       record
-         Identifier : Object_Identifier;
-         Home       : Star_Reference;
-         Capital    : Colony_Reference;
-         Name       : Ada.Strings.Unbounded.Unbounded_String;
-         Plural     : Ada.Strings.Unbounded.Unbounded_String;
-         Adjective  : Ada.Strings.Unbounded.Unbounded_String;
-         Color      : Athena.Color.Athena_Color;
-         Cash       : Athena.Money.Money_Type;
-         Debt       : Athena.Money.Money_Type;
-         Interest   : Unit_Real;
-         Managers   : Manager_Array;
-         Designs    : Design_Array;
-         Colonies   : Colony_Lists.List;
-         Ships      : Ship_Lists.List;
-         Knowledge  : Knowledge_Reference;
+         Identifier  : Object_Identifier;
+         Home        : Star_Reference;
+         Capital     : Colony_Reference;
+         Name        : Ada.Strings.Unbounded.Unbounded_String;
+         Plural      : Ada.Strings.Unbounded.Unbounded_String;
+         Adjective   : Ada.Strings.Unbounded.Unbounded_String;
+         Color       : Athena.Color.Athena_Color;
+         Cash        : Athena.Money.Money_Type;
+         Debt        : Athena.Money.Money_Type;
+         Interest    : Unit_Real;
+         Managers    : Manager_Array;
+         Designs     : Design_Array;
+         Colonies    : Colony_Lists.List;
+         Ships       : Ship_Lists.List;
+         Knowledge   : Knowledge_Reference;
+         Next_Update : Athena.Calendar.Time;
       end record;
 
    package Empire_Vectors is
@@ -129,6 +130,19 @@ package body Athena.Handles.Empire is
    --------------
 
    overriding procedure Activate
+     (Empire : Empire_Handle)
+   is
+   begin
+      Empire.Knowledge.Load;
+      Athena.Updates.Events.Update_With_Delay
+        (Athena.Calendar.Days (5), Empire);
+   end Activate;
+
+   --------------
+   -- Activate --
+   --------------
+
+   overriding procedure Activate
      (Update : Manager_Update)
    is
       M : Athena.Managers.Root_Manager_Type'Class renames
@@ -181,31 +195,39 @@ package body Athena.Handles.Empire is
       Debt      : Athena.Money.Money_Type)
       return Empire_Handle
    is
+      use type Athena.Calendar.Time;
+      First_Update_Delay : constant Duration :=
+        Athena.Calendar.Days
+          (5.0 * Athena.Random.Unit_Random);
    begin
       Vector.Append
         (Empire_Record'
-           (Identifier => Next_Identifier,
-            Name       => +Name,
-            Home       => Star,
-            Capital    => Null_Colony_Reference,
-            Plural     => +Plural,
-            Adjective  => +Adjective,
-            Color      => Color,
-            Cash       => Cash,
-            Debt       => Debt,
-            Interest   => 0.1,
-            Managers   => (others => <>),
-            Designs    => (others => 0),
-            Colonies   => <>,
-            Ships      => <>,
-            Knowledge  => <>));
+           (Identifier  => Next_Identifier,
+            Name        => +Name,
+            Home        => Star,
+            Capital     => Null_Colony_Reference,
+            Plural      => +Plural,
+            Adjective   => +Adjective,
+            Color       => Color,
+            Cash        => Cash,
+            Debt        => Debt,
+            Interest    => 0.1,
+            Managers    => (others => <>),
+            Designs     => (others => 0),
+            Colonies    => <>,
+            Ships       => <>,
+            Next_Update => Athena.Calendar.Clock + First_Update_Delay,
+            Knowledge   => <>));
       Map.Insert (Name, Vector.Last_Index);
       Athena.Handles.Star.Get (Star).Set_Owner (Vector.Last_Index);
 
       Vector (Vector.Last_Index).Knowledge :=
         Athena.Handles.Knowledge.Create (Vector.Last_Index).Reference;
 
-      return Empire : constant Empire_Handle := (True, Vector.Last_Index);
+      return Empire : constant Empire_Handle := (True, Vector.Last_Index) do
+         Athena.Updates.Events.Update_With_Delay
+           (First_Update_Delay, Empire);
+      end return;
 
    end Create_Empire;
 
@@ -368,6 +390,9 @@ package body Athena.Handles.Empire is
          begin
             Map.Insert
               (Ada.Strings.Unbounded.To_String (Rec.Name), I);
+            Athena.Updates.Events.Update_At
+              (Rec.Next_Update,
+               Empire_Handle'(True, I));
             for M in Manager_Class loop
                if not Rec.Managers (M).Is_Empty then
                   Athena.Updates.Events.Update_At
@@ -456,6 +481,12 @@ package body Athena.Handles.Empire is
    begin
       if not Rec.Managers (To).Is_Empty then
          Rec.Managers (To).Reference.Send_Message (Message);
+         Rec.Managers (To).Reference.Set_Next_Update_Delay (0.0);
+         Athena.Updates.Events.Update_With_Delay
+           (0.0,
+            Manager_Update'
+              (Empire  => Empire,
+               Manager => To));
       end if;
    end Send_Message;
 

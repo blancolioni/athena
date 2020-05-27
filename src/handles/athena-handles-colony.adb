@@ -3,7 +3,6 @@ with Ada.Containers.Indefinite_Doubly_Linked_Lists;
 with Ada.Containers.Ordered_Maps;
 with Ada.Containers.Vectors;
 
-with Athena.Calendar;
 with Athena.Money;
 with Athena.Random;
 
@@ -22,6 +21,7 @@ package body Athena.Handles.Colony is
          Identifier  : Object_Identifier;
          Star        : Star_Reference;
          Owner       : Empire_Reference;
+         Founded     : Athena.Calendar.Time;
          Next_Update : Athena.Calendar.Time;
          Construct   : Non_Negative_Real := 0.0;
          Pop         : Non_Negative_Real := 0.0;
@@ -56,6 +56,11 @@ package body Athena.Handles.Colony is
      (Colony : Colony_Handle)
       return Athena.Handles.Star.Star_Handle
    is (Athena.Handles.Star.Get (Vector (Colony.Reference).Star));
+
+   function Founded
+     (Colony : Colony_Handle)
+      return Athena.Calendar.Time
+   is (Vector (Colony.Reference).Founded);
 
    function Owner
      (Colony : Colony_Handle)
@@ -119,7 +124,7 @@ package body Athena.Handles.Colony is
          Max_Pop   : constant Non_Negative_Real :=
                        Non_Negative_Real (Colony.Star.Space);
       begin
-         Colony.Set_Construct (Construct / 360.0);
+         Colony.Set_Construct (Construct / 100.0);
          Colony.Set_Population (Real'Min (New_Pop, Max_Pop));
          Colony.Log
            ("update: construction = " & Image (Colony.Construct)
@@ -172,6 +177,7 @@ package body Athena.Handles.Colony is
            (Identifier  => Next_Identifier,
             Star        => Star.Reference,
             Owner       => Owner.Reference,
+            Founded     => Athena.Calendar.Clock,
             Next_Update =>
               Athena.Calendar.Clock
             + Athena.Calendar.Days (Athena.Random.Unit_Random),

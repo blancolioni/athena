@@ -4,6 +4,8 @@ with Athena.Color;
 with Athena.Managers;
 with Athena.Money;
 
+with Athena.Updates;
+
 with Athena.Handles.Knowledge;
 with Athena.Handles.Technology;
 
@@ -15,6 +17,7 @@ package Athena.Handles.Empire is
 
    type Empire_Handle is
      new Root_Athena_Handle
+     and Athena.Updates.Update_Interface
      and Has_Identifier_Interface
    with private;
 
@@ -180,10 +183,14 @@ private
 
    type Empire_Handle is
      new Root_Athena_Handle
+     and Athena.Updates.Update_Interface
      and Has_Identifier_Interface with
       record
          Reference : Empire_Reference := 0;
       end record;
+
+   overriding procedure Activate
+     (Empire : Empire_Handle);
 
    overriding function Short_Name
      (Empire : Empire_Handle)

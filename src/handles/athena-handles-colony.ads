@@ -1,5 +1,6 @@
 with Ada.Streams.Stream_IO;
 
+with Athena.Calendar;
 with Athena.Updates;
 
 with Athena.Handles.Star;
@@ -19,6 +20,10 @@ package Athena.Handles.Colony is
    function Star
      (Colony : Colony_Handle)
       return Athena.Handles.Star.Star_Handle;
+
+   function Founded
+     (Colony : Colony_Handle)
+      return Athena.Calendar.Time;
 
    function Population
      (Colony : Colony_Handle)
@@ -116,7 +121,7 @@ private
    overriding function Short_Name
      (Colony : Colony_Handle)
       return String
-   is (Colony.Owner.Name & " colony at " & Colony.Star.Name);
+   is (Colony.Owner.Adjective & " colony at " & Colony.Star.Name);
 
    function Reference (Colony : Colony_Handle) return Colony_Reference
    is (Colony.Reference);

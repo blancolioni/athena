@@ -190,6 +190,9 @@ package body Athena.Handles.Ship is
               (Execution_Time, Ship);
             return;
          end;
+      elsif Ship.Has_Manager then
+         Ship.Log ("signaling manager " & Ship.Manager'Image);
+         Ship.Owner.Send_Signal (Ship.Manager);
       end if;
 
       Athena.Updates.Events.Update_With_Delay
@@ -388,11 +391,25 @@ package body Athena.Handles.Ship is
          return 0.0;
       end if;
 
-      return Unit_Clamp
-        (Real (Athena.Calendar.Clock
-         - Vector (Ship.Reference).Action_Started)
-         / Real (Vector (Ship.Reference).Action_Finished
-           - Vector (Ship.Reference).Action_Started));
+      declare
+         Action_Started  : constant Athena.Calendar.Time :=
+           Vector (Ship.Reference).Action_Started;
+         Action_Finished : constant Athena.Calendar.Time :=
+           Vector (Ship.Reference).Action_Finished;
+         Journey_Time    : constant Real :=
+           Real (Action_Finished - Action_Started);
+         Elapsed_Time    : constant Real :=
+           Real (Athena.Calendar.Clock - Action_Started);
+      begin
+         if Journey_Time = 0.0 then
+            Ship.Log ("warning: journey starts and finishes at "
+                      & Athena.Calendar.Image (Action_Started, True));
+            return 1.0;
+         else
+            return Unit_Clamp (Elapsed_Time / Journey_Time);
+         end if;
+      end;
+
    end Progress;
 
    ----------

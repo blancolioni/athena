@@ -1,3 +1,6 @@
+with Athena.Calendar;
+with Athena.Money;
+
 with Athena.Ships;
 
 with Athena.Handles.Colony;
@@ -35,6 +38,7 @@ package body Athena.Reports.Empires is
       begin
          Add_Row (Table);
          Add_Cell (Table, Colony.Star.Name);
+         Add_Cell (Table, Athena.Calendar.Image (Colony.Founded));
          Add_Cell (Table, Image (Real (Colony.Star.Space)));
          Add_Cell (Table, Image (Colony.Star.Resource * 100.0));
          Add_Cell (Table, Image (Colony.Star.Habitability * 100.0));
@@ -45,6 +49,7 @@ package body Athena.Reports.Empires is
 
    begin
       Add_Heading (Table, "star");
+      Add_Heading (Table, "founded");
       Add_Heading (Table, "space");
       Add_Heading (Table, "res");
       Add_Heading (Table, "hab");
@@ -65,6 +70,14 @@ package body Athena.Reports.Empires is
    is
    begin
       Writer.Put_Heading (Empire.Name);
+
+      Writer.Put_Line
+        ("Date: " & Athena.Calendar.Image (Athena.Calendar.Clock));
+      Writer.Put_Line
+        ("Cash: " & Athena.Money.Show (Empire.Cash));
+      Writer.Put_Line
+        ("Debt: " & Athena.Money.Show (Empire.Debt));
+      Writer.New_Line;
 
       Write (Colony_Report (Empire), Writer);
       Write (Ship_Report (Empire), Writer);

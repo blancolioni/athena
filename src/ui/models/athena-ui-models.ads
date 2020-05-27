@@ -4,7 +4,7 @@ with Athena.Handles.Empire;
 
 package Athena.UI.Models is
 
-   function Current_Turn_Model return Nazar.Models.Text.Nazar_Text_Model;
+   function Current_Date_Model return Nazar.Models.Text.Nazar_Text_Model;
 
    function Current_Cash_Model
      (Empire : Athena.Handles.Empire.Empire_Handle)

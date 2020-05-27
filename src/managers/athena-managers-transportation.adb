@@ -134,6 +134,9 @@ package body Athena.Managers.Transportation is
                         Ship.Add_Action
                           (Athena.Handles.Ship.Actions.Unload_Cargo
                              (Message.Cargo, Loaded - Have));
+                        Ship.Add_Action
+                          (Athena.Handles.Ship.Actions.Move_To
+                             (From));
                      end;
                   end if;
                end loop;
