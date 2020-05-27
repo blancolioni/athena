@@ -109,8 +109,7 @@ package body Athena.Managers.Exploration is
                      Athena.Ships.Lists.Element (Assigned);
          begin
             Manager.Log ("move " & Ship.Name & " to " & To_Star.Name);
-            Ship.Add_Action
-              (Athena.Handles.Ship.Actions.Move_To (To_Star));
+            Athena.Handles.Ship.Actions.Move_To (Ship, To_Star);
          end;
 
          Available.Delete (Assigned);
@@ -158,8 +157,7 @@ package body Athena.Managers.Exploration is
          end loop;
 
          if Closest.Has_Element then
-            Closest.Add_Action
-              (Athena.Handles.Ship.Actions.Move_To (Star));
+            Athena.Handles.Ship.Actions.Move_To (Closest, Star);
          else
             Stop := True;
          end if;

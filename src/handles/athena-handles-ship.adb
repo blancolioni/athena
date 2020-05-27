@@ -44,6 +44,7 @@ package body Athena.Handles.Ship is
          Destination     : Star_Reference;
          Carrying        : Cargo_Array;
          Fuel            : Non_Negative_Real;
+         Activity        : Ship_Activity;
          Actions         : Ship_Action_Lists.List;
          Action_Started  : Athena.Calendar.Time;
          Action_Finished : Athena.Calendar.Time;
@@ -280,7 +281,8 @@ package body Athena.Handles.Ship is
                    Clock + Days (Athena.Random.Unit_Random),
                  Action_Started  => Clock,
                  Action_Finished => Clock,
-                 Actions       => <>,
+                 Actions         => <>,
+                 Activity        => Idle,
                  Script        => +Script);
 
       procedure Add_Design_Module
@@ -410,6 +412,10 @@ package body Athena.Handles.Ship is
       end loop;
    end Load;
 
+   --------------
+   -- Progress --
+   --------------
+
    function Progress
      (Ship : Ship_Handle)
       return Unit_Real
@@ -449,6 +455,19 @@ package body Athena.Handles.Ship is
    begin
       Ship_Vectors.Vector'Write (Stream, Vector);
    end Save;
+
+   ------------------
+   -- Set_Activity --
+   ------------------
+
+   procedure Set_Activity
+     (Ship     : Ship_Handle;
+      Activity : Ship_Activity)
+   is
+   begin
+      Ship.Log ("activity: " & Activity'Image);
+      Vector (Ship.Reference).Activity := Activity;
+   end Set_Activity;
 
    -----------------------
    -- Set_Current_Cargo --

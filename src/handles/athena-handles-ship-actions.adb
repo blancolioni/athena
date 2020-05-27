@@ -8,19 +8,51 @@ with Athena.Stars;
 
 package body Athena.Handles.Ship.Actions is
 
-   type Move_To_Action is
+   type System_Departure_Action is
+     new Root_Ship_Action with
+      record
+         null;
+      end record;
+
+   overriding function Start
+     (Action : System_Departure_Action;
+      Ship   : Ship_Handle'Class)
+      return Duration;
+
+   overriding procedure On_Finished
+     (Action : System_Departure_Action;
+      Ship   : Ship_Handle'Class)
+   is null;
+
+   type System_Arrival_Action is
+     new Root_Ship_Action with
+      record
+         null;
+      end record;
+
+   overriding function Start
+     (Action : System_Arrival_Action;
+      Ship   : Ship_Handle'Class)
+      return Duration;
+
+   overriding procedure On_Finished
+     (Action : System_Arrival_Action;
+      Ship   : Ship_Handle'Class)
+   is null;
+
+   type Jump_To_Action is
      new Root_Ship_Action with
       record
          Destination : Athena.Handles.Star.Star_Handle;
       end record;
 
    overriding function Start
-     (Action : Move_To_Action;
+     (Action : Jump_To_Action;
       Ship   : Ship_Handle'Class)
       return Duration;
 
    overriding procedure On_Finished
-     (Action : Move_To_Action;
+     (Action : Jump_To_Action;
       Ship   : Ship_Handle'Class);
 
    type Load_Cargo_Action is
@@ -77,14 +109,22 @@ package body Athena.Handles.Ship.Actions is
    -- Move_To --
    -------------
 
-   function Move_To
-     (Star : Athena.Handles.Star.Star_Handle)
-      return Root_Ship_Action'Class
+   procedure Move_To
+     (Ship : Ship_Handle;
+      Star : Athena.Handles.Star.Star_Handle)
    is
    begin
-      return Move_To_Action'
-        (Complete    => False,
-         Destination => Star);
+      Ship.Add_Action
+        (Action => System_Departure_Action'(Complete => False));
+
+      Ship.Add_Action
+        (Action => Jump_To_Action'
+           (Complete => False,
+            Destination => Star));
+
+      Ship.Add_Action
+        (Action => System_Arrival_Action'(Complete => False));
+
    end Move_To;
 
    -----------------
@@ -92,13 +132,14 @@ package body Athena.Handles.Ship.Actions is
    -----------------
 
    overriding procedure On_Finished
-     (Action : Move_To_Action;
+     (Action : Jump_To_Action;
       Ship   : Ship_Handle'Class)
    is
    begin
       Ship.Set_Star_Location (Ship.Destination);
       Ship.Clear_Destination;
       Athena.Ships.On_Arrival (Ship);
+      Set_Activity (Ship, Arriving);
    end On_Finished;
 
    -----------
@@ -194,7 +235,22 @@ package body Athena.Handles.Ship.Actions is
    -----------
 
    overriding function Start
-     (Action : Move_To_Action;
+     (Action : System_Departure_Action;
+      Ship   : Ship_Handle'Class)
+      return Duration
+   is
+   begin
+      Ship.Set_Activity (Departing);
+      return Athena.Calendar.Days
+        (100.0 / Athena.Ships.Get_Impulse_Speed (Ship));
+   end Start;
+
+   -----------
+   -- Start --
+   -----------
+
+   overriding function Start
+     (Action : Jump_To_Action;
       Ship   : Ship_Handle'Class)
       return Duration
    is
@@ -233,6 +289,7 @@ package body Athena.Handles.Ship.Actions is
               & " days");
 
          Ship.Add_Experience (XP);
+         Ship.Set_Activity (Jumping);
 
          --  if Speed >= Remaining then
          --     Log (Ship, "arrives at " & Ship.Destination.Name);
@@ -394,6 +451,21 @@ package body Athena.Handles.Ship.Actions is
             end if;
 
       end case;
+   end Start;
+
+   -----------
+   -- Start --
+   -----------
+
+   overriding function Start
+     (Action : System_Arrival_Action;
+      Ship   : Ship_Handle'Class)
+      return Duration
+   is
+   begin
+      Ship.Set_Activity (Arriving);
+      return Athena.Calendar.Days
+        (100.0 / Athena.Ships.Get_Impulse_Speed (Ship));
    end Start;
 
    ------------------

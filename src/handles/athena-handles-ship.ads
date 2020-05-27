@@ -165,6 +165,9 @@ package Athena.Handles.Ship is
 
 private
 
+   type Ship_Activity is
+     (Idle, Loading, Unloading, Departing, Jumping, Arriving);
+
    type Ship_Handle is
      new Root_Athena_Handle
      and Has_Identifier_Interface
@@ -200,6 +203,10 @@ private
 
    procedure Clear_Destination
      (Ship        : Ship_Handle);
+
+   procedure Set_Activity
+     (Ship     : Ship_Handle;
+      Activity : Ship_Activity);
 
    function Reference (Ship : Ship_Handle) return Ship_Reference
    is (Ship.Reference);

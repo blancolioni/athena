@@ -1,7 +1,8 @@
 package Athena.Handles.Ship.Actions is
 
-   function Move_To (Star : Athena.Handles.Star.Star_Handle)
-                     return Root_Ship_Action'Class;
+   procedure Move_To
+     (Ship : Ship_Handle;
+      Star : Athena.Handles.Star.Star_Handle);
 
    function Load_Cargo
      (Cargo    : Cargo_Class;

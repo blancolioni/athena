@@ -118,9 +118,7 @@ package body Athena.Managers.Transportation is
                      begin
                         if Have < Loaded then
                            if Ship.Star_Location /= From then
-                              Ship.Add_Action
-                                (Athena.Handles.Ship.Actions.Move_To
-                                   (From));
+                              Athena.Handles.Ship.Actions.Move_To (Ship, From);
                            end if;
 
                            Ship.Add_Action
@@ -130,15 +128,12 @@ package body Athena.Managers.Transportation is
 
                         Remaining := Remaining - Loaded;
 
-                        Ship.Add_Action
-                          (Athena.Handles.Ship.Actions.Move_To
-                             (Athena.Handles.Star.Get (Message.To)));
+                        Athena.Handles.Ship.Actions.Move_To
+                          (Ship, Athena.Handles.Star.Get (Message.To));
                         Ship.Add_Action
                           (Athena.Handles.Ship.Actions.Unload_Cargo
                              (Message.Cargo, Loaded - Have));
-                        Ship.Add_Action
-                          (Athena.Handles.Ship.Actions.Move_To
-                             (From));
+                        Athena.Handles.Ship.Actions.Move_To (Ship, From);
                      end;
                   end if;
                end loop;
