@@ -1,4 +1,5 @@
-tonnage = 20
+tonnage = 200
+mass = 20
 power-output = 110
 price = 6
 fuel = 15

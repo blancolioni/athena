@@ -25,6 +25,10 @@ package Athena.Handles.Component is
      (Component : Component_Handle)
       return Non_Negative_Real;
 
+   function Mass
+     (Component : Component_Handle)
+      return Non_Negative_Real;
+
    function Price
      (Component : Component_Handle)
       return Athena.Money.Price_Type;
@@ -33,7 +37,11 @@ package Athena.Handles.Component is
      (Component : Component_Handle)
       return Non_Negative_Real;
 
-   function Power_Consumption
+   function Idle_Power_Consumption
+     (Component : Component_Handle)
+      return Non_Negative_Real;
+
+   function Active_Power_Consumption
      (Component : Component_Handle)
       return Non_Negative_Real;
 
@@ -102,9 +110,11 @@ private
          Identifier        : Object_Identifier;
          Tag               : Ada.Strings.Unbounded.Unbounded_String;
          Tonnage           : Non_Negative_Real;
+         Mass              : Non_Negative_Real;
          Price             : Athena.Money.Price_Type;
          Fuel_Consumption  : Non_Negative_Real;
-         Power_Consumption : Non_Negative_Real;
+         Idle_Power        : Non_Negative_Real;
+         Active_Power      : Non_Negative_Real;
       end record;
 
    function Jump

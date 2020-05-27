@@ -9,6 +9,13 @@ package Athena.Handles.Hull_Armor is
 
    function Reference (Armor : Hull_Armor_Handle) return Hull_Armor_Reference;
    function Get (Armor : Hull_Armor_Reference) return Hull_Armor_Handle;
+   function Empty_Handle
+      return Hull_Armor_Handle;
+
+   function Mass
+     (Armor : Hull_Armor_Handle)
+      return Non_Negative_Real
+     with Pre => Armor.Has_Element;
 
    function Tonnage_Fraction
      (Armor : Hull_Armor_Handle)
@@ -26,6 +33,7 @@ package Athena.Handles.Hull_Armor is
 
    procedure Create
      (Tag              : String;
+      Mass             : Non_Negative_Real;
       Tonnage_Fraction : Unit_Real;
       Price_Fraction   : Unit_Real);
 
@@ -58,5 +66,9 @@ private
 
    function Get (Armor : Hull_Armor_Reference) return Hull_Armor_Handle
    is (Armor /= 0, Armor);
+
+   function Empty_Handle
+     return Hull_Armor_Handle
+   is (False, 0);
 
 end Athena.Handles.Hull_Armor;

@@ -13,6 +13,8 @@ package body Athena.Handles.Component.Computer is
    procedure Create
      (Tag      : String;
       Tonnage  : Non_Negative_Real;
+      Mass     : Non_Negative_Real;
+      Power    : Non_Negative_Real;
       Price    : Athena.Money.Price_Type;
       Capacity : Positive)
    is
@@ -22,9 +24,11 @@ package body Athena.Handles.Component.Computer is
            (Tag               => +Tag,
             Identifier        => Next_Identifier,
             Tonnage           => Tonnage,
+            Mass              => Mass,
             Price             => Price,
             Fuel_Consumption  => 0.0,
-            Power_Consumption => 0.0,
+            Idle_Power        => Power,
+            Active_Power      => Power,
             Capacity          => Capacity));
    end Create;
 

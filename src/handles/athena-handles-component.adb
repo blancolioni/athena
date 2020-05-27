@@ -25,6 +25,11 @@ package body Athena.Handles.Component is
       return Non_Negative_Real
    is (Vector.Constant_Reference (Component.Reference).Element.Tonnage);
 
+   function Mass
+     (Component : Component_Handle)
+      return Non_Negative_Real
+   is (Vector.Constant_Reference (Component.Reference).Element.Mass);
+
    function Price
      (Component : Component_Handle)
       return Athena.Money.Price_Type
@@ -36,11 +41,17 @@ package body Athena.Handles.Component is
    is (Vector.Constant_Reference (Component.Reference)
        .Element.Fuel_Consumption);
 
-   function Power_Consumption
+   function Active_Power_Consumption
      (Component : Component_Handle)
       return Non_Negative_Real
    is (Vector.Constant_Reference (Component.Reference)
-       .Element.Power_Consumption);
+       .Element.Active_Power);
+
+   function Idle_Power_Consumption
+     (Component : Component_Handle)
+      return Non_Negative_Real
+   is (Vector.Constant_Reference (Component.Reference)
+       .Element.Idle_Power);
 
    function Has_Jump
      (Component : Component_Handle)

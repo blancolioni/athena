@@ -213,7 +213,7 @@ begin
    --  --           else
    --
    --        declare
-   --           Encounter : constant Athena.Handles.Encounter.Encounter_Handle :=
+   --        Encounter : constant Athena.Handles.Encounter.Encounter_Handle :=
    --                         Athena.Encounters.Find
    --                           (Athena.Options.Star_Name,
    --                            Athena.Options.Turn);

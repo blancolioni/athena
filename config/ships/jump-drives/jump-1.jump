@@ -1,5 +1,7 @@
-tonnage = 12
+tonnage = 120
+mass = 100
 price = 1500
-power = 40
+power = 4
+active-power = 40
 fuel = 10
 jump = 1

@@ -16,12 +16,14 @@ package body Athena.Handles.Component.Jump_Drive is
    -----------------------
 
    procedure Create_Jump_Drive
-     (Tag     : String;
-      Tonnage : Non_Negative_Real;
-      Price   : Athena.Money.Price_Type;
-      Power   : Non_Negative_Real;
-      Fuel    : Non_Negative_Real;
-      Jump    : Non_Negative_Real)
+     (Tag        : String;
+      Tonnage    : Non_Negative_Real;
+      Mass       : Non_Negative_Real;
+      Price      : Athena.Money.Price_Type;
+      Idle_Power : Non_Negative_Real;
+      Jump_Power : Non_Negative_Real;
+      Fuel       : Non_Negative_Real;
+      Jump       : Non_Negative_Real)
    is
    begin
       Add_Component
@@ -29,9 +31,11 @@ package body Athena.Handles.Component.Jump_Drive is
            (Tag               => +Tag,
             Identifier        => Next_Identifier,
             Tonnage           => Tonnage,
+            Mass              => Mass,
             Price             => Price,
             Fuel_Consumption  => Fuel,
-            Power_Consumption => Power,
+            Idle_Power        => Idle_Power,
+            Active_Power      => Jump_Power,
             Jump              => Jump));
    end Create_Jump_Drive;
 

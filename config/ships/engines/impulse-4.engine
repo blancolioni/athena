@@ -1,5 +1,7 @@
-tonnage = 4.5
+tonnage = 45
+mass = 45
 cost = 45
 fuel = 0
-power = 35
+power = 9
+full-power = 35
 impulse = 4

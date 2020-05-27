@@ -16,11 +16,12 @@ package body Athena.Handles.Component.Power is
    ------------
 
    procedure Create
-     (Tag          : String;
-      Tonnage      : Non_Negative_Real;
-      Price        : Athena.Money.Price_Type;
-      Fuel_Per_Day : Non_Negative_Real;
-      Power_Output : Non_Negative_Real)
+     (Tag               : String;
+      Tonnage           : Non_Negative_Real;
+      Mass              : Non_Negative_Real;
+      Price             : Athena.Money.Price_Type;
+      Fuel_Per_Day      : Non_Negative_Real;
+      Power_Output      : Non_Negative_Real)
    is
    begin
       Add_Component
@@ -28,9 +29,11 @@ package body Athena.Handles.Component.Power is
            (Identifier        => Next_Identifier,
             Tag               => +Tag,
             Tonnage           => Tonnage,
+            Mass              => Mass,
             Price             => Price,
             Fuel_Consumption  => Fuel_Per_Day,
-            Power_Consumption => 0.0,
+            Idle_Power        => 0.0,
+            Active_Power      => 0.0,
             Power_Output      => Power_Output));
    end Create;
 

@@ -1,3 +1,4 @@
 streamlined = yes
 hull_points = 1
 cost = 2
+mass = 0.15

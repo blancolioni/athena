@@ -43,6 +43,7 @@ package body Athena.Handles.Ship is
          Manager         : Athena.Handles.Manager_Class;
          Destination     : Star_Reference;
          Carrying        : Cargo_Array;
+         Fuel            : Non_Negative_Real;
          Actions         : Ship_Action_Lists.List;
          Action_Started  : Athena.Calendar.Time;
          Action_Finished : Athena.Calendar.Time;
@@ -275,6 +276,7 @@ package body Athena.Handles.Ship is
                  Power         => Null_Module_Reference,
                  Tank_Size     => Design.Tank_Size,
                  Cargo_Space   => Design.Cargo_Space,
+                 Fuel          => 0.0,
                  Carrying      => (others => 0.0),
                  Fleet         => Fleet,
                  Manager       => Manager,
@@ -327,6 +329,24 @@ package body Athena.Handles.Ship is
             Update => Handle);
       end return;
    end Create;
+
+   ------------------
+   -- Current_Mass --
+   ------------------
+
+   function Current_Mass
+     (Ship : Ship_Handle)
+      return Non_Negative_Real
+   is
+      Rec  : Ship_Record renames Vector (Ship.Reference);
+      Mass : Non_Negative_Real := Ship.Design.Mass;
+   begin
+      Mass := Mass + Rec.Fuel;
+      for Cargo of Rec.Carrying loop
+         Mass := Mass + Cargo;
+      end loop;
+      return Mass;
+   end Current_Mass;
 
    -------------------------
    -- Delete_First_Action --

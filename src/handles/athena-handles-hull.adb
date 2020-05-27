@@ -13,6 +13,7 @@ package body Athena.Handles.Hull is
          Hull_Points   : Non_Negative_Real;
          Cost          : Non_Negative_Real;
          Comfort       : Non_Negative_Real;
+         Mass_Fraction : Non_Negative_Real;
          Armor_Tonnage : Non_Negative_Real;
       end record;
 
@@ -26,6 +27,12 @@ package body Athena.Handles.Hull is
    Vector : Hull_Vectors.Vector;
    Map    : Hull_Maps.Map;
 
+   function Mass_Fraction (Hull : Hull_Handle) return Non_Negative_Real
+   is (Vector (Hull.Reference).Mass_Fraction);
+
+   function Armor_Tonnage (Hull : Hull_Handle) return Non_Negative_Real
+   is (Vector (Hull.Reference).Armor_Tonnage);
+
    ------------
    -- Create --
    ------------
@@ -36,6 +43,7 @@ package body Athena.Handles.Hull is
       Hull_Points   : Non_Negative_Real;
       Cost          : Non_Negative_Real;
       Comfort       : Non_Negative_Real;
+      Mass_Fraction : Non_Negative_Real;
       Armor_Tonnage : Non_Negative_Real)
    is
    begin
@@ -47,7 +55,9 @@ package body Athena.Handles.Hull is
             Hull_Points   => Hull_Points,
             Cost          => Cost,
             Comfort       => Comfort,
+            Mass_Fraction => Mass_Fraction,
             Armor_Tonnage => Armor_Tonnage));
+      Map.Insert (Tag, Vector.Last_Index);
    end Create;
 
    ----------------

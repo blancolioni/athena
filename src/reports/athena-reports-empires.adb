@@ -119,6 +119,7 @@ package body Athena.Reports.Empires is
          end if;
 
          Add_Cell (Table, Image (Athena.Ships.Tonnage (Ship)));
+         Add_Cell (Table, Image (Athena.Ships.Mass (Ship)));
          Add_Cell (Table, Image (Athena.Ships.Get_Jump_Speed (Ship)));
          Add_Cell (Table, Image (Athena.Ships.Get_Impulse_Speed (Ship)));
          Add_Cell (Table, Image (Athena.Ships.Available_Power (Ship)));
@@ -135,6 +136,7 @@ package body Athena.Reports.Empires is
       Add_Heading (Table, "location");
       Add_Heading (Table, "destination");
       Add_Heading (Table, "tons");
+      Add_Heading (Table, "mass");
       Add_Heading (Table, "jmp");
       Add_Heading (Table, "imp");
       Add_Heading (Table, "power");

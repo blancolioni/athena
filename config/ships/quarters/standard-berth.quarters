@@ -1,6 +1,7 @@
-power_per_ton = 0.25
-price_per_ton = 125
-tonnage = 4
+tonnage = 50
+mass = 10
+power = 2
+price = 50
 comfort = 2
 occupancy = 1
 max_occupancy = 2

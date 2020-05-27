@@ -1,7 +1,8 @@
+with Ada.Text_IO;
+
 with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Containers.Vectors;
 with Ada.Strings.Unbounded;
-with Ada.Text_IO;
 
 with WL.String_Maps;
 
@@ -16,8 +17,9 @@ package body Athena.Handles.Design is
          Owner          : Empire_Reference;
          Hull           : Hull_Reference;
          Armor          : Hull_Armor_Reference;
-         Armor_Points   : Positive;
+         Armor_Points   : Natural;
          Tonnage        : Non_Negative_Real;
+         Mass           : Non_Negative_Real;
          Hull_Points    : Non_Negative_Real;
          Tank_Size      : Non_Negative_Real;
          Cargo_Space    : Non_Negative_Real;
@@ -73,6 +75,11 @@ package body Athena.Handles.Design is
       return Non_Negative_Real
    is (Vector (Handle.Reference).Tonnage);
 
+   function Mass
+     (Handle : Design_Handle)
+      return Non_Negative_Real
+   is (Vector (Handle.Reference).Mass);
+
    function Default_Script
      (Handle : Design_Handle)
       return String
@@ -95,6 +102,13 @@ package body Athena.Handles.Design is
    begin
       Rec.Design_Modules.Append (Design_Module.Reference);
       Rec.Cargo_Space := Rec.Cargo_Space - Design_Module.Component.Tonnage;
+      Rec.Mass := Rec.Mass + Design_Module.Component.Mass;
+      Ada.Text_IO.Put_Line
+        ("  module: " & Design_Module.Component.Tag
+         & " tonnage " & Image (Design_Module.Component.Tonnage)
+         & " mass " & Image (Design_Module.Component.Mass)
+         & " power " & Image (Design_Module.Component.Idle_Power_Consumption)
+        & "/" & Image (Design_Module.Component.Active_Power_Consumption));
    end Add_Design_Module;
 
    ------------
@@ -106,7 +120,7 @@ package body Athena.Handles.Design is
       Owner          : Athena.Handles.Empire.Empire_Handle;
       Hull           : Athena.Handles.Hull.Hull_Handle;
       Armor          : Athena.Handles.Hull_Armor.Hull_Armor_Handle;
-      Armor_Points   : Positive;
+      Armor_Points   : Natural;
       Tonnage        : Non_Negative_Real;
       Hull_Points    : Non_Negative_Real;
       Fuel_Tank      : Non_Negative_Real;
@@ -116,7 +130,30 @@ package body Athena.Handles.Design is
       Default_Rank   : Positive)
       return Design_Handle
    is
+      Armor_Tonnage : constant Non_Negative_Real :=
+                        (if Armor.Has_Element and then Armor_Points > 0
+                         then Real (Armor_Points)
+                         * Armor.Tonnage_Fraction * Tonnage
+                         else 0.0);
+      Armor_Mass    : constant Non_Negative_Real :=
+                        (if Armor.Has_Element
+                         then Armor.Mass * Armor_Tonnage
+                         else 0.0);
+      Empty_Mass : constant Non_Negative_Real :=
+                        Tonnage * Hull.Mass_Fraction + Armor_Mass;
+      Free_Space    : constant Non_Negative_Real :=
+                        Tonnage - Fuel_Tank - Armor_Tonnage;
    begin
+      Ada.Text_IO.Put_Line
+        ("design: " & Name
+         & ": tonnage "
+         & Image (Tonnage)
+         & " armor "
+         & Image (Armor_Mass)
+         & " dry mass "
+         & Image (Empty_Mass)
+         & " free space "
+         & Image (Free_Space));
       Vector.Append
         (Design_Record'
            (Name           => +Name,
@@ -125,19 +162,16 @@ package body Athena.Handles.Design is
             Armor          => Armor.Reference,
             Armor_Points   => Armor_Points,
             Tonnage        => Tonnage,
+            Mass           => Empty_Mass,
             Hull_Points    => Hull_Points,
             Tank_Size      => Fuel_Tank,
-            Cargo_Space    =>
-              Tonnage - Fuel_Tank
-            - Real (Armor_Points) * Armor.Tonnage_Fraction * Tonnage,
+            Cargo_Space    => Free_Space,
             Firm_Points    => Firm_Points,
             Hard_Points    => Hard_Points,
             Default_Script => +Default_Script,
             Default_Rank   => Default_Rank,
             Design_Modules => <>));
       Map.Insert (Name, Vector.Last_Index);
-
-      Ada.Text_IO.Put_Line ("new design: " & Name);
 
       return Get (Vector.Last_Index);
    end Create;

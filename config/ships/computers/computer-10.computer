@@ -1,2 +1,5 @@
 capacity = 10
 price = 160
+tonnage = 1
+mass = 0.1
+power = 10

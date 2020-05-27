@@ -10,6 +10,9 @@ package Athena.Handles.Hull is
    function Reference (Handle : Hull_Handle) return Hull_Reference;
    function Get (Reference : Hull_Reference) return Hull_Handle;
 
+   function Mass_Fraction (Hull : Hull_Handle) return Non_Negative_Real;
+   function Armor_Tonnage (Hull : Hull_Handle) return Non_Negative_Real;
+
    function Get_By_Tag
      (Tag : String)
       return Hull_Handle;
@@ -20,6 +23,7 @@ package Athena.Handles.Hull is
       Hull_Points   : Non_Negative_Real;
       Cost          : Non_Negative_Real;
       Comfort       : Non_Negative_Real;
+      Mass_Fraction : Non_Negative_Real;
       Armor_Tonnage : Non_Negative_Real);
 
    procedure Load

@@ -5,6 +5,8 @@ package Athena.Handles.Component.Computer is
    procedure Create
      (Tag      : String;
       Tonnage  : Non_Negative_Real;
+      Mass     : Non_Negative_Real;
+      Power    : Non_Negative_Real;
       Price    : Athena.Money.Price_Type;
       Capacity : Positive);
 

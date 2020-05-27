@@ -93,6 +93,10 @@ package Athena.Handles.Ship is
       Process : not null access
         procedure (Maneuver : Athena.Handles.Module.Module_Handle));
 
+   function Current_Mass
+     (Ship : Ship_Handle)
+      return Non_Negative_Real;
+
    function Current_Cargo
      (Ship : Ship_Handle;
       Cargo : Cargo_Class)

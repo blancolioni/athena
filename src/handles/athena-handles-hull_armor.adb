@@ -11,6 +11,7 @@ package body Athena.Handles.Hull_Armor is
          Tag              : Ada.Strings.Unbounded.Unbounded_String;
          Tonnage_Fraction : Unit_Real;
          Price_Fraction   : Unit_Real;
+         Mass             : Non_Negative_Real;
       end record;
 
    package Hull_Armor_Vectors is
@@ -22,6 +23,11 @@ package body Athena.Handles.Hull_Armor is
 
    Vector : Hull_Armor_Vectors.Vector;
    Map    : Hull_Armor_Maps.Map;
+
+   function Mass
+     (Armor : Hull_Armor_Handle)
+      return Non_Negative_Real
+   is (Vector (Armor.Reference).Mass);
 
    function Tonnage_Fraction
      (Armor : Hull_Armor_Handle)
@@ -39,6 +45,7 @@ package body Athena.Handles.Hull_Armor is
 
    procedure Create
      (Tag              : String;
+      Mass             : Non_Negative_Real;
       Tonnage_Fraction : Unit_Real;
       Price_Fraction   : Unit_Real)
    is
@@ -47,6 +54,7 @@ package body Athena.Handles.Hull_Armor is
         (Hull_Armor_Record'
            (Identifier    => Next_Identifier,
             Tag           => +Tag,
+            Mass          => Mass,
             Tonnage_Fraction => Tonnage_Fraction,
             Price_Fraction   => Price_Fraction));
       Map.Insert (Tag, Vector.Last_Index);

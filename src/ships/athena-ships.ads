@@ -8,6 +8,10 @@ package Athena.Ships is
      (Ship : Ship_Handle_Class)
       return Non_Negative_Real;
 
+   function Mass
+     (Ship : Ship_Handle_Class)
+      return Non_Negative_Real;
+
    function Total_Cargo_Space
      (Ship : Ship_Handle_Class)
       return Non_Negative_Real;

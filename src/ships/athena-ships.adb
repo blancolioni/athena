@@ -1,3 +1,4 @@
+with Athena.Handles.Design_Module;
 with Athena.Handles.Module;
 
 package body Athena.Ships is
@@ -63,7 +64,7 @@ package body Athena.Ships is
       procedure Add_Power (Drive : Athena.Handles.Module.Module_Handle) is
       begin
          if Drive.Condition > 0.0 then
-            Total := Total + Drive.Component.Power_Consumption;
+            Total := Total + Drive.Component.Active_Power_Consumption;
          end if;
       end Add_Power;
 
@@ -72,9 +73,9 @@ package body Athena.Ships is
       return Total;
    end Drive_Power;
 
-   --------------------
-   -- Get_Jump_Speed --
-   --------------------
+   -----------------------
+   -- Get_Impulse_Speed --
+   -----------------------
 
    function Get_Impulse_Speed
      (Ship : Ship_Handle_Class)
@@ -101,7 +102,7 @@ package body Athena.Ships is
       Ship.Iterate_Maneuver_Drives (Add_Impulse'Access);
 
       return Total_Impulse
-        / Tonnage (Ship)
+        / Ship.Current_Mass
         * 100.0;
    end Get_Impulse_Speed;
 
@@ -117,7 +118,7 @@ package body Athena.Ships is
       if Ship.Jump_Drive.Has_Element then
          return Ship.Jump_Drive.Component.Jump
            * Ship.Jump_Drive.Condition
-           / Tonnage (Ship)
+           / Ship.Current_Mass
            * 40.0;
       else
          return 0.0;
@@ -132,8 +133,26 @@ package body Athena.Ships is
      (Ship : Ship_Handle_Class)
       return Non_Negative_Real
    is
+      Power : Non_Negative_Real := 0.0;
+
+      procedure Add_Power
+        (Module : Athena.Handles.Design_Module.Design_Module_Handle);
+
+      ---------------
+      -- Add_Power --
+      ---------------
+
+      procedure Add_Power
+        (Module : Athena.Handles.Design_Module.Design_Module_Handle)
+      is
+      begin
+         Power := Power + Module.Component.Idle_Power_Consumption;
+      end Add_Power;
+
    begin
-      return Ship.Design.Tonnage * 0.2;
+      Ship.Design.Iterate_Design_Modules
+        (Add_Power'Access);
+      return Power;
    end Idle_Power;
 
    --------------
@@ -161,7 +180,7 @@ package body Athena.Ships is
       if Ship.Jump_Drive.Has_Element
         and then Ship.Jump_Drive.Condition > 0.0
       then
-         return Ship.Jump_Drive.Component.Power_Consumption;
+         return Ship.Jump_Drive.Component.Active_Power_Consumption;
       else
          return 0.0;
       end if;
@@ -180,6 +199,18 @@ package body Athena.Ships is
       Ship.Set_Current_Cargo
         (Cargo, Ship.Current_Cargo (Cargo) + Quantity);
    end Load_Cargo;
+
+   ----------
+   -- Mass --
+   ----------
+
+   function Mass
+     (Ship : Ship_Handle_Class)
+      return Non_Negative_Real
+   is
+   begin
+      return Ship.Current_Mass;
+   end Mass;
 
    ----------------
    -- On_Arrival --

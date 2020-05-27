@@ -1,5 +1,7 @@
 jump = 2
-tonnage = 20
+tonnage = 200
+mass = 180
 cost = 4500
-power = 75
+power = 7.5
+active-power = 75
 fuel = 20

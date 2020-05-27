@@ -1,7 +1,7 @@
 hull = standard
-tonnage = 200
+tonnage = 2000
 armor = { type = steel points = 5 }
-fuel_tank = 100
+fuel_tank = 1000
 default-script = escape
 default-rank = 6
 

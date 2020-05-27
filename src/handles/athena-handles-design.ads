@@ -22,6 +22,10 @@ package Athena.Handles.Design is
      (Handle : Design_Handle)
       return Non_Negative_Real;
 
+   function Mass
+     (Handle : Design_Handle)
+      return Non_Negative_Real;
+
    function Cargo_Space
      (Handle : Design_Handle)
       return Non_Negative_Real;
@@ -53,7 +57,7 @@ package Athena.Handles.Design is
       Owner          : Athena.Handles.Empire.Empire_Handle;
       Hull           : Athena.Handles.Hull.Hull_Handle;
       Armor          : Athena.Handles.Hull_Armor.Hull_Armor_Handle;
-      Armor_Points   : Positive;
+      Armor_Points   : Natural;
       Tonnage        : Non_Negative_Real;
       Hull_Points    : Non_Negative_Real;
       Fuel_Tank      : Non_Negative_Real;

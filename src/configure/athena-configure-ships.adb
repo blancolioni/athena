@@ -100,6 +100,7 @@ package body Athena.Configure.Ships is
    begin
       Athena.Handles.Hull_Armor.Create
         (Tag              => Config.Config_Name,
+         Mass             => Get ("mass"),
          Tonnage_Fraction => Get ("tonnage"),
          Price_Fraction   => Get ("cost"));
    end Configure_Armor;
@@ -121,6 +122,8 @@ package body Athena.Configure.Ships is
       Athena.Handles.Component.Bridge.Create
         (Tag               => Config.Config_Name,
          Tonnage           => Tonnage,
+         Mass              => Get ("mass"),
+         Power             => Get ("power"),
          Price             => Athena.Money.To_Price (Get ("price")),
          Ship_Tonnage_Low  => Real (Long_Float'(Ship_Tons.Get (1))),
          Ship_Tonnage_High => Real (Long_Float'(Ship_Tons.Get (2))));
@@ -139,6 +142,8 @@ package body Athena.Configure.Ships is
       Athena.Handles.Component.Computer.Create
         (Tag      => Config.Config_Name,
          Tonnage  => Get ("tonnage"),
+         Mass     => Get ("mass"),
+         Power    => Get ("power"),
          Price    => Athena.Money.To_Price (Get ("price")),
          Capacity => Config.Get ("capacity"));
    end Configure_Computer;
@@ -157,11 +162,6 @@ package body Athena.Configure.Ships is
       Hull : constant Athena.Handles.Hull.Hull_Handle :=
                Athena.Handles.Hull.Get_By_Tag
                  (Config.Get ("hull", "standard"));
-      Armor : constant Athena.Handles.Hull_Armor.Hull_Armor_Handle :=
-                Athena.Handles.Hull_Armor.Get_By_Tag
-                  (Config.Child ("armor").Get ("type", "steel"));
-      Armor_Points : constant Positive :=
-                       Config.Child ("armor").Get ("points", 1);
       Tonnage : constant Non_Negative_Real := Get ("tonnage");
       Hull_Points : constant Non_Negative_Real :=
                       Tonnage / 2.5
@@ -180,6 +180,17 @@ package body Athena.Configure.Ships is
                        else 0);
       Hard_Points : constant Natural :=
                       Natural (Real'Truncation (Tonnage / 100.0));
+
+      function Armor return Athena.Handles.Hull_Armor.Hull_Armor_Handle
+      is (if Config.Contains ("armor")
+          then Athena.Handles.Hull_Armor.Get_By_Tag
+            (Config.Child ("armor").Get ("type"))
+          else Athena.Handles.Hull_Armor.Empty_Handle);
+
+      function Armor_Points return Natural
+      is (if Config.Contains ("armor")
+          then Config.Child ("armor").Get ("points")
+          else 0);
 
       Design : constant Athena.Handles.Design.Design_Handle :=
                  Athena.Handles.Design.Create
@@ -268,6 +279,7 @@ package body Athena.Configure.Ships is
       Athena.Handles.Hull.Create
         (Tag           => Config.Config_Name,
          Streamlined   => Config.Get ("streamlined"),
+         Mass_Fraction => Get ("mass"),
          Hull_Points   => Get ("hull_points"),
          Cost          => Get ("cost"),
          Comfort       => Get ("comfort"),
@@ -289,8 +301,10 @@ package body Athena.Configure.Ships is
       Athena.Handles.Component.Jump_Drive.Create_Jump_Drive
         (Tag             => Config.Config_Name,
          Tonnage         => Get ("tonnage"),
+         Mass            => Get ("mass"),
          Price           => Athena.Money.To_Price (Get ("price")),
-         Power           => Get ("power"),
+         Idle_Power      => Get ("power"),
+         Jump_Power      => Get ("active-power"),
          Fuel            => Get ("fuel"),
          Jump            => Get ("jump"));
    end Configure_Jump_Drive;
@@ -331,8 +345,10 @@ package body Athena.Configure.Ships is
       Athena.Handles.Component.Maneuver.Create_Maneuver_Drive
         (Tag             => Config.Config_Name,
          Tonnage         => Get ("tonnage"),
+         Mass            => Get ("mass"),
          Price           => Athena.Money.To_Price (Get ("price")),
-         Power           => Get ("power"),
+         Idle_Power      => Get ("power"),
+         Active_Power    => Get ("full-power"),
          Fuel            => Get ("fuel"),
          Impulse         => Get ("impulse"));
    end Configure_Maneuver_Drive;
@@ -351,6 +367,7 @@ package body Athena.Configure.Ships is
       Athena.Handles.Component.Power.Create
         (Tag               => Config.Config_Name,
          Tonnage           => Get ("tonnage"),
+         Mass              => Get ("mass"),
          Price             => Athena.Money.To_Price (Get ("price")),
          Fuel_Per_Day      => Get ("fuel"),
          Power_Output      => Get ("power-output"));

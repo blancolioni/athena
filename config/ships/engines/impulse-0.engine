@@ -1,5 +1,7 @@
-tonnage = 1
+tonnage = 10
+mass = 10
 cost = 10
 fuel = 0
-power = 5
+power = 1
+full-power = 5
 impulse = 0

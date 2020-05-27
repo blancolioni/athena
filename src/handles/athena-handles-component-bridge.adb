@@ -14,6 +14,8 @@ package body Athena.Handles.Component.Bridge is
    procedure Create
      (Tag               : String;
       Tonnage           : Non_Negative_Real;
+      Mass              : Non_Negative_Real;
+      Power             : Non_Negative_Real;
       Price             : Athena.Money.Price_Type;
       Ship_Tonnage_Low  : Non_Negative_Real;
       Ship_Tonnage_High : Non_Negative_Real)
@@ -24,9 +26,11 @@ package body Athena.Handles.Component.Bridge is
            (Identifier        => Next_Identifier,
             Tag               => +Tag,
             Tonnage           => Tonnage,
+            Mass              => Mass,
             Price             => Price,
             Fuel_Consumption  => 0.0,
-            Power_Consumption => 0.0,
+            Idle_Power        => Power,
+            Active_Power      => Power,
             Ship_Tonnage_Low  => Ship_Tonnage_Low,
             Ship_Tonnage_High => Ship_Tonnage_High));
    end Create;
