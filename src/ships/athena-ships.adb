@@ -56,6 +56,8 @@ package body Athena.Ships is
       case Cargo is
          when Athena.Handles.Colonists =>
             return Ship.Design.Passenger_Berths;
+         when Athena.Handles.Fuel =>
+            return Ship.Design.Tank_Size;
          when Athena.Handles.Material | Athena.Handles.Industry =>
             return Ship.Design.Free_Space;
       end case;

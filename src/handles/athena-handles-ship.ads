@@ -108,6 +108,14 @@ package Athena.Handles.Ship is
       Cargo    : Cargo_Class;
       Quantity : Non_Negative_Real);
 
+   function Tank_Size
+     (Ship : Ship_Handle)
+      return Non_Negative_Real;
+
+   function Current_Fuel
+     (Ship : Ship_Handle)
+      return Non_Negative_Real;
+
    type Root_Ship_Action is abstract tagged private;
 
    function Complete

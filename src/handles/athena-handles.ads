@@ -64,6 +64,7 @@ package Athena.Handles is
 
    type Cargo_Class is
      (Colonists,
+      Fuel,
       Industry,
       Material);
 

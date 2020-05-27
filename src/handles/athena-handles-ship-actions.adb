@@ -58,7 +58,7 @@ package body Athena.Handles.Ship.Actions is
    type Load_Cargo_Action is
      new Root_Ship_Action with
       record
-         Cargo : Cargo_Class;
+         Cargo    : Cargo_Class;
          Quantity : Non_Negative_Real;
       end record;
 
@@ -114,6 +114,15 @@ package body Athena.Handles.Ship.Actions is
       Star : Athena.Handles.Star.Star_Handle)
    is
    begin
+
+      if Ship.Current_Fuel < Ship.Tank_Size then
+         Ship.Add_Action
+           (Action => Load_Cargo_Action'
+              (Complete => False,
+               Cargo    => Fuel,
+               Quantity => Ship.Tank_Size - Ship.Current_Fuel));
+      end if;
+
       Ship.Add_Action
         (Action => System_Departure_Action'(Complete => False));
 
@@ -197,6 +206,11 @@ package body Athena.Handles.Ship.Actions is
                      Colony.Set_Population (Remaining_Pop);
                      return Duration (Loaded_Pop * 600.0);
                   end;
+
+               when Fuel =>
+                  Athena.Ships.Load_Cargo
+                    (Ship, Fuel, Max_Quantity);
+                  return Duration (Max_Quantity);
 
                when Material =>
 
@@ -382,6 +396,9 @@ package body Athena.Handles.Ship.Actions is
                end;
                return Duration (Unloaded_Quantity * 600.0);
             end if;
+
+         when Fuel =>
+            return 0.0;
 
          when Material =>
 

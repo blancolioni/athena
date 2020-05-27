@@ -146,6 +146,12 @@ package body Athena.Handles.Ship is
    function First_Action (Ship : Ship_Handle) return Root_Ship_Action'Class
    is (Vector (Ship.Reference).Actions.First_Element);
 
+   function Tank_Size (Ship : Ship_Handle) return Non_Negative_Real
+   is (Vector (Ship.Reference).Tank_Size);
+
+   function Current_Fuel (Ship : Ship_Handle) return Non_Negative_Real
+   is (Vector (Ship.Reference).Carrying (Fuel));
+
    --------------
    -- Activate --
    --------------
