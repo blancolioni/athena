@@ -84,14 +84,15 @@ package Athena.Handles.Ship is
      (Ship : Ship_Handle)
       return Athena.Handles.Module.Module_Handle;
 
-   function Power_Module
-     (Ship : Ship_Handle)
-      return Athena.Handles.Module.Module_Handle;
-
    procedure Iterate_Maneuver_Drives
      (Ship : Ship_Handle;
       Process : not null access
         procedure (Maneuver : Athena.Handles.Module.Module_Handle));
+
+   procedure Iterate_Power_Modules
+     (Ship    : Ship_Handle;
+      Process : not null access
+        procedure (Power : Athena.Handles.Module.Module_Handle));
 
    function Current_Mass
      (Ship : Ship_Handle)

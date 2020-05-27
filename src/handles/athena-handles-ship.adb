@@ -36,7 +36,7 @@ package body Athena.Handles.Ship is
          Modules         : Module_Lists.List;
          Drives          : Module_Lists.List;
          Jump_Drive      : Module_Reference;
-         Power           : Module_Reference;
+         Power           : Module_Lists.List;
          Tank_Size       : Non_Negative_Real;
          Cargo_Space     : Non_Negative_Real;
          Fleet           : Fleet_Reference;
@@ -132,11 +132,6 @@ package body Athena.Handles.Ship is
      (Ship : Ship_Handle)
       return Athena.Handles.Module.Module_Handle
    is (Athena.Handles.Module.Get (Vector (Ship.Reference).Jump_Drive));
-
-   function Power_Module
-     (Ship : Ship_Handle)
-      return Athena.Handles.Module.Module_Handle
-   is (Athena.Handles.Module.Get (Vector (Ship.Reference).Power));
 
    function Current_Cargo
      (Ship  : Ship_Handle;
@@ -273,7 +268,7 @@ package body Athena.Handles.Ship is
                  Modules       => <>,
                  Drives        => <>,
                  Jump_Drive    => Null_Module_Reference,
-                 Power         => Null_Module_Reference,
+                 Power         => <>,
                  Tank_Size     => Design.Tank_Size,
                  Cargo_Space   => Design.Cargo_Space,
                  Fuel          => 0.0,
@@ -310,10 +305,8 @@ package body Athena.Handles.Ship is
          if Module.Component.Has_Impulse then
             Rec.Drives.Append (Module.Reference);
          end if;
-         if Module.Component.Has_Power_Output
-           and then Rec.Power = Null_Module_Reference
-         then
-            Rec.Power := Module.Reference;
+         if Module.Component.Has_Power_Output then
+            Rec.Power.Append (Module.Reference);
          end if;
       end Add_Design_Module;
 
@@ -386,6 +379,22 @@ package body Athena.Handles.Ship is
          Process (Athena.Handles.Module.Get (Drive));
       end loop;
    end Iterate_Maneuver_Drives;
+
+   ---------------------------
+   -- Iterate_Power_Modules --
+   ---------------------------
+
+   procedure Iterate_Power_Modules
+     (Ship    : Ship_Handle;
+      Process : not null access
+        procedure (Power : Athena.Handles.Module.Module_Handle))
+   is
+      Rec : Ship_Record renames Vector (Ship.Reference);
+   begin
+      for Power of Rec.Power loop
+         Process (Athena.Handles.Module.Get (Power));
+      end loop;
+   end Iterate_Power_Modules;
 
    ----------
    -- Load --

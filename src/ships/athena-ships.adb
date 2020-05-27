@@ -23,13 +23,23 @@ package body Athena.Ships is
      (Ship : Ship_Handle_Class)
       return Non_Negative_Real
    is
+      Power : Non_Negative_Real := 0.0;
+
+      procedure Add_Power (Module : Athena.Handles.Module.Module_Handle);
+
+      ---------------
+      -- Add_Power --
+      ---------------
+
+      procedure Add_Power (Module : Athena.Handles.Module.Module_Handle) is
+      begin
+         Power := Power +
+           Module.Component.Power_Output * Module.Condition;
+      end Add_Power;
+
    begin
-      if Ship.Power_Module.Has_Element then
-         return Ship.Power_Module.Component.Power_Output
-           * Ship.Power_Module.Condition;
-      else
-         return 0.0;
-      end if;
+      Ship.Iterate_Power_Modules (Add_Power'Access);
+      return Power;
    end Available_Power;
 
    -------------------
