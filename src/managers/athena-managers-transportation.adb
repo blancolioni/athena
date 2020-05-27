@@ -35,6 +35,7 @@ package body Athena.Managers.Transportation is
    procedure Get_Transport
      (For_Empire : Athena.Handles.Empire.Empire_Handle;
       From_Star  : Athena.Handles.Star.Star_Handle;
+      Cargo      : Athena.Handles.Cargo_Class;
       Capacity   : Non_Negative_Real;
       Ships      : out Athena.Ships.Lists.List;
       Remaining  : out Non_Negative_Real);
@@ -63,6 +64,7 @@ package body Athena.Managers.Transportation is
             Get_Transport
               (For_Empire => Empire,
                From_Star  => From,
+               Cargo      => Message.Cargo,
                Capacity   => Message.Quantity,
                Ships      => Ships,
                Remaining  => Missing);
@@ -74,7 +76,7 @@ package body Athena.Managers.Transportation is
                                   (Empire.Standard_Design
                                      (Athena.Handles.Empire.Transport));
                   Cargo     : constant Non_Negative_Real :=
-                                Transport.Cargo_Space;
+                                Transport.Cargo_Space (Message.Cargo);
                   Required  : constant Natural :=
                                 Natural (Missing / Cargo);
                begin
@@ -106,7 +108,7 @@ package body Athena.Managers.Transportation is
                      declare
                         Available : constant Non_Negative_Real :=
                                       Athena.Ships.Available_Cargo_Space
-                                        (Ship);
+                                        (Ship, Message.Cargo);
 
                         Loaded : constant Non_Negative_Real :=
                                       Real'Min (Remaining, Available);
@@ -170,6 +172,7 @@ package body Athena.Managers.Transportation is
    procedure Get_Transport
      (For_Empire : Athena.Handles.Empire.Empire_Handle;
       From_Star  : Athena.Handles.Star.Star_Handle;
+      Cargo      : Athena.Handles.Cargo_Class;
       Capacity   : Non_Negative_Real;
       Ships      : out Athena.Ships.Lists.List;
       Remaining  : out Non_Negative_Real)
@@ -195,10 +198,10 @@ package body Athena.Managers.Transportation is
          end if;
 
          if Ship.Idle
-           and then Athena.Ships.Total_Cargo_Space (Ship) > 0.0
+           and then Athena.Ships.Cargo_Space (Ship, Cargo) > 0.0
          then
             Available := Available
-              + Athena.Ships.Total_Cargo_Space (Ship);
+              + Athena.Ships.Cargo_Space (Ship, Cargo);
             Ships.Append (Ship);
          end if;
       end Check_Available;

@@ -60,8 +60,8 @@ begin
               (Handle.Name
                & ": tonnage"
                & Natural'Image (Natural (Handle.Tonnage))
-               & "; cargo space"
-               & Natural'Image (Natural (Handle.Cargo_Space)));
+               & "; free space"
+               & Natural'Image (Natural (Handle.Free_Space)));
          end Report_Design;
 
       begin

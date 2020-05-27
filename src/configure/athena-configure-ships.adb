@@ -9,6 +9,7 @@ with Athena.Handles.Component.Computer;
 with Athena.Handles.Component.Jump_Drive;
 with Athena.Handles.Component.Maneuver;
 with Athena.Handles.Component.Power;
+with Athena.Handles.Component.Quarters;
 
 with Athena.Handles.Design;
 with Athena.Handles.Design_Module;
@@ -64,8 +65,8 @@ package body Athena.Configure.Ships is
    --  procedure Configure_Jump_Drive
    --    (Config : Tropos.Configuration);
 
-   --  procedure Configure_Quarters
-   --    (Config : Tropos.Configuration);
+   procedure Configure_Quarters
+     (Config : Tropos.Configuration);
 
    --  procedure Configure_Sensor
    --    (Config : Tropos.Configuration);
@@ -377,24 +378,24 @@ package body Athena.Configure.Ships is
    -- Configure_Quarters --
    ------------------------
 
-   --  procedure Configure_Quarters
-   --    (Config : Tropos.Configuration)
-   --  is
-   --     function Get (Name : String) return Real
-   --     is (Get_Value (Config, Name));
-   --
-   --     Tonnage : constant Non_Negative_Real := Get ("tonnage");
-   --  begin
-   --     Athena.Db.Quarters.Create
-   --       (Power_Per_Ton      => Get ("power_per_ton"),
-   --        Minimum_Tonnage    => Tonnage,
-   --    Price_Per_Ton      => Athena.Money.To_Price (Get ("price_per_ton")),
-   --        Tag                => Config.Config_Name,
-   --        Tonnage            => Tonnage,
-   --        Comfort_Level      => Config.Get ("comfort"),
-   --        Standard_Occupants => Config.Get ("occupancy"),
-   --        Max_Occupants      => Config.Get ("max_occupancy"));
-   --  end Configure_Quarters;
+   procedure Configure_Quarters
+     (Config : Tropos.Configuration)
+   is
+      function Get (Name : String) return Real
+      is (Get_Value (Config, Name));
+
+      Tonnage   : constant Non_Negative_Real := Get ("tonnage");
+   begin
+      Athena.Handles.Component.Quarters.Create
+        (Tag               => Config.Config_Name,
+         Tonnage           => Tonnage,
+         Mass              => Get ("mass"),
+         Power             => Get ("power"),
+         Price             => Athena.Money.To_Price (Get ("price")),
+         Comfort           => Get ("comfort"),
+         Occupancy         => Get ("occupancy"),
+         Max_Occupancy     => Get ("max-occupancy"));
+   end Configure_Quarters;
 
    ----------------------
    -- Configure_Sensor --
@@ -456,7 +457,7 @@ package body Athena.Configure.Ships is
       Configure ("power", "power", Configure_Power'Access);
       Configure ("bridges", "bridge", Configure_Bridge'Access);
       Configure ("computers", "computer", Configure_Computer'Access);
-      --  Configure ("quarters", "quarters", Configure_Quarters'Access);
+      Configure ("quarters", "quarters", Configure_Quarters'Access);
       --  Configure ("sensors", "sensor", Configure_Sensor'Access);
       --  Configure ("weapon-mounts", "mount", Configure_Weapon_Mount'Access);
 

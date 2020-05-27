@@ -36,6 +36,7 @@ package body Athena.Handles.Component.Jump_Drive is
             Fuel_Consumption  => Fuel,
             Idle_Power        => Idle_Power,
             Active_Power      => Jump_Power,
+            Berths            => 0.0,
             Jump              => Jump));
    end Create_Jump_Drive;
 

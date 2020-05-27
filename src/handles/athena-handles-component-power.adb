@@ -34,6 +34,7 @@ package body Athena.Handles.Component.Power is
             Fuel_Consumption  => Fuel_Per_Day,
             Idle_Power        => 0.0,
             Active_Power      => 0.0,
+            Berths            => 0.0,
             Power_Output      => Power_Output));
    end Create;
 

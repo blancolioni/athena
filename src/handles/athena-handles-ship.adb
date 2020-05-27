@@ -270,7 +270,7 @@ package body Athena.Handles.Ship is
                  Jump_Drive    => Null_Module_Reference,
                  Power         => <>,
                  Tank_Size     => Design.Tank_Size,
-                 Cargo_Space   => Design.Cargo_Space,
+                 Cargo_Space   => Design.Free_Space,
                  Fuel          => 0.0,
                  Carrying      => (others => 0.0),
                  Fleet         => Fleet,

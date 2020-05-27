@@ -26,8 +26,17 @@ package Athena.Handles.Design is
      (Handle : Design_Handle)
       return Non_Negative_Real;
 
-   function Cargo_Space
+   function Passenger_Berths
      (Handle : Design_Handle)
+      return Non_Negative_Real;
+
+   function Free_Space
+     (Handle : Design_Handle)
+      return Non_Negative_Real;
+
+   function Cargo_Space
+     (Handle : Design_Handle;
+      Cargo  : Cargo_Class)
       return Non_Negative_Real;
 
    function Tank_Size
@@ -70,7 +79,7 @@ package Athena.Handles.Design is
    procedure Add_Design_Module
      (To_Design     : Design_Handle;
       Design_Module : Athena.Handles.Design_Module.Design_Module_Handle)
-     with Pre => Design_Module.Component.Tonnage <= To_Design.Cargo_Space;
+     with Pre => Design_Module.Component.Tonnage <= To_Design.Free_Space;
 
    function Get_By_Name
      (Name : String)

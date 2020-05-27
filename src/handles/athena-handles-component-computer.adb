@@ -29,6 +29,7 @@ package body Athena.Handles.Component.Computer is
             Fuel_Consumption  => 0.0,
             Idle_Power        => Power,
             Active_Power      => Power,
+            Berths            => 0.0,
             Capacity          => Capacity));
    end Create;
 

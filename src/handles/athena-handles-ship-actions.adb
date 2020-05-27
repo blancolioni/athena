@@ -112,7 +112,8 @@ package body Athena.Handles.Ship.Actions is
    is
       Max_Quantity : constant Non_Negative_Real :=
                        Real'Min (Action.Quantity,
-                                 Athena.Ships.Available_Cargo_Space (Ship));
+                                 Athena.Ships.Available_Cargo_Space
+                                   (Ship, Action.Cargo));
    begin
 
       Ship.Log

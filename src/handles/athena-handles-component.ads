@@ -72,6 +72,14 @@ package Athena.Handles.Component is
       return Non_Negative_Real
      with Pre => Component.Has_Power_Output;
 
+   function Has_Berths
+     (Component : Component_Handle)
+      return Boolean;
+
+   function Berths
+     (Component : Component_Handle)
+      return Non_Negative_Real;
+
    function Get_By_Tag
      (Tag : String)
       return Component_Handle'Class;
@@ -115,6 +123,7 @@ private
          Fuel_Consumption  : Non_Negative_Real;
          Idle_Power        : Non_Negative_Real;
          Active_Power      : Non_Negative_Real;
+         Berths            : Non_Negative_Real;
       end record;
 
    function Jump

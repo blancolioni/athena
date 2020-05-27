@@ -23,6 +23,7 @@ package body Athena.Handles.Design is
          Hull_Points    : Non_Negative_Real;
          Tank_Size      : Non_Negative_Real;
          Cargo_Space    : Non_Negative_Real;
+         Berths         : Non_Negative_Real;
          Firm_Points    : Natural;
          Hard_Points    : Natural;
          Default_Script : Ada.Strings.Unbounded.Unbounded_String;
@@ -60,10 +61,23 @@ package body Athena.Handles.Design is
       return Natural
    is (Vector (Handle.Reference).Firm_Points);
 
-   function Cargo_Space
+   function Free_Space
      (Handle : Design_Handle)
       return Non_Negative_Real
    is (Vector (Handle.Reference).Cargo_Space);
+
+   function Cargo_Space
+     (Handle : Design_Handle;
+      Cargo  : Cargo_Class)
+      return Non_Negative_Real
+   is (if Cargo = Colonists
+       then Handle.Passenger_Berths
+       else Handle.Free_Space);
+
+   function Passenger_Berths
+     (Handle : Design_Handle)
+      return Non_Negative_Real
+   is (Vector (Handle.Reference).Berths);
 
    function Tank_Size
      (Handle : Design_Handle)
@@ -103,6 +117,10 @@ package body Athena.Handles.Design is
       Rec.Design_Modules.Append (Design_Module.Reference);
       Rec.Cargo_Space := Rec.Cargo_Space - Design_Module.Component.Tonnage;
       Rec.Mass := Rec.Mass + Design_Module.Component.Mass;
+      if Design_Module.Component.Has_Berths then
+         Rec.Berths := Rec.Berths + Design_Module.Component.Berths;
+      end if;
+
       Ada.Text_IO.Put_Line
         ("  module: " & Design_Module.Component.Tag
          & " tonnage " & Image (Design_Module.Component.Tonnage)
@@ -166,6 +184,7 @@ package body Athena.Handles.Design is
             Hull_Points    => Hull_Points,
             Tank_Size      => Fuel_Tank,
             Cargo_Space    => Free_Space,
+            Berths         => 0.0,
             Firm_Points    => Firm_Points,
             Hard_Points    => Hard_Points,
             Default_Script => +Default_Script,

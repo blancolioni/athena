@@ -8,11 +8,12 @@ package body Athena.Ships is
    ---------------------------
 
    function Available_Cargo_Space
-     (Ship : Ship_Handle_Class)
+     (Ship  : Ship_Handle_Class;
+      Cargo : Athena.Handles.Cargo_Class)
       return Non_Negative_Real
    is
    begin
-      return Total_Cargo_Space (Ship);
+      return Cargo_Space (Ship, Cargo) - Ship.Current_Cargo (Cargo);
    end Available_Cargo_Space;
 
    ---------------------
@@ -41,6 +42,24 @@ package body Athena.Ships is
       Ship.Iterate_Power_Modules (Add_Power'Access);
       return Power;
    end Available_Power;
+
+   -----------------
+   -- Cargo_Space --
+   -----------------
+
+   function Cargo_Space
+     (Ship  : Ship_Handle_Class;
+      Cargo : Athena.Handles.Cargo_Class)
+      return Non_Negative_Real
+   is
+   begin
+      case Cargo is
+         when Athena.Handles.Colonists =>
+            return Ship.Design.Passenger_Berths;
+         when Athena.Handles.Material | Athena.Handles.Industry =>
+            return Ship.Design.Free_Space;
+      end case;
+   end Cargo_Space;
 
    -------------------
    -- Current_Cargo --
@@ -113,7 +132,7 @@ package body Athena.Ships is
 
       return Total_Impulse
         / Ship.Current_Mass
-        * 100.0;
+        * 1.0e4;
    end Get_Impulse_Speed;
 
    --------------------
@@ -129,11 +148,44 @@ package body Athena.Ships is
          return Ship.Jump_Drive.Component.Jump
            * Ship.Jump_Drive.Condition
            / Ship.Current_Mass
-           * 40.0;
+           * 1.0e4;
       else
          return 0.0;
       end if;
    end Get_Jump_Speed;
+
+   --------------------------
+   -- Get_Maintenance_Cost --
+   --------------------------
+
+   function Get_Maintenance_Cost
+     (Ship : Ship_Handle_Class)
+      return Athena.Money.Money_Type
+   is
+      use Athena.Money;
+
+      Total : Money_Type := Zero;
+
+      procedure Add_Maintenance
+        (Module : Athena.Handles.Design_Module.Design_Module_Handle);
+
+      ---------------------
+      -- Add_Maintenance --
+      ---------------------
+
+      procedure Add_Maintenance
+        (Module : Athena.Handles.Design_Module.Design_Module_Handle)
+      is
+      begin
+         Total := Total
+           + To_Money (To_Real (Adjust_Price (Module.Component.Price, 0.1)));
+      end Add_Maintenance;
+
+   begin
+      Ship.Design.Iterate_Design_Modules
+        (Add_Maintenance'Access);
+      return Total + To_Money (Ship.Design.Tonnage / 20.0);
+   end Get_Maintenance_Cost;
 
    ----------------
    -- Idle_Power --
@@ -243,18 +295,6 @@ package body Athena.Ships is
    begin
       return Athena.Handles.Ship.Design (Ship).Tonnage;
    end Tonnage;
-
-   -----------------------
-   -- Total_Cargo_Space --
-   -----------------------
-
-   function Total_Cargo_Space
-     (Ship : Ship_Handle_Class)
-      return Non_Negative_Real
-   is
-   begin
-      return Ship.Design.Cargo_Space;
-   end Total_Cargo_Space;
 
    ------------------
    -- Unload_Cargo --

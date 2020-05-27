@@ -36,6 +36,7 @@ package body Athena.Handles.Component.Maneuver is
             Fuel_Consumption  => Fuel,
             Idle_Power        => Idle_Power,
             Active_Power      => Active_Power,
+            Berths            => 0.0,
             Impulse           => Impulse));
    end Create_Maneuver_Drive;
 

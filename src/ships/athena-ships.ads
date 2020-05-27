@@ -1,3 +1,5 @@
+with Athena.Money;
+
 with Athena.Handles.Ship;
 
 package Athena.Ships is
@@ -12,8 +14,9 @@ package Athena.Ships is
      (Ship : Ship_Handle_Class)
       return Non_Negative_Real;
 
-   function Total_Cargo_Space
-     (Ship : Ship_Handle_Class)
+   function Cargo_Space
+     (Ship : Ship_Handle_Class;
+      Cargo : Athena.Handles.Cargo_Class)
       return Non_Negative_Real;
 
    function Idle_Power
@@ -33,7 +36,8 @@ package Athena.Ships is
       return Non_Negative_Real;
 
    function Available_Cargo_Space
-     (Ship : Ship_Handle_Class)
+     (Ship  : Ship_Handle_Class;
+      Cargo : Athena.Handles.Cargo_Class)
       return Non_Negative_Real;
 
    function Current_Cargo
@@ -54,6 +58,10 @@ package Athena.Ships is
    function Is_Armed
      (Ship : Ship_Handle_Class)
       return Boolean;
+
+   function Get_Maintenance_Cost
+     (Ship : Ship_Handle_Class)
+      return Athena.Money.Money_Type;
 
    function Get_Jump_Speed
      (Ship : Ship_Handle_Class)
