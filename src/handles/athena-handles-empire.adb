@@ -152,9 +152,11 @@ package body Athena.Handles.Empire is
    begin
       M.Log ("activating");
       M.Create_Orders;
-      Athena.Updates.Events.Update_At
-        (Clock  => M.Next_Update,
-         Update => Update);
+      if M.Has_Next_Update then
+         Athena.Updates.Events.Update_At
+           (Clock  => M.Next_Update,
+            Update => Update);
+      end if;
    end Activate;
 
    ----------------
@@ -394,7 +396,9 @@ package body Athena.Handles.Empire is
               (Rec.Next_Update,
                Empire_Handle'(True, I));
             for M in Manager_Class loop
-               if not Rec.Managers (M).Is_Empty then
+               if not Rec.Managers (M).Is_Empty
+                 and then Rec.Managers (M).Element.Has_Next_Update
+               then
                   Athena.Updates.Events.Update_At
                     (Clock  => Rec.Managers (M).Element.Next_Update,
                      Update =>
@@ -563,11 +567,13 @@ package body Athena.Handles.Empire is
         Manager_Holders.To_Holder (To);
       Rec.Managers (Manager).Reference.Set_Next_Update_Delay
         (Athena.Calendar.Days (Athena.Random.Unit_Random));
-      Athena.Updates.Events.Update_At
-        (Rec.Managers (Manager).Element.Next_Update,
-         Manager_Update'
-           (Empire  => Empire,
-            Manager => Manager));
+      if Rec.Managers (Manager).Element.Has_Next_Update then
+         Athena.Updates.Events.Update_At
+           (Rec.Managers (Manager).Element.Next_Update,
+            Manager_Update'
+              (Empire  => Empire,
+               Manager => Manager));
+      end if;
    end Set_Manager;
 
    -------------------------

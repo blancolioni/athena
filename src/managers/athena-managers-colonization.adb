@@ -1,7 +1,5 @@
 with Ada.Containers.Doubly_Linked_Lists;
 
-with Athena.Logging;
-
 with Athena.Colonies;
 with Athena.Empires;
 with Athena.Stars;
@@ -23,14 +21,32 @@ package body Athena.Managers.Colonization is
       return String
    is ("colonization");
 
-   overriding procedure Create_Orders
+   overriding procedure Dispatch_Create_Orders
      (Manager : in out Colonization_Manager);
 
-   -------------------
-   -- Create_Orders --
-   -------------------
+   ----------------------------------
+   -- Default_Colonization_Manager --
+   ----------------------------------
 
-   overriding procedure Create_Orders
+   function Default_Colonization_Manager
+     return Root_Manager_Type'Class
+   is
+   begin
+      return Manager : constant Colonization_Manager :=
+        Colonization_Manager'
+          (Name     => +"explore",
+           Empire   => <>,
+           Priority => 1030,
+           Next_Update => Athena.Calendar.Clock,
+           Has_Next_Update => True,
+           Messages => <>);
+   end Default_Colonization_Manager;
+
+   ----------------------------
+   -- Dispatch_Create_Orders --
+   ----------------------------
+
+   overriding procedure Dispatch_Create_Orders
      (Manager : in out Colonization_Manager)
    is
 
@@ -112,7 +128,7 @@ package body Athena.Managers.Colonization is
 
       if not Targets.Is_Empty then
          Target_Sorting.Sort (Targets);
-         Athena.Logging.Log
+         Manager.Log
            ("colonizing: " & Targets.First_Element.Star.Name
             & " score " & Image (Targets.First_Element.Score));
 
@@ -142,24 +158,7 @@ package body Athena.Managers.Colonization is
          --    (Targets.First_Element.Star, True);
       end if;
 
-      Manager.Set_Next_Update_Delay (Athena.Calendar.Days (5.0));
-   end Create_Orders;
-
-   ----------------------------------
-   -- Default_Colonization_Manager --
-   ----------------------------------
-
-   function Default_Colonization_Manager
-     return Root_Manager_Type'Class
-   is
-   begin
-      return Manager : constant Colonization_Manager :=
-        Colonization_Manager'
-          (Name     => +"explore",
-           Empire   => <>,
-           Priority => 1030,
-           Next_Update => Athena.Calendar.Clock,
-           Messages => <>);
-   end Default_Colonization_Manager;
+   --     Manager.Set_Next_Update_Delay (Athena.Calendar.Days (5.0));
+   end Dispatch_Create_Orders;
 
 end Athena.Managers.Colonization;

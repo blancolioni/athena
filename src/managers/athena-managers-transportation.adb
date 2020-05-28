@@ -19,7 +19,7 @@ package body Athena.Managers.Transportation is
       return String
    is ("transportation");
 
-   overriding procedure Create_Orders
+   overriding procedure Dispatch_Create_Orders
      (Manager : in out Transportation_Manager);
 
    type Transport_Message_Type is
@@ -75,11 +75,29 @@ package body Athena.Managers.Transportation is
         (For_Empire.Standard_Design (Design_Class));
    end Cargo_Transport_Design;
 
-   -------------------
-   -- Create_Orders --
-   -------------------
+   ------------------------------------
+   -- Default_Transportation_Manager --
+   ------------------------------------
 
-   overriding procedure Create_Orders
+   function Default_Transportation_Manager
+     return Root_Manager_Type'Class
+   is
+   begin
+      return Manager : constant Transportation_Manager :=
+        Transportation_Manager'
+          (Name     => +"transport",
+           Empire   => <>,
+           Priority => 1050,
+           Has_Next_Update => True,
+           Next_Update => Athena.Calendar.Clock,
+           Messages => <>);
+   end Default_Transportation_Manager;
+
+   ----------------------------
+   -- Dispatch_Create_Orders --
+   ----------------------------
+
+   overriding procedure Dispatch_Create_Orders
      (Manager : in out Transportation_Manager)
    is
       Empire : constant Athena.Handles.Empire.Empire_Handle :=
@@ -208,24 +226,11 @@ package body Athena.Managers.Transportation is
          end;
       end loop;
       Manager.Set_Next_Update_Delay (Athena.Calendar.Days (10));
-   end Create_Orders;
+   end Dispatch_Create_Orders;
 
-   ------------------------------------
-   -- Default_Transportation_Manager --
-   ------------------------------------
-
-   function Default_Transportation_Manager
-     return Root_Manager_Type'Class
-   is
-   begin
-      return Manager : constant Transportation_Manager :=
-        Transportation_Manager'
-          (Name     => +"transport",
-           Empire   => <>,
-           Priority => 1050,
-           Next_Update => Athena.Calendar.Clock,
-           Messages => <>);
-   end Default_Transportation_Manager;
+   --------------------
+   -- Find_Idle_Ship --
+   --------------------
 
    function Find_Idle_Ship
      (For_Empire : Athena.Handles.Empire.Empire_Handle;

@@ -17,6 +17,9 @@ package Athena.Managers is
       is abstract;
 
    procedure Create_Orders
+     (Manager : in out Root_Manager_Type'Class);
+
+   procedure Dispatch_Create_Orders
      (Manager : in out Root_Manager_Type)
    is abstract;
 
@@ -25,9 +28,14 @@ package Athena.Managers is
       Name    : String;
       Empire  : Athena.Handles.Empire_Reference);
 
+   function Has_Next_Update
+     (Manager : Root_Manager_Type'Class)
+      return Boolean;
+
    function Next_Update
      (Manager : Root_Manager_Type'Class)
-      return Athena.Calendar.Time;
+      return Athena.Calendar.Time
+     with Pre => Has_Next_Update (Manager);
 
    procedure Set_Next_Update
      (Manager   : in out Root_Manager_Type'Class;
@@ -69,12 +77,18 @@ private
 
    type Root_Manager_Type is abstract tagged
       record
-         Name        : Ada.Strings.Unbounded.Unbounded_String;
-         Empire      : Athena.Handles.Empire_Reference;
-         Priority    : Athena.Handles.Order_Priority;
-         Next_Update : Athena.Calendar.Time;
-         Messages    : Message_Lists.List;
+         Name            : Ada.Strings.Unbounded.Unbounded_String;
+         Empire          : Athena.Handles.Empire_Reference;
+         Priority        : Athena.Handles.Order_Priority;
+         Has_Next_Update : Boolean := False;
+         Next_Update     : Athena.Calendar.Time;
+         Messages        : Message_Lists.List;
       end record;
+
+   function Has_Next_Update
+     (Manager : Root_Manager_Type'Class)
+      return Boolean
+   is (Manager.Has_Next_Update);
 
    function Next_Update
      (Manager : Root_Manager_Type'Class)

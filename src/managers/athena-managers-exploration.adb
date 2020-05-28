@@ -21,14 +21,32 @@ package body Athena.Managers.Exploration is
       return String
    is ("exploration");
 
-   overriding procedure Create_Orders
+   overriding procedure Dispatch_Create_Orders
      (Manager : in out Exploration_Manager);
 
-   -------------------
-   -- Create_Orders --
-   -------------------
+   ---------------------------------
+   -- Default_Exploration_Manager --
+   ---------------------------------
 
-   overriding procedure Create_Orders
+   function Default_Exploration_Manager
+     return Root_Manager_Type'Class
+   is
+   begin
+      return Manager : constant Exploration_Manager :=
+        Exploration_Manager'
+          (Name     => +"explore",
+           Empire   => <>,
+           Priority => 1050,
+           Has_Next_Update => True,
+           Next_Update => Athena.Calendar.Clock,
+           Messages => <>);
+   end Default_Exploration_Manager;
+
+   ----------------------------
+   -- Dispatch_Create_Orders --
+   ----------------------------
+
+   overriding procedure Dispatch_Create_Orders
      (Manager : in out Exploration_Manager)
    is
       Max_Range : constant Non_Negative_Real := 20.0;
@@ -381,23 +399,6 @@ package body Athena.Managers.Exploration is
       end;
 
       Manager.Set_Next_Update_Delay (Athena.Calendar.Days (10));
-   end Create_Orders;
-
-   ---------------------------------
-   -- Default_Exploration_Manager --
-   ---------------------------------
-
-   function Default_Exploration_Manager
-     return Root_Manager_Type'Class
-   is
-   begin
-      return Manager : constant Exploration_Manager :=
-        Exploration_Manager'
-          (Name     => +"explore",
-           Empire   => <>,
-           Priority => 1050,
-           Next_Update => Athena.Calendar.Clock,
-           Messages => <>);
-   end Default_Exploration_Manager;
+   end Dispatch_Create_Orders;
 
 end Athena.Managers.Exploration;

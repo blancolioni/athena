@@ -6,11 +6,23 @@ with Ada.Containers.Vectors;
 with Athena.Money;
 with Athena.Random;
 
+with Athena.Server;
+
 with Athena.Empires;
 
 with Athena.Updates.Events;
 
 package body Athena.Handles.Colony is
+
+   Signal_Colony_Owner_Changed : constant String :=
+                                   "signal-colony-owner-changed";
+
+   type Colony_Owner_Changed_Data is
+     new Athena.Signals.Signal_Data_Interface with
+      record
+         Old_Owner : Athena.Handles.Empire.Empire_Handle;
+         New_Owner : Athena.Handles.Empire.Empire_Handle;
+      end record;
 
    package Colony_Action_Lists is
      new Ada.Containers.Indefinite_Doubly_Linked_Lists
@@ -157,6 +169,34 @@ package body Athena.Handles.Colony is
    begin
       Vector (Colony.Reference).Actions.Append (Action);
    end Add_Action;
+
+   --------------------------
+   -- Colony_Owner_Changed --
+   --------------------------
+
+   function Colony_Owner_Changed return Athena.Signals.Signal_Type is
+   begin
+      return Athena.Signals.Signal (Signal_Colony_Owner_Changed);
+   end Colony_Owner_Changed;
+
+   --------------------------
+   -- Colony_Owner_Changed --
+   --------------------------
+
+   procedure Colony_Owner_Changed
+     (Colony    : Colony_Handle;
+      Old_Owner : Athena.Handles.Empire.Empire_Handle;
+      New_Owner : Athena.Handles.Empire.Empire_Handle)
+   is
+   begin
+      Athena.Server.Emit
+        (Source      => Colony,
+         Signal      => Colony_Owner_Changed,
+         Signal_Data =>
+           Colony_Owner_Changed_Data'
+             (Old_Owner => Old_Owner,
+              New_Owner => New_Owner));
+   end Colony_Owner_Changed;
 
    ------------
    -- Create --
@@ -322,5 +362,9 @@ package body Athena.Handles.Colony is
       Empire_Map (Rec.Owner).Append (Vector.Last_Index);
 
    end Update_Maps;
+
+begin
+
+   Athena.Signals.Create_Signal (Signal_Colony_Owner_Changed);
 
 end Athena.Handles.Colony;

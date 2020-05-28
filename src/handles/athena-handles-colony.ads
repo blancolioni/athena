@@ -1,6 +1,7 @@
 with Ada.Streams.Stream_IO;
 
 with Athena.Calendar;
+with Athena.Signals;
 with Athena.Updates;
 
 with Athena.Handles.Star;
@@ -8,9 +9,12 @@ with Athena.Handles.Empire;
 
 package Athena.Handles.Colony is
 
+   function Colony_Owner_Changed return Athena.Signals.Signal_Type;
+
    type Colony_Handle is
      new Root_Athena_Handle
      and Athena.Updates.Update_Interface
+     and Athena.Signals.Signal_Source_Interface
    with private;
 
    function Reference (Colony : Colony_Handle) return Colony_Reference;
@@ -106,11 +110,17 @@ package Athena.Handles.Colony is
    procedure Save
      (Stream : Ada.Streams.Stream_IO.Stream_Access);
 
+   procedure Colony_Owner_Changed
+     (Colony    : Colony_Handle;
+      Old_Owner : Athena.Handles.Empire.Empire_Handle;
+      New_Owner : Athena.Handles.Empire.Empire_Handle);
+
 private
 
    type Colony_Handle is
      new Root_Athena_Handle
-     and Athena.Updates.Update_Interface with
+     and Athena.Updates.Update_Interface
+     and Athena.Signals.Signal_Source_Interface with
       record
          Reference : Colony_Reference := 0;
       end record;

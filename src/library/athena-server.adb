@@ -34,6 +34,8 @@ package body Athena.Server is
 
    Name_Generator    : WL.Random.Names.Name_Generator;
 
+   Signal_Dispatch   : Athena.Signals.Signal_Handler_Container;
+
    ----------------
    -- Add_Empire --
    ----------------
@@ -137,6 +139,22 @@ package body Athena.Server is
 
    end Add_Empire;
 
+   -----------------
+   -- Add_Handler --
+   -----------------
+
+   function Add_Handler
+     (Signal      : Athena.Signals.Signal_Type;
+      Source      : Athena.Signals.Signal_Source_Interface'Class;
+      User_Data   : Athena.Signals.User_Data_Interface'Class;
+      Handler     : Athena.Signals.Signal_Handler_Interface'Class)
+      return Athena.Signals.Handler_Id
+   is
+   begin
+      return Signal_Dispatch.Add_Handler
+        (Signal, Source, User_Data, Handler);
+   end Add_Handler;
+
    ---------------------
    -- Create_Scenario --
    ---------------------
@@ -175,6 +193,20 @@ package body Athena.Server is
          raise;
 
    end Create_Scenario;
+
+   ----------
+   -- Emit --
+   ----------
+
+   procedure Emit
+     (Source      : Athena.Signals.Signal_Source_Interface'Class;
+      Signal      : Athena.Signals.Signal_Type;
+      Signal_Data : Athena.Signals.Signal_Data_Interface'Class)
+   is
+   begin
+      Signal_Dispatch.Emit
+        (Source, Signal, Signal_Data);
+   end Emit;
 
    ----------------
    -- Initialize --

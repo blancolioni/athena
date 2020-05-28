@@ -1,95 +1,116 @@
-with Ada.Exceptions;
-with Ada.Text_IO;
+with Athena.Signal_Store;
 
 package body Athena.Signals is
+
+   type Null_Signal_Data_Type is
+     new Signal_Data_Interface with null record;
+
+   type Null_User_Data_Type is
+     new User_Data_Interface with null record;
 
    -----------------
    -- Add_Handler --
    -----------------
 
-   function Add_Handler
-     (Dispatcher : in out Signal_Dispatcher;
-      Signal     : Signal_Type;
-      Handler    : Handler_Type;
-      Data       : Signal_Data_Interface'Class)
-      return Athena.Signals.Handler_Id
+   overriding function Add_Handler
+     (Container : in out Signal_Handler_Container;
+      Signal    : Signal_Type;
+      Source    : Signal_Source_Interface'Class;
+      User_Data : User_Data_Interface'Class;
+      Handler   : Signal_Handler_Interface'Class)
+      return Handler_Id
    is
-      S : constant String := String (Signal);
    begin
-      if not Dispatcher.Map.Contains (S) then
-         Dispatcher.Map.Insert (S, Handler_Lists.Empty_List);
+      if not Container.Map.Contains (Signal.Name) then
+         Container.Map.Insert (Signal.Name, Signal_Handler_Lists.Empty_List);
       end if;
-      return Id : constant Handler_Id := Dispatcher.Next_Id do
-         Dispatcher.Next_Id := Dispatcher.Next_Id + 1;
-         Dispatcher.Map (S).Append
-           (Handler_Record'
-              (Id      => Id,
-               Handler => Handler,
-               Data    => Data_Holder.To_Holder (Data)));
-      end return;
+
+      declare
+         List : Signal_Handler_Lists.List renames Container.Map (Signal.Name);
+      begin
+         List.Append
+           (Signal_Handler_Record'
+              (Id        => Container.Next_Id,
+               Source    => Signal_Source_Holders.To_Holder (Source),
+               User_Data => User_Data_Holders.To_Holder (User_Data),
+               Handler   => Signal_Handler_Holders.To_Holder (Handler)));
+
+         return Id         : constant Handler_Id := Container.Next_Id do
+            Container.Next_Id := Container.Next_Id + 1;
+         end return;
+      end;
    end Add_Handler;
 
    -------------------
-   -- Call_Handlers --
+   -- Create_Signal --
    -------------------
 
-   procedure Call_Handlers
-     (Dispatcher : Signal_Dispatcher;
-      Object     : Signaler'Class;
-      Signal     : Signal_Type)
-   is
-      S        : constant String := String (Signal);
+   procedure Create_Signal (Identifier : String) is
+      Signal : constant Signal_Type :=
+                 Signal_Type'
+                   (Name_Length => Identifier'Length,
+                    Name        => Identifier);
    begin
-      if Dispatcher.Map.Contains (S) then
+      if Athena.Signal_Store.Exists (Identifier) then
+         raise Constraint_Error with
+           "signal already exists: " & Identifier;
+      end if;
+
+      Athena.Signal_Store.Add (Identifier, Signal);
+   end Create_Signal;
+
+   ----------
+   -- Emit --
+   ----------
+
+   overriding procedure Emit
+     (Container   : Signal_Handler_Container;
+      Source      : Signal_Source_Interface'Class;
+      Signal      : Signal_Type;
+      Signal_Data : Signal_Data_Interface'Class)
+   is
+   begin
+      if Container.Map.Contains (Signal.Name) then
          declare
-            List : constant Handler_Lists.List :=
-                     Dispatcher.Map.Element (S);
+            List : constant Signal_Handler_Lists.List :=
+                     Container.Map (Signal.Name);
          begin
-            for Handler of List loop
-               begin
-                  Handler.Handler (Object, Handler.Data.Element);
-               exception
-                  when E : others =>
-                     Ada.Text_IO.Put_Line
-                       (Ada.Text_IO.Standard_Error,
-                        "exception while calling handler"
-                        & Handler.Id'Image
-                        & " for "
-                        & String (Signal)
-                        & ": "
-                        & Ada.Exceptions.Exception_Message (E));
-               end;
+            for Item of List loop
+               if Item.Handler.Element.Handle
+                 (Source, Signal_Data, Item.User_Data.Element)
+               then
+                  exit;
+               end if;
             end loop;
          end;
       end if;
-   end Call_Handlers;
+   end Emit;
 
-   --------------------
-   -- Remove_Handler --
-   --------------------
+   ----------------------
+   -- Null_Signal_Data --
+   ----------------------
 
-   procedure Remove_Handler
-     (Dispatcher : in out Signal_Dispatcher;
-      Signal     : Signal_Type;
-      Id         : Handler_Id)
-   is
-      S : constant String := String (Signal);
-      List : Handler_Lists.List renames Dispatcher.Map (S);
-      Pos  : Handler_Lists.Cursor := Handler_Lists.No_Element;
+   function Null_Signal_Data return Signal_Data_Interface'Class is
    begin
-      for Position in List.Iterate loop
-         if Handler_Lists.Element (Position).Id = Id then
-            Pos := Position;
-            exit;
-         end if;
-      end loop;
+      return Null_Signal_Data_Type'(null record);
+   end Null_Signal_Data;
 
-      if Handler_Lists.Has_Element (Pos) then
-         List.Delete (Pos);
-      else
-         raise Constraint_Error with
-           "no such handler" & Id'Image & " for signal " & S;
-      end if;
-   end Remove_Handler;
+   --------------------
+   -- Null_User_Data --
+   --------------------
+
+   function Null_User_Data return User_Data_Interface'Class is
+   begin
+      return Null_User_Data_Type'(null record);
+   end Null_User_Data;
+
+   ------------
+   -- Signal --
+   ------------
+
+   function Signal (Identifier : String) return Signal_Type is
+   begin
+      return Athena.Signal_Store.Get (Identifier);
+   end Signal;
 
 end Athena.Signals;

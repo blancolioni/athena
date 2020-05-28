@@ -22,6 +22,18 @@ package body Athena.Managers is
 
    Manager_Map : Manager_Maps.Map;
 
+   -------------------
+   -- Create_Orders --
+   -------------------
+
+   procedure Create_Orders
+     (Manager : in out Root_Manager_Type'Class)
+   is
+   begin
+      Manager.Has_Next_Update := False;
+      Manager.Dispatch_Create_Orders;
+   end Create_Orders;
+
    ------------
    -- Exists --
    ------------
@@ -144,6 +156,7 @@ package body Athena.Managers is
       Update_At : Athena.Calendar.Time)
    is
    begin
+      Manager.Has_Next_Update := True;
       Manager.Next_Update := Update_At;
    end Set_Next_Update;
 

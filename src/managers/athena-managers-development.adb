@@ -11,14 +11,31 @@ package body Athena.Managers.Development is
       return String
    is ("development");
 
-   overriding procedure Create_Orders
+   overriding procedure Dispatch_Create_Orders
      (Manager : in out Development_Manager);
 
-   -------------------
-   -- Create_Orders --
-   -------------------
+   ---------------------------------
+   -- Default_Development_Manager --
+   ---------------------------------
 
-   overriding procedure Create_Orders
+   function Default_Development_Manager
+     return Root_Manager_Type'Class
+   is
+   begin
+      return Manager : constant Development_Manager :=
+        (Name     => +"develop",
+         Priority => 1080,
+         Empire   => Athena.Handles.Null_Empire_Reference,
+         Has_Next_Update => True,
+         Next_Update => Athena.Calendar.Clock,
+         Messages => Message_Lists.Empty_List);
+   end Default_Development_Manager;
+
+   ----------------------------
+   -- Dispatch_Create_Orders --
+   ----------------------------
+
+   overriding procedure Dispatch_Create_Orders
      (Manager : in out Development_Manager)
    is
       procedure Check_Colony
@@ -57,22 +74,6 @@ package body Athena.Managers.Development is
         .Iterate_Colonies (Check_Colony'Access);
       Manager.Set_Next_Update_Delay
         (Athena.Calendar.Days (1));
-   end Create_Orders;
-
-   ---------------------------------
-   -- Default_Development_Manager --
-   ---------------------------------
-
-   function Default_Development_Manager
-     return Root_Manager_Type'Class
-   is
-   begin
-      return Manager : constant Development_Manager :=
-        (Name     => +"develop",
-         Priority => 1080,
-         Empire   => Athena.Handles.Null_Empire_Reference,
-         Next_Update => Athena.Calendar.Clock,
-         Messages => Message_Lists.Empty_List);
-   end Default_Development_Manager;
+   end Dispatch_Create_Orders;
 
 end Athena.Managers.Development;

@@ -93,11 +93,17 @@ package body Athena.Colonies is
      (Colony      : Athena.Handles.Colony.Colony_Handle;
       Captured_By : Athena.Handles.Empire.Empire_Handle)
    is
+      Old_Owner : constant Athena.Handles.Empire.Empire_Handle :=
+                    Colony.Owner;
    begin
       Colony.Owner.Remove_Colony (Colony.Reference);
       Colony.Set_Owner (Captured_By);
       Colony.Star.Set_Owner (Captured_By.Reference);
       Colony.Owner.Add_Colony (Colony.Reference);
+      Athena.Handles.Colony.Colony_Owner_Changed
+        (Colony    => Colony,
+         Old_Owner => Old_Owner,
+         New_Owner => Captured_By);
    end Capture_Colony;
 
    -----------------
@@ -230,6 +236,10 @@ package body Athena.Colonies is
       At_Star.Set_Colony (Colony.Reference);
       At_Star.Set_Owner (Owner.Reference);
       Owner.Add_Colony (Colony.Reference);
+      Athena.Handles.Colony.Colony_Owner_Changed
+        (Colony    => Colony,
+         Old_Owner => Athena.Handles.Empire.Empty_Handle,
+         New_Owner => Owner);
       return Colony;
    end New_Colony;
 
