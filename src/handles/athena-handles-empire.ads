@@ -12,8 +12,8 @@ with Athena.Handles.Technology;
 package Athena.Handles.Empire is
 
    type Standard_Empire_Design is
-     (Scout, Transport,
-      Recon, Fighter, Destroyer, Cruiser, Battleship, Carrier);
+     (Scout, Transport, Freighter,
+      Recon, Defender, Fighter, Destroyer, Cruiser, Battleship, Carrier);
 
    type Empire_Handle is
      new Root_Athena_Handle

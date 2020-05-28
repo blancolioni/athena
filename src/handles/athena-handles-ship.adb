@@ -140,6 +140,13 @@ package body Athena.Handles.Ship is
       return Non_Negative_Real
    is (Vector (Ship.Reference).Carrying (Cargo));
 
+   function Current_Activity
+     (Ship : Ship_Handle)
+      return String
+   is (if Ship.Has_Actions
+       then Ship.First_Action.Image
+       else "idle");
+
    function Has_Actions (Ship : Ship_Handle) return Boolean
    is (not Vector (Ship.Reference).Actions.Is_Empty);
 
@@ -161,7 +168,19 @@ package body Athena.Handles.Ship is
    is
       use type Athena.Calendar.Time;
    begin
-      Ship.Log ("activating");
+      Ship.Log ("activating: current activity "
+                & Ship.Current_Activity);
+      for Cargo in Cargo_Class loop
+         declare
+            Quantity : constant Non_Negative_Real :=
+                         Ship.Current_Cargo (Cargo);
+         begin
+            if Quantity > 0.0 then
+               Ship.Log ("cargo: " & Image (Quantity) & " "
+                         & Cargo'Image);
+            end if;
+         end;
+      end loop;
 
       if Vector (Ship.Reference).Executing then
          if Vector (Ship.Reference).Action_Finished
@@ -427,30 +446,20 @@ package body Athena.Handles.Ship is
       return Unit_Real
    is
       use type Athena.Calendar.Time;
+      Action_Started  : constant Athena.Calendar.Time :=
+                          Vector (Ship.Reference).Action_Started;
+      Action_Finished : constant Athena.Calendar.Time :=
+                          Vector (Ship.Reference).Action_Finished;
+      Total_Time    : constant Real :=
+                        Real (Action_Finished - Action_Started);
+      Elapsed_Time    : constant Real :=
+                          Real (Athena.Calendar.Clock - Action_Started);
    begin
-      if not Ship.Has_Deep_Space_Location then
-         return 0.0;
+      if Total_Time = 0.0 then
+         return 1.0;
+      else
+         return Unit_Clamp (Elapsed_Time / Total_Time);
       end if;
-
-      declare
-         Action_Started  : constant Athena.Calendar.Time :=
-           Vector (Ship.Reference).Action_Started;
-         Action_Finished : constant Athena.Calendar.Time :=
-           Vector (Ship.Reference).Action_Finished;
-         Journey_Time    : constant Real :=
-           Real (Action_Finished - Action_Started);
-         Elapsed_Time    : constant Real :=
-           Real (Athena.Calendar.Clock - Action_Started);
-      begin
-         if Journey_Time = 0.0 then
-            Ship.Log ("warning: journey starts and finishes at "
-                      & Athena.Calendar.Image (Action_Started, True));
-            return 1.0;
-         else
-            return Unit_Clamp (Elapsed_Time / Journey_Time);
-         end if;
-      end;
-
    end Progress;
 
    ----------

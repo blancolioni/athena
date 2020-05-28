@@ -146,6 +146,10 @@ package Athena.Handles.Ship is
    procedure Delete_First_Action (Ship : Ship_Handle)
      with Pre => Ship.Has_Actions;
 
+   function Current_Activity
+     (Ship : Ship_Handle)
+      return String;
+
    procedure Add_Experience
      (Ship : Ship_Handle;
       XP   : Non_Negative_Real);
@@ -229,6 +233,9 @@ private
       record
          Complete : Boolean := False;
       end record;
+
+   function Image (Action : Root_Ship_Action) return String
+   is ("action");
 
    function Complete
      (Action : Root_Ship_Action'Class)

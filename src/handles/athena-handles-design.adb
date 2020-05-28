@@ -121,12 +121,17 @@ package body Athena.Handles.Design is
          Rec.Berths := Rec.Berths + Design_Module.Component.Berths;
       end if;
 
-      Ada.Text_IO.Put_Line
-        ("  module: " & Design_Module.Component.Tag
-         & " tonnage " & Image (Design_Module.Component.Tonnage)
-         & " mass " & Image (Design_Module.Component.Mass)
-         & " power " & Image (Design_Module.Component.Idle_Power_Consumption)
-        & "/" & Image (Design_Module.Component.Active_Power_Consumption));
+   --     Ada.Text_IO.Put_Line
+   --       ("  module: "
+   --        & Design_Module.Component.Tag
+   --        & " tonnage "
+   --        & Image (Design_Module.Component.Tonnage)
+   --        & " mass "
+   --        & Image (Design_Module.Component.Mass)
+   --        & " power "
+   --        & Image (Design_Module.Component.Idle_Power_Consumption)
+   --        & "/"
+   --        & Image (Design_Module.Component.Active_Power_Consumption));
    end Add_Design_Module;
 
    ------------

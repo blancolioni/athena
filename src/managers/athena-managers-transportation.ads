@@ -12,4 +12,12 @@ package Athena.Managers.Transportation is
       Priority : Athena.Handles.Order_Priority)
       return Message_Type'Class;
 
+   function Transport_Message
+     (Empire   : Athena.Handles.Empire_Reference;
+      From     : Athena.Handles.Star_Reference;
+      To       : Athena.Handles.Star_Reference;
+      Cargo    : Athena.Handles.Cargo_Class;
+      Priority : Athena.Handles.Order_Priority)
+      return Message_Type'Class;
+
 end Athena.Managers.Transportation;

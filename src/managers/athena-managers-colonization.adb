@@ -90,8 +90,9 @@ package body Athena.Managers.Colonization is
                     Target_Record'
                       (Star  => Star,
                        Score =>
-                         Real'Max (Star.Resource, Star.Habitability)
-                       / Distance / Distance);
+                         1000.0 * Star.Resource
+                       * Star.Habitability ** 2
+                       / Distance ** 2);
          begin
             Manager.Log
               ("colonization target " & Star.Name
@@ -133,13 +134,12 @@ package body Athena.Managers.Colonization is
                   From     => From.Star.Reference,
                   To       => Targets.First_Element.Star.Reference,
                   Cargo    => Athena.Handles.Colonists,
-                  Quantity => 10.0,
                   Priority => Manager.Priority));
 
          end;
 
-         Knowledge.Set_Colonizing
-           (Targets.First_Element.Star, True);
+         --  Knowledge.Set_Colonizing
+         --    (Targets.First_Element.Star, True);
       end if;
 
       Manager.Set_Next_Update_Delay (Athena.Calendar.Days (5.0));

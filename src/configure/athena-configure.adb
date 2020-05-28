@@ -207,12 +207,12 @@ package body Athena.Configure is
             Gen          : constant Generated_Star_Record :=
                              Vector.Element (I);
             Star_Name    : constant String := Create_System_Name;
-            Space        : constant Positive :=
-                             WL.Random.Random_Number (1, 2_500);
             Resource     : constant Unit_Real :=
                              Athena.Random.Unit_Random;
             Habitability : constant Unit_Real :=
                              Athena.Random.Unit_Random;
+            Space        : constant Positive :=
+                             Natural (Habitability ** 2 * 10_000.0) + 1;
             Star_Handle  : constant Athena.Handles.Star.Star_Handle :=
                              Athena.Handles.Star.Create
                                (X             => Gen.X,

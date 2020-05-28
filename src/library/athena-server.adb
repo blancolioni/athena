@@ -56,7 +56,7 @@ package body Athena.Server is
       is
       begin
          if Handle.Has_Owner
-           or else Handle.Space not in 1000 .. 2500
+           or else Handle.Space < 2500
            or else Handle.Resource not in 0.5 .. 1.0
            or else Handle.Habitability not in 0.5 .. 1.0
          then

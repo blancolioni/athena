@@ -11,8 +11,11 @@ package body Athena.Handles.Ship.Actions is
    type System_Departure_Action is
      new Root_Ship_Action with
       record
-         null;
+         Destination : Athena.Handles.Star.Star_Handle;
       end record;
+
+   overriding function Image (Action : System_Departure_Action) return String
+   is ("departing");
 
    overriding function Start
      (Action : System_Departure_Action;
@@ -30,6 +33,9 @@ package body Athena.Handles.Ship.Actions is
          null;
       end record;
 
+   overriding function Image (Action : System_Arrival_Action) return String
+   is ("arriving");
+
    overriding function Start
      (Action : System_Arrival_Action;
       Ship   : Ship_Handle'Class)
@@ -37,8 +43,7 @@ package body Athena.Handles.Ship.Actions is
 
    overriding procedure On_Finished
      (Action : System_Arrival_Action;
-      Ship   : Ship_Handle'Class)
-   is null;
+      Ship   : Ship_Handle'Class);
 
    type Jump_To_Action is
      new Root_Ship_Action with
@@ -46,6 +51,9 @@ package body Athena.Handles.Ship.Actions is
          Destination : Athena.Handles.Star.Star_Handle;
       end record;
 
+   overriding function Image (Action : Jump_To_Action) return String
+   is ("jumping to " & Action.Destination.Name);
+
    overriding function Start
      (Action : Jump_To_Action;
       Ship   : Ship_Handle'Class)
@@ -53,14 +61,19 @@ package body Athena.Handles.Ship.Actions is
 
    overriding procedure On_Finished
      (Action : Jump_To_Action;
-      Ship   : Ship_Handle'Class);
+      Ship   : Ship_Handle'Class)
+   is null;
 
    type Load_Cargo_Action is
      new Root_Ship_Action with
       record
          Cargo    : Cargo_Class;
          Quantity : Non_Negative_Real;
+         Maximum  : Boolean;
       end record;
+
+   overriding function Image (Action : Load_Cargo_Action) return String
+   is ("loading " & Action.Cargo'Image);
 
    overriding function Start
      (Action : Load_Cargo_Action;
@@ -75,9 +88,13 @@ package body Athena.Handles.Ship.Actions is
    type Unload_Cargo_Action is
      new Root_Ship_Action with
       record
-         Cargo    : Cargo_Class;
-         Quantity : Non_Negative_Real;
+         Cargo      : Cargo_Class;
+         Quantity   : Non_Negative_Real;
+         Everything : Boolean;
       end record;
+
+   overriding function Image (Action : Unload_Cargo_Action) return String
+   is ("unloading " & Action.Cargo'Image);
 
    overriding function Start
      (Action : Unload_Cargo_Action;
@@ -88,6 +105,38 @@ package body Athena.Handles.Ship.Actions is
      (Action : Unload_Cargo_Action;
       Ship   : Ship_Handle'Class)
    is null;
+
+   -----------------
+   -- Empty_Cargo --
+   -----------------
+
+   function Empty_Cargo
+     (Cargo    : Cargo_Class)
+      return Root_Ship_Action'Class
+   is
+   begin
+      return Unload_Cargo_Action'
+        (Complete   => False,
+         Cargo      => Cargo,
+         Quantity   => 0.0,
+         Everything => True);
+   end Empty_Cargo;
+
+   ----------------
+   -- Fill_Cargo --
+   ----------------
+
+   function Fill_Cargo
+     (Cargo    : Cargo_Class)
+      return Root_Ship_Action'Class
+   is
+   begin
+      return Load_Cargo_Action'
+        (Complete => False,
+         Cargo    => Cargo,
+         Quantity => 0.0,
+         Maximum  => True);
+   end Fill_Cargo;
 
    ----------------
    -- Load_Cargo --
@@ -102,7 +151,8 @@ package body Athena.Handles.Ship.Actions is
       return Load_Cargo_Action'
         (Complete => False,
          Cargo    => Cargo,
-         Quantity => Quantity);
+         Quantity => Quantity,
+         Maximum  => False);
    end Load_Cargo;
 
    -------------
@@ -115,16 +165,17 @@ package body Athena.Handles.Ship.Actions is
    is
    begin
 
-      if Ship.Current_Fuel < Ship.Tank_Size then
-         Ship.Add_Action
-           (Action => Load_Cargo_Action'
-              (Complete => False,
-               Cargo    => Fuel,
-               Quantity => Ship.Tank_Size - Ship.Current_Fuel));
-      end if;
+      Ship.Add_Action
+        (Action => Load_Cargo_Action'
+           (Complete => False,
+            Cargo    => Fuel,
+            Quantity => 0.0,
+            Maximum  => True));
 
       Ship.Add_Action
-        (Action => System_Departure_Action'(Complete => False));
+        (Action => System_Departure_Action'
+           (Complete    => False,
+            Destination => Star));
 
       Ship.Add_Action
         (Action => Jump_To_Action'
@@ -141,14 +192,14 @@ package body Athena.Handles.Ship.Actions is
    -----------------
 
    overriding procedure On_Finished
-     (Action : Jump_To_Action;
+     (Action : System_Arrival_Action;
       Ship   : Ship_Handle'Class)
    is
    begin
       Ship.Set_Star_Location (Ship.Destination);
       Ship.Clear_Destination;
       Athena.Ships.On_Arrival (Ship);
-      Set_Activity (Ship, Arriving);
+      Set_Activity (Ship, Idle);
    end On_Finished;
 
    -----------
@@ -253,7 +304,20 @@ package body Athena.Handles.Ship.Actions is
       Ship   : Ship_Handle'Class)
       return Duration
    is
+      use type Athena.Handles.Star.Star_Handle;
    begin
+      if Ship.Has_Star_Location
+        and then Ship.Star_Location = Action.Destination
+      then
+         return 0.0;
+      end if;
+
+      if not Ship.Has_Destination
+        or else Ship.Destination /= Action.Destination
+      then
+         Ship.Set_Destination (Action.Destination);
+      end if;
+
       Ship.Set_Activity (Departing);
       return Athena.Calendar.Days
         (100.0 / Athena.Ships.Get_Impulse_Speed (Ship));
@@ -279,51 +343,33 @@ package body Athena.Handles.Ship.Actions is
       if not Ship.Has_Destination
         or else Ship.Destination /= Action.Destination
       then
-         Ship.Set_Destination (Action.Destination);
+         return 0.0;
       end if;
 
       declare
          Total_Distance : constant Non_Negative_Real :=
-           Athena.Stars.Distance
-             (Ship.Origin, Ship.Destination);
+                            Athena.Stars.Distance
+                              (Ship.Origin, Ship.Destination);
          Speed          : constant Non_Negative_Real :=
-           Athena.Ships.Get_Jump_Speed (Ship);
+                            Athena.Ships.Get_Jump_Speed (Ship);
          Journey_Time   : constant Duration :=
-           Athena.Calendar.Days (Total_Distance / Speed);
+                            Athena.Calendar.Days (Total_Distance / Speed);
          XP             : constant Non_Negative_Real :=
-           Total_Distance / 1000.0;
+                            Total_Distance / 1000.0;
       begin
 
          Log (Ship,
               "moving to "
               & Ship.Destination.Name
-                & ": distance " & Image (Total_Distance)
+              & ": distance " & Image (Total_Distance)
               & "; jump speed " & Image (Speed)
               & "; travel time " & Image (Total_Distance / Speed)
               & " days");
 
          Ship.Add_Experience (XP);
          Ship.Set_Activity (Jumping);
-
-         --  if Speed >= Remaining then
-         --     Log (Ship, "arrives at " & Ship.Destination.Name);
-         --     return True;
-         --
-         --  else
-         --
-         --     Ship.Set_Progress ((Travelled + Speed) / Total_Distance);
-         --     return False;
-         --  end if;
-         --
-      --  if Move_Ship (Ship) then
-      --     Ship.Set_Star_Location (Ship.Destination);
-      --     Ship.Clear_Destination;
-      --     Athena.Ships.On_Arrival (Ship);
-      --  end if;
-
          return Journey_Time;
       end;
-
    end Start;
 
    -----------
@@ -387,7 +433,7 @@ package body Athena.Handles.Ship.Actions is
             else
                declare
                   New_Pop : constant Non_Negative_Real :=
-                              Colony.Population + Unloaded_Quantity * 10.0;
+                              Colony.Population + Unloaded_Quantity;
                begin
                   Colony.Log ("add pop to existing colony");
                   Athena.Ships.Unload_Cargo
@@ -496,9 +542,10 @@ package body Athena.Handles.Ship.Actions is
    is
    begin
       return Unload_Cargo_Action'
-        (Complete => False,
-         Cargo    => Cargo,
-         Quantity => Quantity);
+        (Complete   => False,
+         Cargo      => Cargo,
+         Quantity   => Quantity,
+         Everything => False);
    end Unload_Cargo;
 
 end Athena.Handles.Ship.Actions;

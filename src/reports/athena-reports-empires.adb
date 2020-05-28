@@ -108,7 +108,7 @@ package body Athena.Reports.Empires is
          Add_Cell (Table, Ship.Name);
          Add_Cell (Table, Ship.Design.Name);
          if Ship.Has_Deep_Space_Location then
-            Add_Cell (Table, "deep space");
+            Add_Cell (Table, Ship.Origin.Name);
          else
             Add_Cell (Table, Ship.Star_Location.Name);
          end if;
@@ -118,6 +118,8 @@ package body Athena.Reports.Empires is
             Add_Cell (Table, "");
          end if;
 
+         Add_Cell (Table, Ship.Current_Activity);
+         Add_Cell (Table, Image (Ship.Progress * 100.0) & "%");
          Add_Cell (Table, Image (Athena.Ships.Tonnage (Ship)));
          Add_Cell (Table, Image (Athena.Ships.Mass (Ship)));
          Add_Cell (Table, Athena.Money.Show
@@ -138,6 +140,8 @@ package body Athena.Reports.Empires is
       Add_Heading (Table, "design");
       Add_Heading (Table, "location");
       Add_Heading (Table, "destination");
+      Add_Heading (Table, "activity");
+      Add_Heading (Table, "progress");
       Add_Heading (Table, "tons");
       Add_Heading (Table, "mass");
       Add_Heading (Table, "mnt");

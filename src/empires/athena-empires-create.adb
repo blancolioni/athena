@@ -94,6 +94,7 @@ package body Athena.Empires.Create is
 
          Scout_Design     : constant Design_Handle := Design ("scout");
          Transport_Design : constant Design_Handle := Design ("transport");
+         Freighter_Design : constant Design_Handle := Design ("freighter");
          Defender_Design  : constant Design_Handle := Design ("defender");
          Destroyer_Design : constant Design_Handle := Design ("destroyer");
       begin
@@ -129,6 +130,14 @@ package body Athena.Empires.Create is
             Manager => Athena.Handles.Transport_Manager,
             Design  => Transport_Design,
             Name    => "Transport I");
+
+         Athena.Ships.Create.Create_Ship
+           (Empire  => Empire,
+            Star    => Star,
+            Fleet   => Athena.Handles.Fleet.Empty_Handle,
+            Manager => Athena.Handles.Transport_Manager,
+            Design  => Freighter_Design,
+            Name    => "Freighter I");
 
          Athena.Ships.Create.Create_Ship
            (Empire  => Empire,
