@@ -53,9 +53,7 @@ package body Athena.UI.Nazar_UI is
       record
          Top            : Nazar.Views.Nazar_View;
          Models         : Model_Lists.List;
-         Galaxy_Model   : Nazar.Models.Draw.Nazar_Draw_Model;
          Galaxy_View    : Nazar.Views.Draw.Nazar_Draw_View;
-         Galaxy_Control : Nazar.Controllers.Draw.Nazar_Draw_Controller_Record;
       end record;
 
    overriding procedure Start
@@ -129,16 +127,21 @@ package body Athena.UI.Nazar_UI is
       Nazar.Main.Init;
       return Result : Athena_Nazar_UI do
          Result.Top := Builder.Get_View ("Athena");
-         Result.Galaxy_Model := Athena.UI.Models.Galaxy.Galaxy_Model (Empire);
-         Result.Galaxy_View :=
-           Nazar.Views.Draw.Nazar_Draw_View
-             (Builder.Get_View ("galaxy"));
 
-         Result.Models.Append (Nazar.Models.Nazar_Model (Result.Galaxy_Model));
+         declare
+            Galaxy_Layers : constant Athena.UI.Models.Draw_Model_Layers :=
+                              Athena.UI.Models.Galaxy.Galaxy_Model (Empire);
+         begin
+            Result.Galaxy_View :=
+              Nazar.Views.Draw.Nazar_Draw_View
+                (Builder.Get_View ("galaxy"));
 
-         Result.Galaxy_Control.Start_Draw
-           (Model => Result.Galaxy_Model,
-            View  => Result.Galaxy_View);
+            for Model of Galaxy_Layers loop
+               Result.Galaxy_View.Append (Model);
+               Result.Models.Append (Nazar.Models.Nazar_Model (Model));
+            end loop;
+            Result.Galaxy_View.Show;
+         end;
 
          Builder.Get_View ("empire-label").Set_Property ("text", Empire.Name);
 
@@ -213,8 +216,8 @@ package body Athena.UI.Nazar_UI is
          for Model of UI.Models loop
             Model.Reload;
          end loop;
-         UI.Galaxy_View.Set_Viewport
-           (UI.Galaxy_Model.Bounding_Box);
+         --  UI.Galaxy_View.Set_Viewport
+         --    (UI.Galaxy_Model.Bounding_Box);
       end Reload_Models;
 
    begin
@@ -280,8 +283,8 @@ package body Athena.UI.Nazar_UI is
          for Model of Update_UI.Models loop
             Model.Reload;
          end loop;
-         Update_UI.Galaxy_View.Set_Viewport
-           (Update_UI.Galaxy_Model.Bounding_Box);
+         --  Update_UI.Galaxy_View.Set_Viewport
+         --    (Update_UI.Galaxy_Model.Bounding_Box);
       end Reload_Models;
 
    begin
