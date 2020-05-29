@@ -238,6 +238,11 @@ begin
    Athena.Logging.Start_Logging ("gui");
    Athena.Handles.State.Load_State;
 
+   Athena.Updates.Control.Start_Updates;
+   Athena.Updates.Control.Set_Advance_Speed
+     (Advance_Per_Second => Athena.Calendar.Days (1));
+   Athena.Updates.Control.Resume_Updates;
+
    declare
       UI : Athena.UI.Athena_User_Interface'Class :=
         Athena.UI.Launch.Get_UI
@@ -246,6 +251,8 @@ begin
    begin
       UI.Start;
    end;
+
+   Athena.Updates.Control.Stop_Updates;
 
    Athena.Handles.State.Save_State;
 
