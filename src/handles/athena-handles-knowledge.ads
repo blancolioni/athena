@@ -1,9 +1,13 @@
 with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Streams.Stream_IO;
 
+with Athena.Signals;
+
 with Athena.Handles.Star;
 
 package Athena.Handles.Knowledge is
+
+   function Visited return Athena.Signals.Signal_Type;
 
    type Known_Ship_Record is
       record

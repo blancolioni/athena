@@ -225,7 +225,7 @@ package body Athena.Configure is
                                 Habitability  => Habitability);
          begin
 
-            Vector (I).Handle := Star_Handle;
+            Vector.Reference (I).Handle := Star_Handle;
 
          end;
       end loop;

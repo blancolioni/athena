@@ -8,6 +8,9 @@ package body Athena.Signals is
    type Null_User_Data_Type is
      new User_Data_Interface with null record;
 
+   type Any_Signal_Source is
+     new Signal_Source_Interface with null record;
+
    -----------------
    -- Add_Handler --
    -----------------
@@ -40,6 +43,15 @@ package body Athena.Signals is
          end return;
       end;
    end Add_Handler;
+
+   ----------------
+   -- Any_Source --
+   ----------------
+
+   function Any_Source return Signal_Source_Interface'Class is
+   begin
+      return Source : Any_Signal_Source;
+   end Any_Source;
 
    -------------------
    -- Create_Signal --

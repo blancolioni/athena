@@ -9,10 +9,15 @@ with Nazar.Colors;
 with Athena.Color;
 with Athena.Voronoi_Diagrams;
 
+with Athena.Server;
+with Athena.Signals;
+
 with Athena.Empires;
 
 --  with Athena.Knowledge.Stars;
 
+with Athena.Handles.Colony;
+with Athena.Handles.Knowledge;
 with Athena.Handles.Ship;
 with Athena.Handles.Star;
 
@@ -76,11 +81,16 @@ package body Athena.UI.Models.Galaxy is
    type Galaxy_Model_Layer is
      (Background, Boundaries, Stars, Owner, Ships, Journeys);
 
+   package Handler_Id_Lists is
+     new Ada.Containers.Doubly_Linked_Lists
+       (Athena.Signals.Handler_Id, Athena.Signals."=");
+
    type Root_Galaxy_Model is
      new Nazar.Models.Draw.Root_Draw_Model with
       record
-         Data  : Galaxy_Model_Record_Access;
-         Layer : Galaxy_Model_Layer;
+         Data        : Galaxy_Model_Record_Access;
+         Layer       : Galaxy_Model_Layer;
+         Handler_Ids : Handler_Id_Lists.List;
       end record;
 
    type Galaxy_Model_Access is access all Root_Galaxy_Model'Class;
@@ -95,6 +105,9 @@ package body Athena.UI.Models.Galaxy is
 
    procedure Draw_Galaxy
      (Model : in out Root_Galaxy_Model'Class);
+
+   procedure Connect_Signals
+     (Model : not null access Root_Galaxy_Model'Class);
 
    function Orbiting_Ships
      (Around : Athena.Handles.Star.Star_Handle)
@@ -114,6 +127,86 @@ package body Athena.UI.Models.Galaxy is
           Alpha =>
              Nazar.Nazar_Unit_Float (Color.Alpha)));
 
+   type Model_User_Data is new Athena.Signals.User_Data_Interface with
+      record
+         Model : Galaxy_Model_Access;
+      end record;
+
+   type Colony_Owner_Changed_Handler is
+     new Athena.Signals.Signal_Handler_Interface with
+      record
+         null;
+      end record;
+
+   overriding function Handle
+     (Handler     : Colony_Owner_Changed_Handler;
+      Source      : Athena.Signals.Signal_Source_Interface'Class;
+      Signal_Data : Athena.Signals.Signal_Data_Interface'Class;
+      User_Data   : Athena.Signals.User_Data_Interface'Class)
+      return Boolean;
+
+   type Visited_Handler is
+     new Athena.Signals.Signal_Handler_Interface with
+      record
+         null;
+      end record;
+
+   overriding function Handle
+     (Handler     : Visited_Handler;
+      Source      : Athena.Signals.Signal_Source_Interface'Class;
+      Signal_Data : Athena.Signals.Signal_Data_Interface'Class;
+      User_Data   : Athena.Signals.User_Data_Interface'Class)
+      return Boolean;
+
+   ---------------------
+   -- Connect_Signals --
+   ---------------------
+
+   procedure Connect_Signals
+     (Model : not null access Root_Galaxy_Model'Class)
+   is
+   begin
+      case Model.Layer is
+         when Background =>
+            null;
+
+         when Boundaries =>
+            Model.Handler_Ids.Append
+              (Athena.Server.Add_Handler
+                 (Signal    => Athena.Handles.Colony.Colony_Owner_Changed,
+                  Source    => Athena.Signals.Any_Source,
+                  User_Data =>
+                     Model_User_Data'(Model => Galaxy_Model_Access (Model)),
+                  Handler   => Colony_Owner_Changed_Handler'(null record)));
+            Model.Handler_Ids.Append
+              (Athena.Server.Add_Handler
+                 (Signal    => Athena.Handles.Knowledge.Visited,
+                  Source    => Athena.Signals.Any_Source,
+                  User_Data =>
+                     Model_User_Data'(Model => Galaxy_Model_Access (Model)),
+                  Handler   => Visited_Handler'(null record)));
+
+         when Stars =>
+            null;
+
+         when Owner =>
+            Model.Handler_Ids.Append
+              (Athena.Server.Add_Handler
+                 (Signal    => Athena.Handles.Colony.Colony_Owner_Changed,
+                  Source    => Athena.Signals.Any_Source,
+                  User_Data =>
+                     Model_User_Data'(Model => Galaxy_Model_Access (Model)),
+                  Handler   => Colony_Owner_Changed_Handler'(null record)));
+
+         when Ships =>
+            null;
+
+         when Journeys =>
+            null;
+
+      end case;
+   end Connect_Signals;
+
    -----------------
    -- Draw_Galaxy --
    -----------------
@@ -129,15 +222,9 @@ package body Athena.UI.Models.Galaxy is
       case Model.Layer is
          when Background =>
 
-            Ada.Text_IO.Put (" background");
-            Ada.Text_IO.Flush;
-
             null;
 
          when Boundaries =>
-
-            Ada.Text_IO.Put (" boundaries");
-            Ada.Text_IO.Flush;
 
             for Rec of Model.Data.Stars loop
                if Rec.Handle.Has_Owner
@@ -188,9 +275,6 @@ package body Athena.UI.Models.Galaxy is
 
          when Stars =>
 
-            Ada.Text_IO.Put (" stars");
-            Ada.Text_IO.Flush;
-
             for Rec of Model.Data.Stars loop
 
                --  if Rec.Encounter > 0 then
@@ -215,9 +299,7 @@ package body Athena.UI.Models.Galaxy is
 
          when Owner =>
 
-            Ada.Text_IO.Put (" owner");
-            Ada.Text_IO.Flush;
-
+            Ada.Text_IO.Put_Line ("updating owners");
             for Rec of Model.Data.Stars loop
                if Rec.Handle.Has_Owner then
                   Model.Save_State;
@@ -231,9 +313,6 @@ package body Athena.UI.Models.Galaxy is
             end loop;
 
          when Ships =>
-
-            Ada.Text_IO.Put (" ships");
-            Ada.Text_IO.Flush;
 
             for Rec of Model.Data.Stars loop
                if not Rec.Ships.Is_Empty then
@@ -266,9 +345,6 @@ package body Athena.UI.Models.Galaxy is
             end loop;
 
          when Journeys =>
-
-            Ada.Text_IO.Put (" journeys");
-            Ada.Text_IO.Flush;
 
             for Journey of Model.Data.Journeys loop
                Model.Save_State;
@@ -339,8 +415,10 @@ package body Athena.UI.Models.Galaxy is
          Layers (Index) :=
            new Root_Galaxy_Model'
              (Nazar.Models.Draw.Root_Draw_Model with
-              Data  => Data,
-              Layer => Layer);
+              Data        => Data,
+              Layer       => Layer,
+              Handler_Ids => <>);
+         Connect_Signals (Galaxy_Model_Access (Layers (Index)));
          Layers (Index).Set_Bounding_Box
            (Box => Nazar.Rectangle'
               (X => Nazar.Nazar_Float (Left),
@@ -356,6 +434,50 @@ package body Athena.UI.Models.Galaxy is
       return Layers;
 
    end Galaxy_Model;
+
+   ------------
+   -- Handle --
+   ------------
+
+   overriding function Handle
+     (Handler     : Colony_Owner_Changed_Handler;
+      Source      : Athena.Signals.Signal_Source_Interface'Class;
+      Signal_Data : Athena.Signals.Signal_Data_Interface'Class;
+      User_Data   : Athena.Signals.User_Data_Interface'Class)
+      return Boolean
+   is
+      Colony : constant Athena.Handles.Colony.Colony_Handle :=
+                 Athena.Handles.Colony.Colony_Handle (Source);
+      Model  : constant Galaxy_Model_Access :=
+                 Model_User_Data (User_Data).Model;
+   begin
+      Model.Data.Stars (Model.Data.Index_Map (Colony.Star.Name)).Color :=
+        To_Nazar_Color (Colony.Owner.Color);
+      Model.Draw_Galaxy;
+      Model.Queue_Render;
+      Model.Notify_Observers;
+      return False;
+   end Handle;
+
+   ------------
+   -- Handle --
+   ------------
+
+   overriding function Handle
+     (Handler     : Visited_Handler;
+      Source      : Athena.Signals.Signal_Source_Interface'Class;
+      Signal_Data : Athena.Signals.Signal_Data_Interface'Class;
+      User_Data   : Athena.Signals.User_Data_Interface'Class)
+      return Boolean
+   is
+      Model  : constant Galaxy_Model_Access :=
+                 Model_User_Data (User_Data).Model;
+   begin
+      Model.Draw_Galaxy;
+      Model.Queue_Render;
+      Model.Notify_Observers;
+      return False;
+   end Handle;
 
    -----------------
    -- Load_Galaxy --

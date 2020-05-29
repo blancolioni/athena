@@ -1,6 +1,8 @@
 private with Ada.Strings.Unbounded;
 private with Athena.Real_Images;
 
+with Athena.Signals;
+
 package Athena.Handles is
 
    subtype Object_Identifier is String (1 .. 8);
@@ -16,7 +18,9 @@ package Athena.Handles is
 
    procedure Next_Turn;
 
-   type Root_Athena_Handle is abstract tagged private;
+   type Root_Athena_Handle is
+     abstract new Athena.Signals.Signal_Source_Interface
+   with private;
 
    function Has_Element
      (Handle : Root_Athena_Handle'Class)
@@ -153,7 +157,8 @@ private
    function Current_Turn return Athena_Turn_Number
    is (Turn_Number);
 
-   type Root_Athena_Handle is abstract tagged
+   type Root_Athena_Handle is
+     abstract new Athena.Signals.Signal_Source_Interface with
       record
          Has_Element : Boolean := False;
       end record;

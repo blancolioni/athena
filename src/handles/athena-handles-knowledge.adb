@@ -3,6 +3,8 @@ with Ada.Containers.Vectors;
 
 with WL.String_Maps;
 
+with Athena.Server;
+
 with Athena.Ships;
 with Athena.Stars;
 with Athena.Treaties;
@@ -12,6 +14,16 @@ with Athena.Handles.Empire;
 with Athena.Handles.Ship;
 
 package body Athena.Handles.Knowledge is
+
+   Signal_Visited : constant String :=
+                                   "signal-star-visited";
+
+   type Visited_Data is
+     new Athena.Signals.Signal_Data_Interface with
+      record
+         Empire : Athena.Handles.Empire.Empire_Handle;
+         Star   : Athena.Handles.Star.Star_Handle;
+      end record;
 
    type Neighbour_Record is
       record
@@ -530,6 +542,15 @@ package body Athena.Handles.Knowledge is
          Rec.Visited := True;
          Athena.Handles.Empire.Get (Vector (Knowledge.Reference).Empire)
            .Send_Signal (Colonization_Manager);
+         Athena.Server.Emit
+           (Source      => Knowledge,
+            Signal      => Visited,
+            Signal_Data =>
+              Visited_Data'
+                (Empire =>
+                     Athena.Handles.Empire.Get
+                   (Vector (Knowledge.Reference).Empire),
+                 Star   => Star));
       end if;
 
       Rec.Last_Visit := Current_Turn;
@@ -541,5 +562,18 @@ package body Athena.Handles.Knowledge is
          & Athena.Handles.Empire.Get
            (Vector (Knowledge.Reference).Empire).Short_Name);
    end Visit;
+
+   -------------
+   -- Visited --
+   -------------
+
+   function Visited return Athena.Signals.Signal_Type is
+   begin
+      return Athena.Signals.Signal (Signal_Visited);
+   end Visited;
+
+begin
+
+   Athena.Signals.Create_Signal (Signal_Visited);
 
 end Athena.Handles.Knowledge;

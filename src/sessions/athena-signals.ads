@@ -19,6 +19,8 @@ package Athena.Signals is
 
    type Signal_Source_Interface is interface;
 
+   function Any_Source return Signal_Source_Interface'Class;
+
    type User_Data_Interface is interface;
 
    function Null_User_Data return User_Data_Interface'Class;
