@@ -158,7 +158,7 @@ package body Athena.Managers.Colonization is
          --    (Targets.First_Element.Star, True);
       end if;
 
-   --     Manager.Set_Next_Update_Delay (Athena.Calendar.Days (5.0));
+      Manager.Set_Next_Update_Delay (Athena.Calendar.Days (5.0));
    end Dispatch_Create_Orders;
 
 end Athena.Managers.Colonization;
