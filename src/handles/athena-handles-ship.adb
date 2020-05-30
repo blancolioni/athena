@@ -113,6 +113,11 @@ package body Athena.Handles.Ship is
       return Boolean
    is (Vector (Ship.Reference).Destination /= 0);
 
+   function Is_Jumping
+     (Ship : Ship_Handle)
+      return Boolean
+   is (Vector (Ship.Reference).Activity = Jumping);
+
    function Has_Destination
      (Ship : Ship_Handle)
       return Boolean

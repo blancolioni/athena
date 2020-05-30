@@ -50,6 +50,10 @@ package Athena.Handles.Ship is
      (Ship : Ship_Handle)
       return Boolean;
 
+   function Is_Jumping
+     (Ship : Ship_Handle)
+      return Boolean;
+
    function Has_Destination
      (Ship : Ship_Handle)
       return Boolean;
