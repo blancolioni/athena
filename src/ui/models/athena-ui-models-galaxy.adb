@@ -5,6 +5,7 @@ with Ada.Text_IO;
 with WL.String_Maps;
 
 with Nazar.Colors;
+with Nazar.Main;
 
 with Athena.Color;
 with Athena.Voronoi_Diagrams;
@@ -214,12 +215,16 @@ package body Athena.UI.Models.Galaxy is
    procedure Draw_Galaxy
      (Model : in out Root_Galaxy_Model'Class)
    is
-   begin
 
-      Model.Clear;
-      Model.Save_State;
+      procedure Do_Draw;
 
-      case Model.Layer is
+      procedure Do_Draw is
+      begin
+
+         Model.Clear;
+         Model.Save_State;
+
+         case Model.Layer is
          when Background =>
 
             null;
@@ -299,7 +304,6 @@ package body Athena.UI.Models.Galaxy is
 
          when Owner =>
 
-            Ada.Text_IO.Put_Line ("updating owners");
             for Rec of Model.Data.Stars loop
                if Rec.Handle.Has_Owner then
                   Model.Save_State;
@@ -373,8 +377,11 @@ package body Athena.UI.Models.Galaxy is
                Model.Restore_State;
 
             end loop;
-      end case;
+         end case;
+      end Do_Draw;
 
+   begin
+      Nazar.Main.With_Render_Lock (Do_Draw'Access);
    end Draw_Galaxy;
 
    ------------------
