@@ -6,11 +6,15 @@ with Ada.Strings.Unbounded;
 with Athena.Calendar;
 with Athena.Random;
 
+with Athena.Server;
 with Athena.Updates.Events;
 
 with Athena.Handles.Design_Module;
 
 package body Athena.Handles.Ship is
+
+   Signal_Ship_Activity_Changed : constant String :=
+                                    "signal-ship-activity-changed";
 
    package Ship_Action_Lists is
      new Ada.Containers.Indefinite_Doubly_Linked_Lists
@@ -213,10 +217,13 @@ package body Athena.Handles.Ship is
             return;
          end;
       elsif Ship.Has_Manager then
+         Ship.Set_Activity (Idle);
          Ship.Log ("signaling manager " & Ship.Manager'Image);
          Ship.Owner.Send_Signal (Ship.Manager);
+         return;
       end if;
 
+      Ship.Set_Activity (Idle);
       Athena.Updates.Events.Update_With_Delay
         (Athena.Calendar.Days (1), Ship);
 
@@ -480,8 +487,14 @@ package body Athena.Handles.Ship is
       Activity : Ship_Activity)
    is
    begin
-      Ship.Log ("activity: " & Activity'Image);
-      Vector (Ship.Reference).Activity := Activity;
+      if Activity /= Vector (Ship.Reference).Activity then
+         Ship.Log ("activity: " & Activity'Image);
+         Vector (Ship.Reference).Activity := Activity;
+         Athena.Server.Emit
+           (Source      => Ship,
+            Signal      => Ship_Activity_Changed,
+            Signal_Data => Athena.Signals.Null_Signal_Data);
+      end if;
    end Set_Activity;
 
    -----------------------
@@ -536,5 +549,18 @@ package body Athena.Handles.Ship is
    begin
       Rec.Star := Star.Reference;
    end Set_Star_Location;
+
+   ---------------------------
+   -- Ship_Activity_Changed --
+   ---------------------------
+
+   function Ship_Activity_Changed return Athena.Signals.Signal_Type is
+   begin
+      return Athena.Signals.Signal (Signal_Ship_Activity_Changed);
+   end Ship_Activity_Changed;
+
+begin
+
+   Athena.Signals.Create_Signal (Signal_Ship_Activity_Changed);
 
 end Athena.Handles.Ship;

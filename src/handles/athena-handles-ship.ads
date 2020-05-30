@@ -9,6 +9,8 @@ with Athena.Handles.Star;
 
 package Athena.Handles.Ship is
 
+   function Ship_Activity_Changed return Athena.Signals.Signal_Type;
+
    type Ship_Handle is
      new Root_Athena_Handle
      and Has_Name_Interface
