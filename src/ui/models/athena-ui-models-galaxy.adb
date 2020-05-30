@@ -79,6 +79,9 @@ package body Athena.UI.Models.Galaxy is
 
    type Galaxy_Model_Record_Access is access Galaxy_Model_Record;
 
+   procedure Load_Journeys
+     (Data : Galaxy_Model_Record_Access);
+
    type Galaxy_Model_Layer is
      (Background, Boundaries, Stars, Owner, Ships, Journeys);
 
@@ -159,6 +162,19 @@ package body Athena.UI.Models.Galaxy is
       User_Data   : Athena.Signals.User_Data_Interface'Class)
       return Boolean;
 
+   type Clock_Tick_Handler is
+     new Athena.Signals.Signal_Handler_Interface with
+      record
+         null;
+      end record;
+
+   overriding function Handle
+     (Handler     : Clock_Tick_Handler;
+      Source      : Athena.Signals.Signal_Source_Interface'Class;
+      Signal_Data : Athena.Signals.Signal_Data_Interface'Class;
+      User_Data   : Athena.Signals.User_Data_Interface'Class)
+      return Boolean;
+
    ---------------------
    -- Connect_Signals --
    ---------------------
@@ -203,7 +219,13 @@ package body Athena.UI.Models.Galaxy is
             null;
 
          when Journeys =>
-            null;
+            Model.Handler_Ids.Append
+              (Athena.Server.Add_Handler
+                 (Signal    => Athena.Signals.Clock_Tick,
+                  Source    => Athena.Signals.Any_Source,
+                  User_Data =>
+                     Model_User_Data'(Model => Galaxy_Model_Access (Model)),
+                  Handler   => Clock_Tick_Handler'(null record)));
 
       end case;
    end Connect_Signals;
@@ -486,6 +508,27 @@ package body Athena.UI.Models.Galaxy is
       return False;
    end Handle;
 
+   ------------
+   -- Handle --
+   ------------
+
+   overriding function Handle
+     (Handler     : Clock_Tick_Handler;
+      Source      : Athena.Signals.Signal_Source_Interface'Class;
+      Signal_Data : Athena.Signals.Signal_Data_Interface'Class;
+      User_Data   : Athena.Signals.User_Data_Interface'Class)
+      return Boolean
+   is
+      Model  : constant Galaxy_Model_Access :=
+                 Model_User_Data (User_Data).Model;
+   begin
+      Load_Journeys (Model.Data);
+      Model.Draw_Galaxy;
+      Model.Queue_Render;
+      Model.Notify_Observers;
+      return False;
+   end Handle;
+
    -----------------
    -- Load_Galaxy --
    -----------------
@@ -576,56 +619,62 @@ package body Athena.UI.Models.Galaxy is
       --     end loop;
       --  end;
 
-      Model.Journeys.Clear;
-
-      declare
-         procedure Add_Ship
-           (Ship : Athena.Handles.Ship.Ship_Handle);
-
-         --------------
-         -- Add_Ship --
-         --------------
-
-         procedure Add_Ship
-           (Ship : Athena.Handles.Ship.Ship_Handle)
-         is
-         begin
-            if Ship.Has_Deep_Space_Location then
-               declare
-                  use Nazar;
-                  From : constant Athena.Handles.Star.Star_Handle :=
-                           Ship.Origin;
-                  To   : constant Athena.Handles.Star.Star_Handle :=
-                           Ship.Destination;
-                  X1   : constant Real := From.X;
-                  Y1   : constant Real := From.Y;
-                  X2   : constant Real := To.X;
-                  Y2   : constant Real := To.Y;
-                  Progress : constant Unit_Real := Ship.Progress;
-                  Rec      : constant Journey_Record :=
-                               Journey_Record'
-                                 (Empire   => Ship.Owner,
-                                  Size     =>
-                                    Nazar.Nazar_Float
-                                      (Ship.Design.Tonnage / 100.0),
-                                  X1       => Nazar_Float (X1),
-                                  Y1       => Nazar_Float (Y1),
-                                  X2       => Nazar_Float (X2),
-                                  Y2       => Nazar_Float (Y2),
-                                  Progress => Nazar_Float (Progress),
-                                  Color    => Ship.Owner.Color);
-               begin
-                  Model.Journeys.Append (Rec);
-               end;
-            end if;
-         end Add_Ship;
-      begin
-
-         Athena.Handles.Ship.Iterate_All (Add_Ship'Access);
-
-      end;
+      Load_Journeys (Model);
 
    end Load_Galaxy;
+
+   -------------------
+   -- Load_Journeys --
+   -------------------
+
+   procedure Load_Journeys
+     (Data : Galaxy_Model_Record_Access)
+   is
+
+      procedure Add_Ship
+        (Ship : Athena.Handles.Ship.Ship_Handle);
+
+      --------------
+      -- Add_Ship --
+      --------------
+
+      procedure Add_Ship
+        (Ship : Athena.Handles.Ship.Ship_Handle)
+      is
+      begin
+         if Ship.Is_Jumping then
+            declare
+               use Nazar;
+               From     : constant Athena.Handles.Star.Star_Handle :=
+                            Ship.Origin;
+               To       : constant Athena.Handles.Star.Star_Handle :=
+                            Ship.Destination;
+               X1       : constant Real := From.X;
+               Y1       : constant Real := From.Y;
+               X2       : constant Real := To.X;
+               Y2       : constant Real := To.Y;
+               Progress : constant Unit_Real := Ship.Progress;
+               Rec      : constant Journey_Record :=
+                            Journey_Record'
+                              (Empire   => Ship.Owner,
+                               Size     =>
+                                 Nazar.Nazar_Float
+                                   (Ship.Design.Tonnage / 100.0),
+                               X1       => Nazar_Float (X1),
+                               Y1       => Nazar_Float (Y1),
+                               X2       => Nazar_Float (X2),
+                               Y2       => Nazar_Float (Y2),
+                               Progress => Nazar_Float (Progress),
+                               Color    => Ship.Owner.Color);
+            begin
+               Data.Journeys.Append (Rec);
+            end;
+         end if;
+      end Add_Ship;
+   begin
+      Data.Journeys.Clear;
+      Athena.Handles.Ship.Iterate_All (Add_Ship'Access);
+   end Load_Journeys;
 
    --------------------
    -- Orbiting_Ships --
