@@ -34,7 +34,25 @@ package body Athena.Server is
 
    Name_Generator    : WL.Random.Names.Name_Generator;
 
-   Signal_Dispatch   : Athena.Signals.Signal_Handler_Container;
+   protected Signal_Dispatch is
+
+      procedure Add_Handler
+        (Signal      : Athena.Signals.Signal_Type;
+         Source      : Athena.Signals.Signal_Source_Interface'Class;
+         User_Data   : Athena.Signals.User_Data_Interface'Class;
+         Handler     : Athena.Signals.Signal_Handler_Interface'Class;
+         Id          : out Athena.Signals.Handler_Id);
+
+      procedure Emit
+        (Source      : Athena.Signals.Signal_Source_Interface'Class;
+         Signal      : Athena.Signals.Signal_Type;
+         Signal_Data : Athena.Signals.Signal_Data_Interface'Class);
+
+   private
+
+      Container : Athena.Signals.Signal_Handler_Container;
+
+   end Signal_Dispatch;
 
    ----------------
    -- Add_Empire --
@@ -151,8 +169,10 @@ package body Athena.Server is
       return Athena.Signals.Handler_Id
    is
    begin
-      return Signal_Dispatch.Add_Handler
-        (Signal, Source, User_Data, Handler);
+      return Id : Athena.Signals.Handler_Id do
+         Signal_Dispatch.Add_Handler
+           (Signal, Source, User_Data, Handler, Id);
+      end return;
    end Add_Handler;
 
    ---------------------
@@ -259,5 +279,41 @@ package body Athena.Server is
    --  begin
    --     null;
    --  end Save;
-   --
+
+   ---------------------
+   -- Signal_Dispatch --
+   ---------------------
+
+   protected body Signal_Dispatch is
+
+      -----------------
+      -- Add_Handler --
+      -----------------
+
+      procedure Add_Handler
+        (Signal      : Athena.Signals.Signal_Type;
+         Source      : Athena.Signals.Signal_Source_Interface'Class;
+         User_Data   : Athena.Signals.User_Data_Interface'Class;
+         Handler     : Athena.Signals.Signal_Handler_Interface'Class;
+         Id          : out Athena.Signals.Handler_Id)
+      is
+      begin
+         Id := Container.Add_Handler (Signal, Source, User_Data, Handler);
+      end Add_Handler;
+
+      ----------
+      -- Emit --
+      ----------
+
+      procedure Emit
+        (Source      : Athena.Signals.Signal_Source_Interface'Class;
+         Signal      : Athena.Signals.Signal_Type;
+         Signal_Data : Athena.Signals.Signal_Data_Interface'Class)
+      is
+      begin
+         Container.Emit (Source, Signal, Signal_Data);
+      end Emit;
+
+   end Signal_Dispatch;
+
 end Athena.Server;
