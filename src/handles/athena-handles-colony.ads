@@ -14,7 +14,6 @@ package Athena.Handles.Colony is
    type Colony_Handle is
      new Root_Athena_Handle
      and Athena.Updates.Update_Interface
-     and Athena.Signals.Signal_Source_Interface
    with private;
 
    function Reference (Colony : Colony_Handle) return Colony_Reference;
