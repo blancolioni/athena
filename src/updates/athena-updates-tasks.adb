@@ -4,12 +4,16 @@ with Ada.Exceptions;
 with Ada.Text_IO;
 
 with Athena.Logging;
+with Athena.Server;
 
 package body Athena.Updates.Tasks is
 
    package Signal_Holders is
      new Ada.Containers.Indefinite_Holders
        (Athena.Signals.Signal_Type, Athena.Signals."=");
+
+   type Update_Source is
+     new Athena.Signals.Signal_Source_Interface with null record;
 
    --------------------
    -- Broadcast_Task --
@@ -23,7 +27,10 @@ package body Athena.Updates.Tasks is
             accept Broadcast (Signal : Athena.Signals.Signal_Type) do
                Signal_Holder.Replace_Element (Signal);
             end Broadcast;
---              Athena.Sessions.Broadcast (Signal_Holder.Element);
+            Athena.Server.Emit
+              (Source      => Update_Source'(null record),
+               Signal      => Signal_Holder.Element,
+               Signal_Data => Athena.Signals.Null_Signal_Data);
          or
             accept Stop;
             exit;
@@ -198,8 +205,8 @@ package body Athena.Updates.Tasks is
                end;
 
                Previous_Tick := Ada.Calendar.Clock;
---                 Broadcast_Task.Broadcast
---                   (Athena.Sessions.Signal_Clock_Tick);
+               Broadcast_Task.Broadcast
+                 (Athena.Signals.Clock_Tick);
 
                declare
                   List  : Update_Lists.List;

@@ -14,6 +14,8 @@ package Athena.Signals is
 
    function Signal (Identifier : String) return Signal_Type;
 
+   function Clock_Tick return Signal_Type;
+
    procedure Create_Signal
      (Identifier : String);
 

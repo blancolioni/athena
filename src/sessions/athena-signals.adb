@@ -11,6 +11,9 @@ package body Athena.Signals is
    type Any_Signal_Source is
      new Signal_Source_Interface with null record;
 
+   Signal_Clock_Tick  : constant String := "signal-clock-tick";
+   Clock_Tick_Created : Boolean := False;
+
    -----------------
    -- Add_Handler --
    -----------------
@@ -52,6 +55,19 @@ package body Athena.Signals is
    begin
       return Source : Any_Signal_Source;
    end Any_Source;
+
+   ----------------
+   -- Clock_Tick --
+   ----------------
+
+   function Clock_Tick return Signal_Type is
+   begin
+      if not Clock_Tick_Created then
+         Create_Signal (Signal_Clock_Tick);
+         Clock_Tick_Created := True;
+      end if;
+      return Signal (Signal_Clock_Tick);
+   end Clock_Tick;
 
    -------------------
    -- Create_Signal --
