@@ -443,9 +443,15 @@ package body Athena.Handles.Ship is
    begin
       Ship_Vectors.Vector'Read (Stream, Vector);
       for Reference in 1 .. Vector.Last_Index loop
-         Athena.Updates.Events.Update_At
-           (Vector (Reference).Next_Update,
-            Get (Reference));
+         if Vector (Reference).Actions.Is_Empty then
+            Athena.Updates.Events.Update_At
+              (Vector (Reference).Next_Update,
+               Get (Reference));
+         else
+            Athena.Updates.Events.Update_At
+              (Vector (Reference).Action_Finished,
+               Get (Reference));
+         end if;
       end loop;
    end Load;
 
