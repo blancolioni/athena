@@ -11,6 +11,7 @@ with Athena.Color;
 with Athena.Configure;
 with Athena.Options;
 with Athena.Paths;
+with Athena.Random;
 with Athena.Random_Names;
 
 with Athena.Managers;
@@ -254,6 +255,7 @@ package body Athena.Server is
 
       if Athena.Options.Randomise then
          WL.Random.Randomise;
+         Athena.Random.Reset (WL.Random.Random_Number (0, Integer'Last));
       end if;
 
       Athena.Random_Names.Load_Names;
