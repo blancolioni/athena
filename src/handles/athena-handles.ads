@@ -89,6 +89,10 @@ package Athena.Handles is
 
    Null_Colony_Reference : constant Colony_Reference;
 
+   type Commodity_Reference is private;
+
+   Null_Commodity_Reference : constant Commodity_Reference;
+
    type Component_Reference is private;
 
    type Design_Reference is private;
@@ -101,6 +105,10 @@ package Athena.Handles is
 
    type Encounter_Reference is private;
 
+   type Facility_Reference is private;
+
+   Null_Facility_Reference : constant Facility_Reference;
+
    type Fleet_Reference is private;
 
    Null_Fleet_Reference : constant Fleet_Reference;
@@ -108,6 +116,10 @@ package Athena.Handles is
    type Hull_Reference is private;
 
    type Hull_Armor_Reference is private;
+
+   type Installation_Reference is private;
+
+   Null_Installation_Reference : constant Installation_Reference;
 
    type Knowledge_Reference is private;
 
@@ -124,6 +136,10 @@ package Athena.Handles is
    type Order_Reference is private;
 
    Null_Order_Reference : constant Order_Reference;
+
+   type Production_Reference is private;
+
+   Null_Production_Reference : constant Production_Reference;
 
    type Relationship_Reference is private;
 
@@ -142,6 +158,10 @@ package Athena.Handles is
    type War_Reference is private;
 
    Null_War_Reference : constant War_Reference;
+
+   type Zone_Reference is private;
+
+   Null_Zone_Reference : constant Zone_Reference;
 
 private
 
@@ -168,10 +188,17 @@ private
 
    type Colony_Reference is new Natural;
 
-   Null_Colony_Reference : constant Colony_Reference := 0;
-
    subtype Real_Colony_Reference is
      Colony_Reference range 1 .. Colony_Reference'Last;
+
+   Null_Colony_Reference : constant Colony_Reference := 0;
+
+   type Commodity_Reference is new Natural;
+
+   subtype Real_Commodity_Reference is
+     Commodity_Reference range 1 .. Commodity_Reference'Last;
+
+   Null_Commodity_Reference : constant Commodity_Reference := 0;
 
    type Component_Reference is new Natural;
 
@@ -200,6 +227,13 @@ private
    subtype Real_Encounter_Reference is
      Encounter_Reference range 1 .. Encounter_Reference'Last;
 
+   type Facility_Reference is new Natural;
+
+   subtype Real_Facility_Reference is
+     Facility_Reference range 1 .. Facility_Reference'Last;
+
+   Null_Facility_Reference : constant Facility_Reference := 0;
+
    type Fleet_Reference is new Natural;
 
    subtype Real_Fleet_Reference is
@@ -216,6 +250,13 @@ private
 
    subtype Real_Hull_Armor_Reference is
      Hull_Armor_Reference range 1 .. Hull_Armor_Reference'Last;
+
+   type Installation_Reference is new Natural;
+
+   subtype Real_Installation_Reference is
+     Installation_Reference range 1 .. Installation_Reference'Last;
+
+   Null_Installation_Reference : constant Installation_Reference := 0;
 
    type Knowledge_Reference is new Natural;
 
@@ -244,6 +285,13 @@ private
      Order_Reference range 1 .. Order_Reference'Last;
 
    Null_Order_Reference : constant Order_Reference := 0;
+
+   type Production_Reference is new Natural;
+
+   subtype Real_Production_Reference is
+     Production_Reference range 1 .. Production_Reference'Last;
+
+   Null_Production_Reference : constant Production_Reference := 0;
 
    type Relationship_Reference is new Natural;
 
@@ -280,6 +328,13 @@ private
      War_Reference range 1 .. War_Reference'Last;
 
    Null_War_Reference : constant War_Reference := 0;
+
+   type Zone_Reference is new Natural;
+
+   subtype Real_Zone_Reference is
+     Zone_Reference range 1 .. Zone_Reference'Last;
+
+   Null_Zone_Reference : constant Zone_Reference := 0;
 
    function "+" (S : String) return Ada.Strings.Unbounded.Unbounded_String
                  renames Ada.Strings.Unbounded.To_Unbounded_String;

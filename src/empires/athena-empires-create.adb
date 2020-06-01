@@ -5,10 +5,11 @@ with Athena.Colonies;
 with Athena.Ships.Create;
 
 with Athena.Handles.Colony;
+with Athena.Handles.Commodity;
+with Athena.Handles.Design;
 with Athena.Handles.Empire;
 with Athena.Handles.Fleet;
-
-with Athena.Handles.Design;
+with Athena.Handles.Production;
 
 package body Athena.Empires.Create is
 
@@ -58,6 +59,23 @@ package body Athena.Empires.Create is
                        Material   => 100.0);
       begin
          Empire.Set_Capital (Colony.Reference);
+         for Stock_Config of Init.Child ("stock") loop
+            Colony.Set_Stock
+              (Commodity =>
+                 Athena.Handles.Commodity.Get_By_Tag
+                   (Stock_Config.Config_Name),
+               Quantity  =>
+                 Real (Long_Float'(Stock_Config.Value)));
+         end loop;
+
+         for Production_Config of Init.Child ("economy") loop
+            Colony.Set_Production
+              (Production =>
+                 Athena.Handles.Production.Get_By_Tag
+                   (Production_Config.Config_Name),
+               Fraction   =>
+                 Real (Long_Float'(Production_Config.Value)));
+         end loop;
       end;
 
       for Manager in Athena.Handles.Manager_Class loop

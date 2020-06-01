@@ -1,0 +1,6 @@
+commodity = food
+employment = 1
+constraints = {
+    constant = 0.01
+    habitability
+}

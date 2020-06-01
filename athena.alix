@@ -1,8 +1,10 @@
 project_name = Athena
 source_dir = src
 source_dir = src/colonies
+source_dir = src/commodities
 source_dir = src/configure
 source_dir = src/driver
+source_dir = src/economy
 source_dir = src/empires
 source_dir = src/encounters
 source_dir = src/handles

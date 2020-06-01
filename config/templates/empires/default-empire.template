@@ -1,7 +1,12 @@
 init = {
-	pop = 2K
-	ind = 2K
+	pop = ~2M
+    installations = {
+        farm (size = 800)
+    }
 	cash = 1K
+    stock = {
+        food = ~10K
+    }
 }
 
 standard-designs = {

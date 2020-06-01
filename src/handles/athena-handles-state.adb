@@ -6,6 +6,7 @@ with Athena.Options;
 with Athena.Calendar;
 
 with Athena.Handles.Colony;
+with Athena.Handles.Commodity;
 with Athena.Handles.Component;
 with Athena.Handles.Design;
 with Athena.Handles.Design_Module;
@@ -16,6 +17,7 @@ with Athena.Handles.Hull_Armor;
 with Athena.Handles.Knowledge;
 with Athena.Handles.Module;
 with Athena.Handles.Order;
+with Athena.Handles.Production;
 with Athena.Handles.Relationship;
 with Athena.Handles.Ship;
 with Athena.Handles.Star;
@@ -49,6 +51,7 @@ package body Athena.Handles.State is
          end;
 
          Athena.Handles.Colony.Load (S);
+         Athena.Handles.Commodity.Load (S);
          Athena.Handles.Component.Load (S);
          Athena.Handles.Design.Load (S);
          Athena.Handles.Design_Module.Load (S);
@@ -59,6 +62,7 @@ package body Athena.Handles.State is
          Athena.Handles.Knowledge.Load (S);
          Athena.Handles.Module.Load (S);
          Athena.Handles.Order.Load (S);
+         Athena.Handles.Production.Load (S);
          Athena.Handles.Relationship.Load (S);
          Athena.Handles.Ship.Load (S);
          Athena.Handles.Star.Load (S);
@@ -93,6 +97,7 @@ package body Athena.Handles.State is
          Object_Identifier'Write (S, Current_Identifier);
          Athena.Calendar.Time'Write (S, Athena.Calendar.Clock);
          Athena.Handles.Colony.Save (S);
+         Athena.Handles.Commodity.Save (S);
          Athena.Handles.Component.Save (S);
          Athena.Handles.Design.Save (S);
          Athena.Handles.Design_Module.Save (S);
@@ -103,6 +108,7 @@ package body Athena.Handles.State is
          Athena.Handles.Knowledge.Save (S);
          Athena.Handles.Module.Save (S);
          Athena.Handles.Order.Save (S);
+         Athena.Handles.Production.Save (S);
          Athena.Handles.Relationship.Save (S);
          Athena.Handles.Ship.Save (S);
          Athena.Handles.Star.Save (S);

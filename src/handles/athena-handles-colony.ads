@@ -4,8 +4,10 @@ with Athena.Calendar;
 with Athena.Signals;
 with Athena.Updates;
 
-with Athena.Handles.Star;
+with Athena.Handles.Commodity;
 with Athena.Handles.Empire;
+with Athena.Handles.Production;
+with Athena.Handles.Star;
 
 package Athena.Handles.Colony is
 
@@ -14,6 +16,7 @@ package Athena.Handles.Colony is
    type Colony_Handle is
      new Root_Athena_Handle
      and Athena.Updates.Update_Interface
+     and Athena.Handles.Commodity.Stock_Interface
    with private;
 
    function Reference (Colony : Colony_Handle) return Colony_Reference;
@@ -47,6 +50,31 @@ package Athena.Handles.Colony is
    function Owner
      (Colony : Colony_Handle)
       return Athena.Handles.Empire.Empire_Handle;
+
+   overriding function Get_Stock
+     (Colony    : Colony_Handle;
+      Commodity : Athena.Handles.Commodity.Commodity_Handle'Class)
+      return Non_Negative_Real;
+
+   overriding procedure Set_Stock
+     (Colony    : Colony_Handle;
+      Commodity : Athena.Handles.Commodity.Commodity_Handle'Class;
+      Quantity  : Non_Negative_Real);
+
+   function Production_Size
+     (Colony     : Colony_Handle;
+      Production : Athena.Handles.Production.Production_Handle)
+      return Non_Negative_Real;
+
+   function Production_Employment
+     (Colony     : Colony_Handle;
+      Production : Athena.Handles.Production.Production_Handle)
+      return Non_Negative_Real;
+
+   procedure Set_Production
+     (Colony     : Colony_Handle;
+      Production : Athena.Handles.Production.Production_Handle;
+      Fraction   : Unit_Real);
 
    procedure Set_Population
      (Colony   : Colony_Handle;
@@ -119,7 +147,7 @@ private
    type Colony_Handle is
      new Root_Athena_Handle
      and Athena.Updates.Update_Interface
-     and Athena.Signals.Signal_Source_Interface with
+     and Athena.Handles.Commodity.Stock_Interface with
       record
          Reference : Colony_Reference := 0;
       end record;

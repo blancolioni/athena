@@ -9,6 +9,8 @@ with Athena.Elementary_Functions;
 with Athena.Random;
 with Athena.Real_Images;
 
+with Athena.Configure.Commodities;
+with Athena.Configure.Production;
 with Athena.Configure.Ships;
 
 with Athena.Handles.Star;
@@ -263,6 +265,8 @@ package body Athena.Configure is
       --  Athena.Handles.Technology.Create (Tag => "cargo");
       --
 
+      Athena.Configure.Commodities.Configure_Commodities;
+      Athena.Configure.Production.Configure_Production;
       Athena.Configure.Ships.Configure_Ships;
 
       null;
