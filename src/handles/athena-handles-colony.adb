@@ -40,20 +40,24 @@ package body Athena.Handles.Colony is
    package Production_Vectors is
      new Ada.Containers.Vectors (Real_Production_Reference, Production_Record);
 
+   package Installation_Lists is
+     new Ada.Containers.Doubly_Linked_Lists (Installation_Reference);
+
    type Colony_Record is
       record
-         Identifier  : Object_Identifier;
-         Star        : Star_Reference;
-         Owner       : Empire_Reference;
-         Founded     : Athena.Calendar.Time;
-         Next_Update : Athena.Calendar.Time;
-         Construct   : Non_Negative_Real := 0.0;
-         Pop         : Non_Negative_Real := 0.0;
-         Industry    : Non_Negative_Real := 0.0;
-         Material    : Non_Negative_Real := 0.0;
-         Actions     : Colony_Action_Lists.List;
-         Stock       : Stock_Vectors.Vector;
-         Production  : Production_Vectors.Vector;
+         Identifier    : Object_Identifier;
+         Star          : Star_Reference;
+         Owner         : Empire_Reference;
+         Founded       : Athena.Calendar.Time;
+         Next_Update   : Athena.Calendar.Time;
+         Construct     : Non_Negative_Real := 0.0;
+         Pop           : Non_Negative_Real := 0.0;
+         Industry      : Non_Negative_Real := 0.0;
+         Material      : Non_Negative_Real := 0.0;
+         Actions       : Colony_Action_Lists.List;
+         Stock         : Athena.Handles.Commodity.Stock_Type;
+         Production    : Production_Vectors.Vector;
+         Installations : Installation_Lists.List;
       end record;
 
    package Colony_Vectors is
@@ -127,7 +131,9 @@ package body Athena.Handles.Colony is
      (Colony    : Colony_Handle;
       Commodity : Athena.Handles.Commodity.Commodity_Handle'Class)
       return Non_Negative_Real
-   is (Vector (Colony.Reference).Stock (Commodity.Reference));
+   is (Athena.Handles.Commodity.Get_Stock
+       (Vector (Colony.Reference).Stock,
+        Commodity));
 
    function Production_Size
      (Colony     : Colony_Handle;
@@ -206,8 +212,101 @@ package body Athena.Handles.Colony is
          end if;
       end Calculate_New_Population;
 
+      use Athena.Handles.Commodity;
+
+      Commodities : constant Commodity_Array := All_Commodities;
+      Available   : array (Commodities'Range) of Non_Negative_Real :=
+        (others => 0.0);
+      Required    : array (Commodities'Range) of Non_Negative_Real :=
+        (others => 0.0);
+      Supply : array (Commodities'Range) of Unit_Real :=
+        (others => 0.0);
+
    begin
       Colony.Log ("activating");
+
+      for Index in Commodities'Range loop
+         for Install_Ref of Vector (Colony.Reference).Installations loop
+            declare
+               use Athena.Handles.Installation;
+               Installation : constant Installation_Handle :=
+                 Get (Install_Ref);
+            begin
+               Required (Index) := Required (Index)
+                 + Installation.Facility.Required_Quantity
+                 (Installation.Size, Commodities (Index));
+            end;
+         end loop;
+
+         Available (Index) := Colony.Get_Stock (Commodities (Index));
+
+         if Required (Index) > 0.0 then
+            Colony.Log
+              (Commodities (Index).Tag
+               & ": required: "
+               & Image (Required (Index))
+               & "; available: " & Image (Available (Index)));
+            Supply (Index) :=
+              Unit_Clamp (Available (Index) / Required (Index));
+         end if;
+      end loop;
+
+      for Install_Ref of Vector (Colony.Reference).Installations loop
+         declare
+            use Athena.Handles.Installation;
+            Installation : constant Installation_Handle := Get (Install_Ref);
+         begin
+            Installation.Clear_Stock;
+
+            for Index in Commodities'Range loop
+               declare
+                  Commodity         : constant Athena.Handles.Commodity
+                    .Commodity_Handle := Commodities (Index);
+                  Quantity          : constant Non_Negative_Real :=
+                    Real'Min
+                      (Colony.Get_Stock (Commodity),
+                       Supply (Index) * Installation.Facility.Required_Quantity
+                       (Installation.Size, Commodity));
+
+               begin
+                  Installation.Add_Stock (Commodities (Index), Quantity);
+                  Colony.Remove_Stock
+                    (Commodities (Index), Quantity);
+               end;
+            end loop;
+
+            Installation.Facility.Daily_Production
+              (Size    => Installation.Size,
+               Context => Colony,
+               Stock   => Installation);
+         end;
+      end loop;
+
+      Colony.Set_Stock
+        (Athena.Handles.Commodity.Power, 0.0);
+
+      for Install_Ref of Vector (Colony.Reference).Installations loop
+         declare
+            use Athena.Handles.Installation;
+            Installation : constant Installation_Handle := Get (Install_Ref);
+         begin
+            for Index in Commodities'Range loop
+               declare
+                  Quantity : constant Non_Negative_Real :=
+                    Installation.Get_Stock (Commodities (Index));
+               begin
+                  if Quantity > 0.0 then
+                     Colony.Log ("received " & Image (Quantity) & " "
+                                 & Commodities (Index).Tag
+                                 & " from "
+                                 & Installation.Short_Name);
+                     Colony.Add_Stock (Commodities (Index), Quantity);
+                  end if;
+               end;
+            end loop;
+         end;
+      end loop;
+
       if Colony.Construct > 0.0 then
          Athena.Empires.Earn
            (Colony.Owner, Athena.Money.To_Money (Colony.Construct),
@@ -274,6 +373,44 @@ package body Athena.Handles.Colony is
    begin
       Vector (Colony.Reference).Actions.Append (Action);
    end Add_Action;
+
+   ----------------------
+   -- Add_Installation --
+   ----------------------
+
+   procedure Add_Installation
+     (Colony       : Colony_Handle;
+      Installation : Athena.Handles.Installation.Installation_Handle)
+   is
+   begin
+      Vector (Colony.Reference).Installations.Append (Installation.Reference);
+   end Add_Installation;
+
+   -------------------------
+   -- Available_Resources --
+   -------------------------
+
+   overriding function Available_Resources
+     (Colony : Colony_Handle)
+      return Athena.Handles.Commodity.Commodity_Array
+   is
+      use Athena.Handles.Commodity;
+      Commodities : constant Commodity_Array := All_Commodities;
+      Result      : Commodity_Array (Commodities'Range);
+      Count       : Natural := 0;
+   begin
+      for Commodity of Commodities loop
+         if Commodity.Class = Resource
+           and then not Commodity.Is_Abstract
+           and then Colony.Star.Resource_Quality (Commodity) > 0.0
+         then
+            Count := Count + 1;
+            Result (Count) := Commodity;
+         end if;
+      end loop;
+
+      return Result (1 .. Count);
+   end Available_Resources;
 
    --------------------------
    -- Colony_Owner_Changed --
@@ -346,8 +483,9 @@ package body Athena.Handles.Colony is
             Industry    => Industry,
             Material    => Material,
             Actions     => Colony_Action_Lists.Empty_List,
-            Stock       => Stock,
-            Production  => Production));
+            Stock       => <>,
+            Production  => Production,
+            Installations => Installation_Lists.Empty_List));
       Update_Maps (Vector.Last_Index);
 
       return Handle : constant Colony_Handle := (True, Vector.Last_Index) do
@@ -365,6 +503,20 @@ package body Athena.Handles.Colony is
    begin
       Vector (Colony.Reference).Actions.Delete_First;
    end Delete_First_Action;
+
+   ----------------------
+   -- Extract_Resource --
+   ----------------------
+
+   overriding function Extract_Resource
+     (Colony   : Colony_Handle;
+      Resource : Athena.Handles.Commodity.Commodity_Handle;
+      Size     : Non_Negative_Real)
+      return Non_Negative_Real
+   is
+   begin
+      return Colony.Star.Extract_Resource (Resource, Size);
+   end Extract_Resource;
 
    -----------------
    -- Iterate_All --
@@ -492,8 +644,8 @@ package body Athena.Handles.Colony is
       Quantity  : Non_Negative_Real)
    is
    begin
-      Vector (Colony.Reference).Stock (Commodity.Reference) := Quantity;
-      Colony.Log (Commodity.Tag & ": " & Image (Quantity));
+      Athena.Handles.Commodity.Set_Stock
+        (Vector (Colony.Reference).Stock, Commodity, Quantity);
    end Set_Stock;
 
    -----------------

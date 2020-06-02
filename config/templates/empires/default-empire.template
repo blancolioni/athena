@@ -2,10 +2,14 @@ init = {
 	pop = ~2M
     installations = {
         farm (size = 800)
+		mine (size = 50)
+		coal-power (size = 10)
     }
 	cash = 1K
     stock = {
         food = ~10K
+		coal = ~200
+		power= ~2K
     }
 }
 

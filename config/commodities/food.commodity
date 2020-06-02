@@ -1,2 +1,2 @@
+class = food
 tonnage = 0.177 # based on 48000 bananas fitting into a 32 cubic metre shipping crate
-food = yes

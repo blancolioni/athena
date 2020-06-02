@@ -5,10 +5,20 @@ with Ada.Strings.Unbounded;
 with WL.String_Maps;
 
 with Athena.Elementary_Functions;
+with Athena.Logging;
 
 package body Athena.Handles.Star is
 
    Stored_Nearest_Count : constant := 24;
+
+   type Deposit_Record is
+      record
+         Resource : Commodity_Reference;
+         Quality  : Non_Negative_Real;
+      end record;
+
+   package Deposit_Lists is
+     new Ada.Containers.Doubly_Linked_Lists (Deposit_Record);
 
    type Neighbour_Record is
       record
@@ -32,6 +42,7 @@ package body Athena.Handles.Star is
          Core_Distance  : Non_Negative_Real;
          Space          : Positive;
          Resource       : Unit_Real;
+         Deposits       : Deposit_Lists.List;
          Habitability   : Unit_Real;
          Neighbours     : Neighbour_Lists.List;
          Colony         : Colony_Reference;
@@ -183,11 +194,39 @@ package body Athena.Handles.Star is
       Habitability  : Unit_Real)
       return Star_Handle
    is
+      Deposits : Deposit_Lists.List;
    begin
       if Map.Contains (Name) then
          raise Constraint_Error with
            "multiple stars called '" & Name & "'";
       end if;
+
+      declare
+         use Athena.Handles.Commodity;
+      begin
+         for Commodity of All_Commodities loop
+            if Commodity.Class = Athena.Handles.Commodity.Resource
+              and then not Commodity.Is_Abstract
+            then
+               declare
+                  Quality : constant Non_Negative_Real :=
+                    Resource * Execute (Commodity.Deposit_Constraint);
+               begin
+                  Athena.Logging.Log
+                    ("star " & Name
+                     & ": resource " & Image (Resource)
+                     & "; deposit "
+                     & Commodity.Tag
+                     & "; quality "
+                     & Image (Quality));
+                  Deposits.Append
+                    (Deposit_Record'
+                       (Resource => Commodity.Reference,
+                        Quality  => Quality));
+               end;
+            end if;
+         end loop;
+      end;
 
       Vector.Append
         (Star_Record'
@@ -200,6 +239,7 @@ package body Athena.Handles.Star is
             Core_Distance  => Core_Distance,
             Space          => Space,
             Resource       => Resource,
+            Deposits       => Deposits,
             Habitability   => Habitability,
             Neighbours     => <>,
             Colony         => Null_Colony_Reference,
@@ -210,6 +250,47 @@ package body Athena.Handles.Star is
          Reference   => Vector.Last_Index);
 
    end Create;
+
+   ----------------------
+   -- Extract_Resource --
+   ----------------------
+
+   function Extract_Resource
+     (Handle   : Star_Handle;
+      Resource : Athena.Handles.Commodity.Commodity_Handle;
+      Size     : Non_Negative_Real)
+      return Non_Negative_Real
+   is
+   begin
+      for Item of Vector (Handle.Reference).Deposits loop
+         if Item.Resource = Resource.Reference then
+            declare
+               Quality : constant Non_Negative_Real := Item.Quality;
+               Change  : constant Real :=
+                 (if Size <= 1.0
+                  then 0.0
+                  else Quality
+                    * Athena.Elementary_Functions.Log (Size) / 1000.0);
+            begin
+               return Extracted : constant Non_Negative_Real :=
+                 Size * Change * 100.0
+               do
+                  Item.Quality :=
+                    (if Change < Quality
+                     then Quality - Change
+                     else Quality / 2.0);
+                  Handle.Log
+                    ("quality " & Image (Quality)
+                     & "; size " & Image (Size)
+                     & "; change " & Image (Change)
+                     & "; new quality " & Image (Item.Quality)
+                     & "; extracted " & Image (Extracted));
+               end return;
+            end;
+         end if;
+      end loop;
+      return 0.0;
+   end Extract_Resource;
 
    ---------------
    -- Find_Star --
@@ -322,6 +403,24 @@ package body Athena.Handles.Star is
                      & " because it is not there");
       Rec.Orbiting_Ships.Delete (Position);
    end Remove_Ship;
+
+   ----------------------
+   -- Resource_Quality --
+   ----------------------
+
+   function Resource_Quality
+     (Handle   : Star_Handle;
+      Resource : Athena.Handles.Commodity.Commodity_Handle)
+      return Non_Negative_Real
+   is
+   begin
+      for Item of Vector (Handle.Reference).Deposits loop
+         if Item.Resource = Resource.Reference then
+            return Item.Quality;
+         end if;
+      end loop;
+      return 0.0;
+   end Resource_Quality;
 
    ----------
    -- Save --

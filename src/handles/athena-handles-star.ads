@@ -1,5 +1,7 @@
 with Ada.Streams.Stream_IO;
 
+with Athena.Handles.Commodity;
+
 package Athena.Handles.Star is
 
    type Star_Handle is
@@ -11,6 +13,17 @@ package Athena.Handles.Star is
    function Get (Reference : Star_Reference) return Star_Handle;
 
    function Empty_Handle return Star_Handle;
+
+   function Resource_Quality
+     (Handle   : Star_Handle;
+      Resource : Athena.Handles.Commodity.Commodity_Handle)
+      return Non_Negative_Real;
+
+   function Extract_Resource
+     (Handle   : Star_Handle;
+      Resource : Athena.Handles.Commodity.Commodity_Handle;
+      Size     : Non_Negative_Real)
+      return Non_Negative_Real;
 
    function Name
      (Star : Star_Handle)

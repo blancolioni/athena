@@ -6,6 +6,8 @@ with Athena.Updates;
 
 with Athena.Handles.Commodity;
 with Athena.Handles.Empire;
+with Athena.Handles.Facility;
+with Athena.Handles.Installation;
 with Athena.Handles.Production;
 with Athena.Handles.Star;
 
@@ -16,6 +18,7 @@ package Athena.Handles.Colony is
    type Colony_Handle is
      new Root_Athena_Handle
      and Athena.Updates.Update_Interface
+     and Athena.Handles.Facility.Production_Context
      and Athena.Handles.Commodity.Stock_Interface
    with private;
 
@@ -50,6 +53,10 @@ package Athena.Handles.Colony is
    function Owner
      (Colony : Colony_Handle)
       return Athena.Handles.Empire.Empire_Handle;
+
+   procedure Add_Installation
+     (Colony       : Colony_Handle;
+      Installation : Athena.Handles.Installation.Installation_Handle);
 
    overriding function Get_Stock
      (Colony    : Colony_Handle;
@@ -147,6 +154,7 @@ private
    type Colony_Handle is
      new Root_Athena_Handle
      and Athena.Updates.Update_Interface
+     and Athena.Handles.Facility.Production_Context
      and Athena.Handles.Commodity.Stock_Interface with
       record
          Reference : Colony_Reference := 0;
@@ -159,6 +167,21 @@ private
      (Colony : Colony_Handle)
       return String
    is (Colony.Owner.Adjective & " colony at " & Colony.Star.Name);
+
+   overriding function Habitability
+     (Colony : Colony_Handle)
+      return Unit_Real
+   is (Colony.Star.Habitability);
+
+   overriding function Available_Resources
+     (Colony : Colony_Handle)
+      return Athena.Handles.Commodity.Commodity_Array;
+
+   overriding function Extract_Resource
+     (Colony : Colony_Handle;
+      Resource : Athena.Handles.Commodity.Commodity_Handle;
+      Size     : Non_Negative_Real)
+      return Non_Negative_Real;
 
    function Reference (Colony : Colony_Handle) return Colony_Reference
    is (Colony.Reference);

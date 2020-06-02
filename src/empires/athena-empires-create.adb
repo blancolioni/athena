@@ -8,7 +8,9 @@ with Athena.Handles.Colony;
 with Athena.Handles.Commodity;
 with Athena.Handles.Design;
 with Athena.Handles.Empire;
+with Athena.Handles.Facility;
 with Athena.Handles.Fleet;
+with Athena.Handles.Installation;
 with Athena.Handles.Production;
 
 package body Athena.Empires.Create is
@@ -59,6 +61,20 @@ package body Athena.Empires.Create is
                        Material   => 100.0);
       begin
          Empire.Set_Capital (Colony.Reference);
+
+         for Installation_Config of Init.Child ("installations") loop
+            declare
+               Facility : constant Athena.Handles.Facility.Facility_Handle :=
+                 Athena.Handles.Facility.Get_By_Tag
+                   (Installation_Config.Config_Name);
+               Size     : constant Non_Negative_Real :=
+                 Real'Value (Installation_Config.Attribute ("size"));
+            begin
+               Colony.Add_Installation
+                 (Athena.Handles.Installation.Create (Facility, Size));
+            end;
+         end loop;
+
          for Stock_Config of Init.Child ("stock") loop
             Colony.Set_Stock
               (Commodity =>

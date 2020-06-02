@@ -1,9 +1,26 @@
 with Ada.Streams.Stream_IO;
 
 with Athena.Handles.Commodity;
-with Athena.Handles.Star;
 
 package Athena.Handles.Facility is
+
+   type Production_Context is interface;
+
+   function Habitability
+     (Context : Production_Context) return Unit_Real
+      is abstract;
+
+   function Available_Resources
+     (Context  : Production_Context)
+      return Athena.Handles.Commodity.Commodity_Array
+      is abstract;
+
+   function Extract_Resource
+     (Context : Production_Context;
+      Resource : Athena.Handles.Commodity.Commodity_Handle;
+      Size     : Non_Negative_Real)
+      return Non_Negative_Real
+      is abstract;
 
    type Facility_Handle is
      new Root_Athena_Handle
@@ -20,19 +37,28 @@ package Athena.Handles.Facility is
 
    function Output_Quantity
      (Handle : Facility_Handle)
-      return Athena.Handles.Commodity.Commodity_Handle;
+      return Non_Negative_Real;
 
    function Employment (Handle : Facility_Handle) return Non_Negative_Real;
 
-   procedure Daily_Facility
-     (Handle : Facility_Handle;
-      Size   : Non_Negative_Real;
-      Star   : Athena.Handles.Star.Star_Handle'Class;
-      Stock  : Athena.Handles.Commodity.Stock_Interface'Class);
+   function Required_Quantity
+     (Handle    : Facility_Handle;
+      Size      : Non_Negative_Real;
+      Commodity : Athena.Handles.Commodity.Commodity_Handle)
+      return Non_Negative_Real;
+
+   procedure Daily_Production
+     (Handle  : Facility_Handle;
+      Size    : Non_Negative_Real;
+      Context : Production_Context'Class;
+      Stock   : Athena.Handles.Commodity.Stock_Interface'Class);
+
+   function Exists (Tag : String) return Boolean;
 
    function Get_By_Tag
      (Tag : String)
-      return Facility_Handle;
+      return Facility_Handle
+     with Pre => Exists (Tag);
 
    function Create
      (Tag       : String;
@@ -45,8 +71,16 @@ package Athena.Handles.Facility is
      (Handle : Facility_Handle;
       Value  : Non_Negative_Real);
 
+   procedure Add_Agriculture_Constraint
+     (Handle : Facility_Handle);
+
    procedure Add_Habitability_Constraint
      (Handle : Facility_Handle);
+
+   procedure Add_Input
+     (Handle    : Facility_Handle;
+      Commodity : Athena.Handles.Commodity.Commodity_Handle'Class;
+      Quantity  : Non_Negative_Real);
 
    procedure Load
      (Stream : Ada.Streams.Stream_IO.Stream_Access);
@@ -56,7 +90,7 @@ package Athena.Handles.Facility is
 
    type Facility_Array is array (Positive range <>) of Facility_Handle;
 
-   function All_Facility return Facility_Array;
+   function All_Facilities return Facility_Array;
 
 private
 
@@ -84,5 +118,9 @@ private
 
    function Empty_Handle return Facility_Handle
    is (False, 0);
+
+   type Zone_Type is
+     (Agricultural, Mining, Industrial, Commercial,
+      Offices, Government, Urban);
 
 end Athena.Handles.Facility;

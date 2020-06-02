@@ -1,0 +1,10 @@
+build = {
+    construction-materials = 10
+}
+
+employees = 1000
+
+inputs = { coal = 10 }
+constraints = { }
+output = power
+quantity = 100

@@ -4,7 +4,7 @@ build = {
 
 employees = 1000
 
-inputs = { }
+inputs = { power = 1 }
 constraints = { habitability agriculture }
 output = food
 quantity = 10

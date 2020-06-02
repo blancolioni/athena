@@ -10,6 +10,7 @@ with Athena.Random;
 with Athena.Real_Images;
 
 with Athena.Configure.Commodities;
+with Athena.Configure.Facilities;
 with Athena.Configure.Production;
 with Athena.Configure.Ships;
 
@@ -266,10 +267,10 @@ package body Athena.Configure is
       --
 
       Athena.Configure.Commodities.Configure_Commodities;
+      Athena.Configure.Facilities.Configure_Facilities;
       Athena.Configure.Production.Configure_Production;
       Athena.Configure.Ships.Configure_Ships;
 
-      null;
    end Initialize_Database;
 
 end Athena.Configure;
