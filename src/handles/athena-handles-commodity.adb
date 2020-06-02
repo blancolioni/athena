@@ -275,4 +275,29 @@ package body Athena.Handles.Commodity is
       return -(Vector (Commodity.Reference).Tag);
    end Tag;
 
+   --------------
+   -- Transfer --
+   --------------
+
+   procedure Transfer
+     (From      : Stock_Interface'Class;
+      To        : Stock_Interface'Class;
+      Commodity : Commodity_Handle)
+   is
+   begin
+      if Commodity.Is_Abstract then
+         for Item of All_Commodities loop
+            if not Item.Is_Abstract
+              and then Item.Class = Commodity.Class
+            then
+               To.Add_Stock (Item, From.Get_Stock (Item));
+               From.Set_Stock (Item, 0.0);
+            end if;
+         end loop;
+      else
+         To.Add_Stock (Commodity, From.Get_Stock (Commodity));
+         From.Set_Stock (Commodity, 0.0);
+      end if;
+   end Transfer;
+
 end Athena.Handles.Commodity;

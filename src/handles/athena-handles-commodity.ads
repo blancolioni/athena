@@ -104,6 +104,11 @@ package Athena.Handles.Commodity is
       Quantity  : Non_Negative_Real)
      with Pre => Quantity <= Stock.Get_Stock (Commodity);
 
+   procedure Transfer
+     (From      : Stock_Interface'Class;
+      To        : Stock_Interface'Class;
+      Commodity : Commodity_Handle);
+
    type Stock_Type is private;
 
    function Get_Stock

@@ -270,10 +270,10 @@ package body Athena.Handles.Star is
                  (if Size <= 1.0
                   then 0.0
                   else Quality
-                    * Athena.Elementary_Functions.Log (Size) / 1000.0);
+                    * Athena.Elementary_Functions.Log (Size) / 10000.0);
             begin
                return Extracted : constant Non_Negative_Real :=
-                 Size * Change * 100.0
+                 Size * Change * 1000.0
                do
                   Item.Quality :=
                     (if Change < Quality

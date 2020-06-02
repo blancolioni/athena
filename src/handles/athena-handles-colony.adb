@@ -289,21 +289,10 @@ package body Athena.Handles.Colony is
          declare
             use Athena.Handles.Installation;
             Installation : constant Installation_Handle := Get (Install_Ref);
+            Commodity    : constant Handles.Commodity.Commodity_Handle :=
+              Installation.Facility.Output_Commodity;
          begin
-            for Index in Commodities'Range loop
-               declare
-                  Quantity : constant Non_Negative_Real :=
-                    Installation.Get_Stock (Commodities (Index));
-               begin
-                  if Quantity > 0.0 then
-                     Colony.Log ("received " & Image (Quantity) & " "
-                                 & Commodities (Index).Tag
-                                 & " from "
-                                 & Installation.Short_Name);
-                     Colony.Add_Stock (Commodities (Index), Quantity);
-                  end if;
-               end;
-            end loop;
+            Installation.Transfer (Colony, Commodity);
          end;
       end loop;
 
