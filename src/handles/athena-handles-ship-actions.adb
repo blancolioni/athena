@@ -244,7 +244,7 @@ package body Athena.Handles.Ship.Actions is
 
       Ship.Set_Activity (Departing);
       return Athena.Calendar.Days
-        (20.0 / Athena.Ships.Get_Impulse_Speed (Ship));
+        (10.0 / Athena.Ships.Get_Impulse_Speed (Ship));
    end Start;
 
    -----------
@@ -370,7 +370,7 @@ package body Athena.Handles.Ship.Actions is
    begin
       Ship.Set_Activity (Arriving);
       return Athena.Calendar.Days
-        (20.0 / Athena.Ships.Get_Impulse_Speed (Ship));
+        (10.0 / Athena.Ships.Get_Impulse_Speed (Ship));
    end Start;
 
    ------------------
