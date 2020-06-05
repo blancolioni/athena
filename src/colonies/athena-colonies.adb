@@ -5,6 +5,9 @@ with Athena.Real_Images;
 with Athena.Empires;
 with Athena.Stars;
 
+with Athena.Cargo.Commodities;
+with Athena.Handles.Commodity;
+
 package body Athena.Colonies is
 
    Log_Use_Assets : constant Boolean := False;
@@ -163,6 +166,52 @@ package body Athena.Colonies is
         (At_Star.Colony);
    end Get_Colony;
 
+   procedure Load_Cargo_From_Colony
+     (From  : Athena.Handles.Colony.Colony_Handle;
+      To    : Athena.Cargo.Cargo_Holder_Interface'Class;
+      Cargo : Athena.Cargo.Cargo_Interface'Class;
+      Max   : Non_Negative_Real)
+   is
+   begin
+      case Cargo.Category is
+         when Athena.Cargo.People =>
+            declare
+               Required_Pop  : constant Non_Negative_Real := Max;
+               Available_Pop : constant Non_Negative_Real :=
+                                 From.Population;
+               Loaded_Pop    : constant Non_Negative_Real :=
+                                 Real'Min (Required_Pop,
+                                           Available_Pop);
+               Remaining_Pop : constant Non_Negative_Real :=
+                                 Available_Pop - Loaded_Pop;
+            begin
+               From.Log ("supplying " & Image (Loaded_Pop) & " people");
+               To.Add_Cargo (Cargo, Loaded_Pop);
+               From.Set_Population (Remaining_Pop);
+            end;
+
+         when Athena.Cargo.Fuel =>
+            From.Log ("supplying " & Image (Max) & " fuel");
+            To.Add_Cargo (Cargo, Max);
+
+         when Athena.Cargo.Commodity =>
+            declare
+               Commodity : constant Handles.Commodity.Commodity_Handle :=
+                             Athena.Cargo.Commodities.Get_Commodity (Cargo);
+               Required  : constant Non_Negative_Real := Max;
+               Available : constant Non_Negative_Real :=
+                             From.Get_Stock (Commodity);
+               Loaded    : constant Non_Negative_Real :=
+                             Real'Min (Required, Available);
+            begin
+               From.Log ("supplying " & Image (Loaded) & " " & Commodity.Tag);
+               To.Add_Cargo (Cargo, Loaded);
+               From.Remove_Stock (Commodity, Loaded);
+            end;
+
+      end case;
+   end Load_Cargo_From_Colony;
+
    ---------
    -- Log --
    ---------
@@ -301,6 +350,40 @@ package body Athena.Colonies is
          raise;
 
    end Produce_Material;
+
+   ----------------------------
+   -- Unload_Cargo_To_Colony --
+   ----------------------------
+
+   procedure Unload_Cargo_To_Colony
+     (To    : Athena.Handles.Colony.Colony_Handle;
+      From  : Athena.Cargo.Cargo_Holder_Interface'Class;
+      Cargo : Athena.Cargo.Cargo_Interface'Class;
+      Max   : Non_Negative_Real)
+   is
+   begin
+      case Cargo.Category is
+         when Athena.Cargo.People =>
+            To.Log ("adding " & Image (Max) & " people");
+            To.Set_Population (To.Population + Max);
+            From.Remove_Cargo (Cargo, Max);
+
+         when Athena.Cargo.Fuel =>
+            To.Log ("adding " & Image (Max) & " fuel");
+            From.Remove_Cargo (Cargo, Max);
+
+         when Athena.Cargo.Commodity =>
+            declare
+               Commodity : constant Handles.Commodity.Commodity_Handle :=
+                             Athena.Cargo.Commodities.Get_Commodity (Cargo);
+            begin
+               To.Log ("adding " & Image (Max) & " " & Commodity.Tag);
+               To.Add_Stock (Commodity, Max);
+               From.Remove_Cargo (Cargo, Max);
+            end;
+
+      end case;
+   end Unload_Cargo_To_Colony;
 
    ----------------
    -- Use_Assets --

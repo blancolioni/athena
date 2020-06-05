@@ -66,12 +66,6 @@ package Athena.Handles is
      (Localised : Localised_Interface'Class)
       return String;
 
-   type Cargo_Class is
-     (Colonists,
-      Fuel,
-      Industry,
-      Material);
-
    type Manager_Class is
      (Attack_Manager,
       Colonization_Manager,

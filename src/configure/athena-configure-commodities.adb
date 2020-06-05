@@ -69,7 +69,7 @@ package body Athena.Configure.Commodities is
       Commodity : constant Athena.Handles.Commodity.Commodity_Handle :=
         Athena.Handles.Commodity.Create
           (Tag         => Config.Config_Name,
-           Tonnage     => Get ("tonnage"),
+           Density     => Get ("density"),
            Class       => Get_Class,
            Is_Abstract => Config.Get ("abstract"));
    begin

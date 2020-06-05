@@ -1,3 +1,3 @@
 class = resource
-tonnage = 19.1  # https://en.wikipedia.org/wiki/Uranium
+density = 19.1  # https://en.wikipedia.org/wiki/Uranium
 deposits = uncommon

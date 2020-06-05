@@ -1,7 +1,7 @@
-tonnage = 4
-mass = 8
-power = 1
-price = 20
+tonnage = 40
+mass = 80
+power = 10
+price = 200
 comfort = 0
-occupancy = 1
-max-occupancy = 1
+occupancy = 10
+max-occupancy = 10

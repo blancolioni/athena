@@ -14,11 +14,6 @@ package Athena.Ships is
      (Ship : Ship_Handle_Class)
       return Non_Negative_Real;
 
-   function Cargo_Space
-     (Ship : Ship_Handle_Class;
-      Cargo : Athena.Handles.Cargo_Class)
-      return Non_Negative_Real;
-
    function Idle_Power
      (Ship : Ship_Handle_Class)
       return Non_Negative_Real;
@@ -34,26 +29,6 @@ package Athena.Ships is
    function Available_Power
      (Ship : Ship_Handle_Class)
       return Non_Negative_Real;
-
-   function Available_Cargo_Space
-     (Ship  : Ship_Handle_Class;
-      Cargo : Athena.Handles.Cargo_Class)
-      return Non_Negative_Real;
-
-   function Current_Cargo
-     (Ship  : Ship_Handle_Class;
-      Cargo : Athena.Handles.Cargo_Class)
-      return Non_Negative_Real;
-
-   procedure Load_Cargo
-     (Ship     : Ship_Handle_Class;
-      Cargo    : Athena.Handles.Cargo_Class;
-      Quantity : Non_Negative_Real);
-
-   procedure Unload_Cargo
-     (Ship     : Ship_Handle_Class;
-      Cargo    : Athena.Handles.Cargo_Class;
-      Quantity : Non_Negative_Real);
 
    function Is_Armed
      (Ship : Ship_Handle_Class)
@@ -72,6 +47,9 @@ package Athena.Ships is
       return Non_Negative_Real;
 
    procedure On_Arrival
+     (Ship : Ship_Handle_Class);
+
+   procedure Add_Refuel_Action
      (Ship : Ship_Handle_Class);
 
    --  function Get_Design

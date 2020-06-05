@@ -1,5 +1,7 @@
 with Ada.Streams.Stream_IO;
 
+with Athena.Cargo;
+
 with Athena.Handles.Design_Module;
 with Athena.Handles.Empire;
 with Athena.Handles.Hull;
@@ -36,7 +38,7 @@ package Athena.Handles.Design is
 
    function Cargo_Space
      (Handle : Design_Handle;
-      Cargo  : Cargo_Class)
+      Cargo  : Athena.Cargo.Cargo_Category)
       return Non_Negative_Real;
 
    function Tank_Size

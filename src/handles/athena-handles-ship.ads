@@ -1,5 +1,7 @@
 with Ada.Streams.Stream_IO;
 
+with Athena.Cargo;
+
 with Athena.Updates;
 
 with Athena.Handles.Design;
@@ -15,6 +17,7 @@ package Athena.Handles.Ship is
      new Root_Athena_Handle
      and Has_Name_Interface
      and Has_Identifier_Interface
+     and Athena.Cargo.Cargo_Holder_Interface
      and Athena.Updates.Update_Interface
    with private;
 
@@ -104,16 +107,6 @@ package Athena.Handles.Ship is
      (Ship : Ship_Handle)
       return Non_Negative_Real;
 
-   function Current_Cargo
-     (Ship : Ship_Handle;
-      Cargo : Cargo_Class)
-      return Non_Negative_Real;
-
-   procedure Set_Current_Cargo
-     (Ship     : Ship_Handle;
-      Cargo    : Cargo_Class;
-      Quantity : Non_Negative_Real);
-
    function Tank_Size
      (Ship : Ship_Handle)
       return Non_Negative_Real;
@@ -189,6 +182,7 @@ private
    type Ship_Handle is
      new Root_Athena_Handle
      and Has_Identifier_Interface
+     and Athena.Cargo.Cargo_Holder_Interface
      and Athena.Updates.Update_Interface
      and Has_Name_Interface with
       record
@@ -210,6 +204,31 @@ private
        & (if Ship.Has_Star_Location
           then " at " & Ship.Star_Location.Name
           else " in deep space"));
+
+   overriding function Cargo_Space
+     (Ship     : Ship_Handle;
+      Category : Athena.Cargo.Cargo_Category)
+      return Non_Negative_Real;
+
+   overriding function Current_Tonnage
+     (Ship     : Ship_Handle;
+      Category : Athena.Cargo.Cargo_Category)
+      return Non_Negative_Real;
+
+   overriding function Current_Quantity
+     (Ship     : Ship_Handle;
+      Item     : Athena.Cargo.Cargo_Interface'Class)
+      return Non_Negative_Real;
+
+   overriding procedure Add_Cargo
+     (Ship      : Ship_Handle;
+      Item      : Athena.Cargo.Cargo_Interface'Class;
+      Quantity  : Non_Negative_Real);
+
+   overriding procedure Remove_Cargo
+     (Ship      : Ship_Handle;
+      Item      : Athena.Cargo.Cargo_Interface'Class;
+      Quantity  : Non_Negative_Real);
 
    procedure Set_Star_Location
      (Ship : Ship_Handle;
@@ -234,6 +253,11 @@ private
 
    function Empty_Handle return Ship_Handle
    is (False, 0);
+
+   function Current_Fuel
+     (Ship : Ship_Handle)
+      return Non_Negative_Real
+   is (Ship.Current_Tonnage (Athena.Cargo.Fuel));
 
    type Root_Ship_Action is abstract tagged
       record

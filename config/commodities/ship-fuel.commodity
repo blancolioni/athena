@@ -1,0 +1,2 @@
+class = fuel
+density = 0.07085  # density of liquid hydrogen from https://en.wikipedia.org/wiki/Liquid_hydrogen

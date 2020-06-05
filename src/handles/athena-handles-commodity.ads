@@ -6,7 +6,7 @@ with Ada.Streams.Stream_IO;
 package Athena.Handles.Commodity is
 
    type Commodity_Class is
-     (Water, Food, Power, Resource, Manufactured);
+     (Food, Fuel, Manufactured, Power, Resource, Water);
 
    type Resource_Constraint is private;
 
@@ -36,6 +36,10 @@ package Athena.Handles.Commodity is
      (Handle : Commodity_Handle)
       return Boolean;
 
+   function Density
+     (Handle : Commodity_Handle)
+      return Non_Negative_Real;
+
    function Deposit_Constraint
      (Handle : Commodity_Handle)
       return Resource_Constraint
@@ -52,6 +56,7 @@ package Athena.Handles.Commodity is
      with Pre => Exists (Tag);
 
    function Food return Commodity_Handle;
+   function Fuel return Commodity_Handle;
    function Power return Commodity_Handle;
    function Water return Commodity_Handle;
 
@@ -59,7 +64,7 @@ package Athena.Handles.Commodity is
      (Tag         : String;
       Class       : Commodity_Class;
       Is_Abstract : Boolean;
-      Tonnage     : Non_Negative_Real)
+      Density     : Non_Negative_Real)
       return Commodity_Handle;
 
    procedure Add_Deposit_Constraint

@@ -67,13 +67,11 @@ package body Athena.Handles.Ship.Actions is
    type Load_Cargo_Action is
      new Root_Ship_Action with
       record
-         Cargo    : Cargo_Class;
-         Quantity : Non_Negative_Real;
-         Maximum  : Boolean;
+         Cargo    : Athena.Cargo.Cargo_Container;
       end record;
 
    overriding function Image (Action : Load_Cargo_Action) return String
-   is ("loading " & Action.Cargo'Image);
+   is ("loading " & Action.Cargo.Content_Summary);
 
    overriding function Start
      (Action : Load_Cargo_Action;
@@ -88,13 +86,11 @@ package body Athena.Handles.Ship.Actions is
    type Unload_Cargo_Action is
      new Root_Ship_Action with
       record
-         Cargo      : Cargo_Class;
-         Quantity   : Non_Negative_Real;
-         Everything : Boolean;
+         Cargo    : Athena.Cargo.Cargo_Container;
       end record;
 
    overriding function Image (Action : Unload_Cargo_Action) return String
-   is ("unloading " & Action.Cargo'Image);
+   is ("unloading " & Action.Cargo.Content_Summary);
 
    overriding function Start
      (Action : Unload_Cargo_Action;
@@ -106,53 +102,18 @@ package body Athena.Handles.Ship.Actions is
       Ship   : Ship_Handle'Class)
    is null;
 
-   -----------------
-   -- Empty_Cargo --
-   -----------------
-
-   function Empty_Cargo
-     (Cargo    : Cargo_Class)
-      return Root_Ship_Action'Class
-   is
-   begin
-      return Unload_Cargo_Action'
-        (Complete   => False,
-         Cargo      => Cargo,
-         Quantity   => 0.0,
-         Everything => True);
-   end Empty_Cargo;
-
-   ----------------
-   -- Fill_Cargo --
-   ----------------
-
-   function Fill_Cargo
-     (Cargo    : Cargo_Class)
-      return Root_Ship_Action'Class
-   is
-   begin
-      return Load_Cargo_Action'
-        (Complete => False,
-         Cargo    => Cargo,
-         Quantity => 0.0,
-         Maximum  => True);
-   end Fill_Cargo;
-
    ----------------
    -- Load_Cargo --
    ----------------
 
    function Load_Cargo
-     (Cargo    : Cargo_Class;
-      Quantity : Non_Negative_Real)
+     (Cargo    : Athena.Cargo.Cargo_Container)
       return Root_Ship_Action'Class
    is
    begin
       return Load_Cargo_Action'
         (Complete => False,
-         Cargo    => Cargo,
-         Quantity => Quantity,
-         Maximum  => False);
+         Cargo    => Cargo);
    end Load_Cargo;
 
    -------------
@@ -165,12 +126,7 @@ package body Athena.Handles.Ship.Actions is
    is
    begin
 
-      Ship.Add_Action
-        (Action => Load_Cargo_Action'
-           (Complete => False,
-            Cargo    => Fuel,
-            Quantity => 0.0,
-            Maximum  => True));
+      Athena.Ships.Add_Refuel_Action (Ship);
 
       Ship.Add_Action
         (Action => System_Departure_Action'
@@ -211,14 +167,10 @@ package body Athena.Handles.Ship.Actions is
       Ship   : Ship_Handle'Class)
       return Duration
    is
-      Max_Quantity : constant Non_Negative_Real :=
-                       Real'Min (Action.Quantity,
-                                 Athena.Ships.Available_Cargo_Space
-                                   (Ship, Action.Cargo));
    begin
 
       Ship.Log
-        ("loading " & Image (Action.Quantity) & " " & Action.Cargo'Image);
+        ("loading " & Action.Cargo.Content_Summary);
 
       if not Ship.Has_Star_Location
         or else not Ship.Star_Location.Has_Owner
@@ -229,67 +181,39 @@ package body Athena.Handles.Ship.Actions is
          return 0.0;
       else
          declare
-            Colony : constant Athena.Handles.Colony.Colony_Handle :=
-                       Athena.Stars.Get_Colony (Ship.Star_Location);
+            Colony       : constant Athena.Handles.Colony.Colony_Handle :=
+                             Athena.Stars.Get_Colony (Ship.Star_Location);
+            Elapsed      : Duration := 0.0;
+
+            procedure Process_Cargo
+              (Item     : Athena.Cargo.Cargo_Interface'Class;
+               Quantity : Non_Negative_Real);
+
+            -------------------
+            -- Process_Cargo --
+            -------------------
+
+            procedure Process_Cargo
+              (Item     : Athena.Cargo.Cargo_Interface'Class;
+               Quantity : Non_Negative_Real)
+            is
+            begin
+               Athena.Colonies.Load_Cargo_From_Colony
+                 (From => Colony,
+                  To   => Ship,
+                  Cargo => Item,
+                  Max   => Quantity);
+               Elapsed := Duration'Max (Elapsed, Duration (Quantity * 3600.0));
+            end Process_Cargo;
+
          begin
-            case Action.Cargo is
-               when Colonists =>
-                  declare
-                     Required_Pop      : constant Non_Negative_Real :=
-                                           Max_Quantity;
-                     Available_Pop     : constant Non_Negative_Real :=
-                                           Colony.Population;
-                     Loaded_Pop        : constant Non_Negative_Real :=
-                                           Real'Min (Required_Pop,
-                                                     Available_Pop);
-                     Remaining_Pop     : constant Non_Negative_Real :=
-                                           Available_Pop - Loaded_Pop;
-                  begin
-                     Ship.Log ("loading " & Image (Loaded_Pop)
-                               & " colonists");
-                     Athena.Ships.Load_Cargo
-                       (Ship, Colonists, Loaded_Pop);
-                     Ship.Log ("contains "
-                               & Image
-                                 (Athena.Ships.Current_Cargo
-                                    (Ship, Colonists)));
 
-                     Colony.Set_Population (Remaining_Pop);
-                     return Duration (Loaded_Pop * 600.0);
-                  end;
+            Ship.Log ("loading: " & Action.Cargo.Content_Summary);
 
-               when Fuel =>
-                  Athena.Ships.Load_Cargo
-                    (Ship, Fuel, Max_Quantity);
-                  return Duration (Max_Quantity);
+            Action.Cargo.Iterate (Process_Cargo'Access);
 
-               when Material =>
+            return Elapsed;
 
-                  declare
-                     Loaded    : constant Non_Negative_Real :=
-                                   Real'Min (Colony.Material, Max_Quantity);
-                     Remaining : constant Non_Negative_Real :=
-                                   Colony.Material - Loaded;
-                  begin
-                     Athena.Ships.Load_Cargo
-                       (Ship, Material, Loaded);
-                     Colony.Set_Material (Remaining);
-                     return Duration (Loaded * 60.0);
-                  end;
-
-               when Industry =>
-
-                  declare
-                     Loaded    : constant Non_Negative_Real :=
-                                   Real'Min (Colony.Industry, Max_Quantity);
-                     Remaining : constant Non_Negative_Real :=
-                                   Colony.Industry - Loaded;
-                  begin
-                     Athena.Ships.Load_Cargo (Ship, Industry, Loaded);
-                     Colony.Set_Industry (Remaining);
-                     return Duration (Loaded * 600.0);
-                  end;
-            end case;
          end;
       end if;
 
@@ -381,139 +305,57 @@ package body Athena.Handles.Ship.Actions is
       Ship   : Ship_Handle'Class)
       return Duration
    is
-      use type Athena.Handles.Empire.Empire_Handle;
-      Cargo_Quantity    : constant Non_Negative_Real :=
-                            Athena.Ships.Current_Cargo
-                              (Ship, Action.Cargo);
-      Unloaded_Quantity : constant Real :=
-                            Real'Min (Action.Quantity, Cargo_Quantity);
-      Colony            : constant Athena.Handles.Colony.Colony_Handle :=
+
+      Colony            : Athena.Handles.Colony.Colony_Handle :=
                             Athena.Stars.Get_Colony (Ship.Star_Location);
+
+      Elapsed : Duration := 0.0;
+
+      procedure Process_Cargo
+        (Item     : Athena.Cargo.Cargo_Interface'Class;
+         Quantity : Non_Negative_Real);
+
+      -------------------
+      -- Process_Cargo --
+      -------------------
+
+      procedure Process_Cargo
+        (Item     : Athena.Cargo.Cargo_Interface'Class;
+         Quantity : Non_Negative_Real)
+      is
+      begin
+         Athena.Colonies.Unload_Cargo_To_Colony
+           (To    => Colony,
+            From  => Ship,
+            Cargo => Item,
+            Max   => Real'Min (Quantity, Ship.Current_Quantity (Item)));
+         Elapsed := Duration'Max (Elapsed, Duration (Quantity * 3600.0));
+      end Process_Cargo;
+
    begin
 
-      Ship.Log
-        ("unloading "
-         & Image (Unloaded_Quantity)
-         & "/"
-         & Image (Action.Quantity)
-         & " " & Action.Cargo'Image);
+      Ship.Log ("unloading: " & Action.Cargo.Content_Summary);
 
-      if Unloaded_Quantity = 0.0 then
-         return 0.0;
+      if not Colony.Has_Element then
+         if Action.Cargo.Tonnage (Athena.Cargo.People) = 0.0 then
+            Ship.Log ("unable to unload because there is no colony");
+            return 0.0;
+         end if;
+
+         Ship.Log ("creating a new colony");
+         Colony :=
+           Athena.Colonies.New_Colony
+             (At_Star  => Ship.Star_Location,
+              Owner    => Ship.Owner,
+              Pop      => 0.0,
+              Industry => 0.0,
+              Material => 0.0);
       end if;
 
-      case Action.Cargo is
-         when Colonists =>
-            if not Colony.Has_Element then
-               --  create a new colony
+      Action.Cargo.Iterate (Process_Cargo'Access);
 
-               Ship.Log ("creating a new colony");
-               declare
-                  Colony : constant Athena.Handles.Colony.Colony_Handle :=
-                             Athena.Colonies.New_Colony
-                               (At_Star  => Ship.Star_Location,
-                                Owner    => Ship.Owner,
-                                Pop      => Unloaded_Quantity,
-                                Industry => 0.0,
-                                Material => 0.0);
-               begin
-                  pragma Unreferenced (Colony);
-               end;
+      return Elapsed;
 
-               Athena.Ships.Unload_Cargo (Ship, Colonists, Unloaded_Quantity);
-
-               Ship.Owner.Knowledge.Clear_Colonizing (Ship.Star_Location);
-
-               return Duration (Unloaded_Quantity * 6000.0);
-            elsif Colony.Owner /= Ship.Owner then
-               --  this means war!
-               Colony.Log ("can't unload to foreign colony");
-               return 0.0;
-               --  but that's not implemented
-            else
-               declare
-                  New_Pop : constant Non_Negative_Real :=
-                              Colony.Population + Unloaded_Quantity;
-               begin
-                  Colony.Log ("add pop to existing colony");
-                  Athena.Ships.Unload_Cargo
-                    (Ship, Colonists, Unloaded_Quantity);
-                  Colony.Set_Population (New_Pop);
-               end;
-               return Duration (Unloaded_Quantity * 600.0);
-            end if;
-
-         when Fuel =>
-            return 0.0;
-
-         when Material =>
-
-            if not Colony.Has_Element then
-
-               --  Canceled
-               return 0.0;
-
-               --  create a new colony
-               --                 Athena.Handles.Colony.Create
-               --                   (Star      => Ship.Star,
-               --                    Empire    => Ship.Empire,
-               --                    Construct => 0.0,
-               --                    Pop       => 0.0,
-               --                    Colonists => 0.0,
-               --                    Industry  => 0.0,
-               --                    Material  => Unloaded_Quantity);
-               --
-               --                 Ship.Star.Update_Star
-               --                   .Set_Owner (Ship.Empire.Reference_Empire)
-               --                   .Done;
-
-            else
-               declare
-                  New_Quantity : constant Non_Negative_Real :=
-                                   Colony.Material + Unloaded_Quantity;
-               begin
-                  Athena.Ships.Unload_Cargo
-                    (Ship, Action.Cargo, Unloaded_Quantity);
-                  Colony.Set_Material (New_Quantity);
-               end;
-            end if;
-
-            return Duration (Unloaded_Quantity * 60.0);
-
-         when Industry =>
-
-            if not Colony.Has_Element then
-
-               --  Canceled
-               return 0.0;
-
-               --  create a new colony
-               --                 Athena.Handles.Colony.Create
-               --                   (Star      => Ship.Star,
-               --                    Empire    => Ship.Empire,
-               --                    Construct => 0.0,
-               --                    Pop       => 0.0,
-               --                    Colonists => 0.0,
-               --                    Industry  => Unloaded_Quantity,
-               --                    Material  => 0.0);
-               --
-               --                 Ship.Star.Update_Star
-               --                   .Set_Owner (Ship.Empire.Reference_Empire)
-               --                   .Done;
-
-            else
-               declare
-                  New_Quantity : constant Non_Negative_Real :=
-                                   Colony.Industry + Unloaded_Quantity;
-               begin
-                  Athena.Ships.Unload_Cargo
-                    (Ship, Action.Cargo, Unloaded_Quantity);
-                  Colony.Set_Industry (New_Quantity);
-                  return Duration (Unloaded_Quantity * 600.0);
-               end;
-            end if;
-
-      end case;
    end Start;
 
    -----------
@@ -536,16 +378,13 @@ package body Athena.Handles.Ship.Actions is
    ------------------
 
    function Unload_Cargo
-     (Cargo    : Cargo_Class;
-      Quantity : Non_Negative_Real)
+     (Cargo    : Athena.Cargo.Cargo_Container)
       return Root_Ship_Action'Class
    is
    begin
       return Unload_Cargo_Action'
         (Complete   => False,
-         Cargo      => Cargo,
-         Quantity   => Quantity,
-         Everything => False);
+         Cargo      => Cargo);
    end Unload_Cargo;
 
 end Athena.Handles.Ship.Actions;

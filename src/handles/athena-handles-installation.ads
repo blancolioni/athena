@@ -68,7 +68,9 @@ private
       return Installation_Reference
    is (Installation.Reference);
 
-   function Get (Installation : Installation_Reference) return Installation_Handle
+   function Get
+     (Installation : Installation_Reference)
+      return Installation_Handle
    is (Installation /= 0, Installation);
 
    function Empty_Handle return Installation_Handle

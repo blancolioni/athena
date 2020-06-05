@@ -24,8 +24,6 @@ package body Athena.Handles.Ship is
      new Ada.Containers.Doubly_Linked_Lists
        (Module_Reference);
 
-   type Cargo_Array is array (Cargo_Class) of Non_Negative_Real;
-
    type Ship_Record is
       record
          Identifier      : Object_Identifier;
@@ -46,8 +44,7 @@ package body Athena.Handles.Ship is
          Fleet           : Fleet_Reference;
          Manager         : Athena.Handles.Manager_Class;
          Destination     : Star_Reference;
-         Carrying        : Cargo_Array;
-         Fuel            : Non_Negative_Real;
+         Cargo           : Athena.Cargo.Cargo_Container;
          Activity        : Ship_Activity;
          Actions         : Ship_Action_Lists.List;
          Action_Started  : Athena.Calendar.Time;
@@ -143,11 +140,17 @@ package body Athena.Handles.Ship is
       return Athena.Handles.Module.Module_Handle
    is (Athena.Handles.Module.Get (Vector (Ship.Reference).Jump_Drive));
 
-   function Current_Cargo
-     (Ship  : Ship_Handle;
-      Cargo : Cargo_Class)
+   overriding function Current_Tonnage
+     (Ship     : Ship_Handle;
+      Category : Athena.Cargo.Cargo_Category)
       return Non_Negative_Real
-   is (Vector (Ship.Reference).Carrying (Cargo));
+   is (Vector (Ship.Reference).Cargo.Tonnage (Category));
+
+   overriding function Current_Quantity
+     (Ship     : Ship_Handle;
+      Item     : Athena.Cargo.Cargo_Interface'Class)
+      return Non_Negative_Real
+   is (Vector (Ship.Reference).Cargo.Quantity (Item));
 
    function Current_Activity
      (Ship : Ship_Handle)
@@ -165,9 +168,6 @@ package body Athena.Handles.Ship is
    function Tank_Size (Ship : Ship_Handle) return Non_Negative_Real
    is (Vector (Ship.Reference).Tank_Size);
 
-   function Current_Fuel (Ship : Ship_Handle) return Non_Negative_Real
-   is (Vector (Ship.Reference).Carrying (Fuel));
-
    --------------
    -- Activate --
    --------------
@@ -179,17 +179,25 @@ package body Athena.Handles.Ship is
    begin
       Ship.Log ("activating: current activity "
                 & Ship.Current_Activity);
-      for Cargo in Cargo_Class loop
-         declare
-            Quantity : constant Non_Negative_Real :=
-                         Ship.Current_Cargo (Cargo);
+
+      declare
+         procedure Report (Cargo : Athena.Cargo.Cargo_Interface'Class;
+                           Quantity : Non_Negative_Real);
+
+         ------------
+         -- Report --
+         ------------
+
+         procedure Report (Cargo    : Athena.Cargo.Cargo_Interface'Class;
+                           Quantity : Non_Negative_Real)
+         is
          begin
-            if Quantity > 0.0 then
-               Ship.Log ("cargo: " & Image (Quantity) & " "
-                         & Cargo'Image);
-            end if;
-         end;
-      end loop;
+            Ship.Log ("cargo: " & Image (Quantity) & " " & Cargo.Tag);
+         end Report;
+
+      begin
+         Vector (Ship.Reference).Cargo.Iterate (Report'Access);
+      end;
 
       if Vector (Ship.Reference).Executing then
          if Vector (Ship.Reference).Action_Finished
@@ -251,6 +259,19 @@ package body Athena.Handles.Ship is
       end if;
    end Add_Action;
 
+   ---------------
+   -- Add_Cargo --
+   ---------------
+
+   overriding procedure Add_Cargo
+     (Ship      : Ship_Handle;
+      Item      : Athena.Cargo.Cargo_Interface'Class;
+      Quantity  : Non_Negative_Real)
+   is
+   begin
+      Vector (Ship.Reference).Cargo.Add_Cargo (Item, Quantity);
+   end Add_Cargo;
+
    --------------------
    -- Add_Experience --
    --------------------
@@ -263,6 +284,27 @@ package body Athena.Handles.Ship is
    begin
       Rec.Experience := Rec.Experience + XP;
    end Add_Experience;
+
+   -----------------
+   -- Cargo_Space --
+   -----------------
+
+   overriding function Cargo_Space
+     (Ship     : Ship_Handle;
+      Category : Athena.Cargo.Cargo_Category)
+      return Non_Negative_Real
+   is
+      Rec : Ship_Record renames Vector (Ship.Reference);
+   begin
+      case Category is
+         when Athena.Cargo.Commodity =>
+            return Rec.Cargo_Space;
+         when Athena.Cargo.Fuel =>
+            return Rec.Tank_Size;
+         when Athena.Cargo.People =>
+            return Athena.Handles.Design.Get (Rec.Design).Passenger_Berths;
+      end case;
+   end Cargo_Space;
 
    -----------------------
    -- Clear_Destination --
@@ -309,8 +351,7 @@ package body Athena.Handles.Ship is
                  Power         => <>,
                  Tank_Size     => Design.Tank_Size,
                  Cargo_Space   => Design.Free_Space,
-                 Fuel          => 0.0,
-                 Carrying      => (others => 0.0),
+                 Cargo         => <>,
                  Fleet         => Fleet,
                  Manager       => Manager,
                  Destination   => Destination.Reference,
@@ -373,10 +414,7 @@ package body Athena.Handles.Ship is
       Rec  : Ship_Record renames Vector (Ship.Reference);
       Mass : Non_Negative_Real := Ship.Design.Mass;
    begin
-      Mass := Mass + Rec.Fuel;
-      for Cargo of Rec.Carrying loop
-         Mass := Mass + Cargo;
-      end loop;
+      Mass := Mass + Rec.Cargo.Total_Mass;
       return Mass;
    end Current_Mass;
 
@@ -480,6 +518,19 @@ package body Athena.Handles.Ship is
       end if;
    end Progress;
 
+   ------------------
+   -- Remove_Cargo --
+   ------------------
+
+   overriding procedure Remove_Cargo
+     (Ship      : Ship_Handle;
+      Item      : Athena.Cargo.Cargo_Interface'Class;
+      Quantity  : Non_Negative_Real)
+   is
+   begin
+      Vector (Ship.Reference).Cargo.Remove_Cargo (Item, Quantity);
+   end Remove_Cargo;
+
    ----------
    -- Save --
    ----------
@@ -507,20 +558,6 @@ package body Athena.Handles.Ship is
             Signal_Data => Athena.Signals.Null_Signal_Data);
       end if;
    end Set_Activity;
-
-   -----------------------
-   -- Set_Current_Cargo --
-   -----------------------
-
-   procedure Set_Current_Cargo
-     (Ship     : Ship_Handle;
-      Cargo    : Cargo_Class;
-      Quantity : Non_Negative_Real)
-   is
-      Rec : Ship_Record renames Vector (Ship.Reference);
-   begin
-      Rec.Carrying (Cargo) := Quantity;
-   end Set_Current_Cargo;
 
    ---------------------
    -- Set_Destination --

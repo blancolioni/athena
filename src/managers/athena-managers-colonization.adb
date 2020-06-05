@@ -1,5 +1,7 @@
 with Ada.Containers.Doubly_Linked_Lists;
 
+with Athena.Cargo.Colonists;
+with Athena.Cargo.Commodities;
 with Athena.Colonies;
 with Athena.Empires;
 with Athena.Stars;
@@ -7,6 +9,7 @@ with Athena.Stars;
 with Athena.Managers.Transportation;
 
 with Athena.Handles.Colony;
+with Athena.Handles.Commodity;
 with Athena.Handles.Empire;
 with Athena.Handles.Knowledge;
 with Athena.Handles.Star;
@@ -140,8 +143,19 @@ package body Athena.Managers.Colonization is
             From : constant Athena.Handles.Colony.Colony_Handle :=
                      Athena.Colonies.Best_Colony
                        (Empire, Pop'Access);
+            Cargo : Athena.Cargo.Cargo_Container;
          begin
             Manager.Log ("colonizing from " & From.Star.Name);
+
+            Cargo.Add_Cargo
+              (Item     => Athena.Cargo.Colonists.Colonist_Cargo (Empire),
+               Quantity => 100.0);
+
+            Cargo.Add_Cargo
+              (Item     =>
+                 Athena.Cargo.Commodities.Commodity_Cargo
+                   (Athena.Handles.Commodity.Food),
+               Quantity => 100.0);
 
             Empire.Send_Message
               (Athena.Handles.Transport_Manager,
@@ -149,7 +163,7 @@ package body Athena.Managers.Colonization is
                  (Empire   => Empire.Reference,
                   From     => From.Star.Reference,
                   To       => Targets.First_Element.Star.Reference,
-                  Cargo    => Athena.Handles.Colonists,
+                  Cargo    => Cargo,
                   Priority => Manager.Priority));
 
          end;

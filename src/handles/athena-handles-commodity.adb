@@ -14,7 +14,7 @@ package body Athena.Handles.Commodity is
          Tag         : Ada.Strings.Unbounded.Unbounded_String;
          Class       : Commodity_Class;
          Is_Abstract : Boolean;
-         Tonnage     : Non_Negative_Real;
+         Density     : Non_Negative_Real;
          Constraints : Resource_Constraint_Lists.List;
       end record;
 
@@ -38,17 +38,27 @@ package body Athena.Handles.Commodity is
       return Boolean
    is (Vector (Handle.Reference).Is_Abstract);
 
+   function Density
+     (Handle : Commodity_Handle)
+      return Non_Negative_Real
+   is (if Handle.Is_Abstract
+       then 0.0 else Vector (Handle.Reference).Density);
+
    function Deposit_Constraint
      (Handle : Commodity_Handle)
       return Resource_Constraint
    is (Vector (Handle.Reference).Constraints.First_Element);
 
    Food_Ref  : Commodity_Reference := Null_Commodity_Reference;
-   Water_Ref : Commodity_Reference := Null_Commodity_Reference;
+   Fuel_Ref  : Commodity_Reference := Null_Commodity_Reference;
    Power_Ref : Commodity_Reference := Null_Commodity_Reference;
+   Water_Ref : Commodity_Reference := Null_Commodity_Reference;
 
    function Food return Commodity_Handle
    is (Get (Food_Ref));
+
+   function Fuel return Commodity_Handle
+   is (Get (Fuel_Ref));
 
    function Power return Commodity_Handle
    is (Get (Power_Ref));
@@ -115,7 +125,7 @@ package body Athena.Handles.Commodity is
      (Tag         : String;
       Class       : Commodity_Class;
       Is_Abstract : Boolean;
-      Tonnage     : Non_Negative_Real)
+      Density     : Non_Negative_Real)
       return Commodity_Handle
    is
    begin
@@ -123,7 +133,7 @@ package body Athena.Handles.Commodity is
         (Commodity_Record'
            (Identifier  => Next_Identifier,
             Tag         => +Tag,
-            Tonnage     => Tonnage,
+            Density     => Density,
             Class       => Class,
             Is_Abstract => Is_Abstract,
             Constraints => <>));
@@ -133,6 +143,8 @@ package body Athena.Handles.Commodity is
       case Class is
          when Food =>
             Food_Ref := Vector.Last_Index;
+         when Fuel =>
+            Fuel_Ref := Vector.Last_Index;
          when Water =>
             Water_Ref := Vector.Last_Index;
          when Power =>
@@ -214,6 +226,8 @@ package body Athena.Handles.Commodity is
          case Vector (I).Class is
             when Food =>
                Food_Ref := I;
+            when Fuel =>
+               Fuel_Ref := I;
             when Water =>
                Water_Ref := I;
             when Power =>

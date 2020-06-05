@@ -1,3 +1,5 @@
+with Athena.Cargo;
+
 with Athena.Handles.Colony;
 with Athena.Handles.Empire;
 with Athena.Handles.Star;
@@ -57,5 +59,17 @@ package Athena.Colonies is
       Industry : Non_Negative_Real;
       Material : Non_Negative_Real)
       return Athena.Handles.Colony.Colony_Handle;
+
+   procedure Load_Cargo_From_Colony
+     (From  : Athena.Handles.Colony.Colony_Handle;
+      To    : Athena.Cargo.Cargo_Holder_Interface'Class;
+      Cargo : Athena.Cargo.Cargo_Interface'Class;
+      Max   : Non_Negative_Real);
+
+   procedure Unload_Cargo_To_Colony
+     (To    : Athena.Handles.Colony.Colony_Handle;
+      From  : Athena.Cargo.Cargo_Holder_Interface'Class;
+      Cargo : Athena.Cargo.Cargo_Interface'Class;
+      Max   : Non_Negative_Real);
 
 end Athena.Colonies;

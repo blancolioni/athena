@@ -1,20 +1,26 @@
+with Athena.Cargo.Commodities;
+
+with Athena.Handles.Commodity;
 with Athena.Handles.Design_Module;
 with Athena.Handles.Module;
 
 package body Athena.Ships is
 
-   ---------------------------
-   -- Available_Cargo_Space --
-   ---------------------------
+   -----------------------
+   -- Add_Refuel_Action --
+   -----------------------
 
-   function Available_Cargo_Space
-     (Ship  : Ship_Handle_Class;
-      Cargo : Athena.Handles.Cargo_Class)
-      return Non_Negative_Real
+   procedure Add_Refuel_Action
+     (Ship : Ship_Handle_Class)
    is
+      Cargo : Athena.Cargo.Cargo_Container;
    begin
-      return Cargo_Space (Ship, Cargo) - Ship.Current_Cargo (Cargo);
-   end Available_Cargo_Space;
+      Cargo.Add_Cargo
+        (Item     =>
+           Athena.Cargo.Commodities.Commodity_Cargo
+             (Athena.Handles.Commodity.Fuel),
+         Quantity => Ship.Tank_Size);
+   end Add_Refuel_Action;
 
    ---------------------
    -- Available_Power --
@@ -42,39 +48,6 @@ package body Athena.Ships is
       Ship.Iterate_Power_Modules (Add_Power'Access);
       return Power;
    end Available_Power;
-
-   -----------------
-   -- Cargo_Space --
-   -----------------
-
-   function Cargo_Space
-     (Ship  : Ship_Handle_Class;
-      Cargo : Athena.Handles.Cargo_Class)
-      return Non_Negative_Real
-   is
-   begin
-      case Cargo is
-         when Athena.Handles.Colonists =>
-            return Ship.Design.Passenger_Berths;
-         when Athena.Handles.Fuel =>
-            return Ship.Design.Tank_Size;
-         when Athena.Handles.Material | Athena.Handles.Industry =>
-            return Ship.Design.Free_Space;
-      end case;
-   end Cargo_Space;
-
-   -------------------
-   -- Current_Cargo --
-   -------------------
-
-   function Current_Cargo
-     (Ship  : Ship_Handle_Class;
-      Cargo : Athena.Handles.Cargo_Class)
-      return Non_Negative_Real
-   is
-   begin
-      return Ship.Current_Cargo (Cargo);
-   end Current_Cargo;
 
    -----------------
    -- Drive_Power --
@@ -250,20 +223,6 @@ package body Athena.Ships is
       end if;
    end Jump_Power;
 
-   ----------------
-   -- Load_Cargo --
-   ----------------
-
-   procedure Load_Cargo
-     (Ship     : Ship_Handle_Class;
-      Cargo    : Athena.Handles.Cargo_Class;
-      Quantity : Non_Negative_Real)
-   is
-   begin
-      Ship.Set_Current_Cargo
-        (Cargo, Ship.Current_Cargo (Cargo) + Quantity);
-   end Load_Cargo;
-
    ----------
    -- Mass --
    ----------
@@ -297,20 +256,5 @@ package body Athena.Ships is
    begin
       return Athena.Handles.Ship.Design (Ship).Tonnage;
    end Tonnage;
-
-   ------------------
-   -- Unload_Cargo --
-   ------------------
-
-   procedure Unload_Cargo
-     (Ship     : Ship_Handle_Class;
-      Cargo    : Athena.Handles.Cargo_Class;
-      Quantity : Non_Negative_Real)
-   is
-   begin
-      pragma Assert (Quantity <= Ship.Current_Cargo (Cargo));
-      Ship.Set_Current_Cargo
-        (Cargo, Ship.Current_Cargo (Cargo) - Quantity);
-   end Unload_Cargo;
 
 end Athena.Ships;

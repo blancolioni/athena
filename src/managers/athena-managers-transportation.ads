@@ -1,3 +1,5 @@
+with Athena.Cargo;
+
 package Athena.Managers.Transportation is
 
    function Default_Transportation_Manager
@@ -7,16 +9,7 @@ package Athena.Managers.Transportation is
      (Empire   : Athena.Handles.Empire_Reference;
       From     : Athena.Handles.Star_Reference;
       To       : Athena.Handles.Star_Reference;
-      Cargo    : Athena.Handles.Cargo_Class;
-      Quantity : Non_Negative_Real;
-      Priority : Athena.Handles.Order_Priority)
-      return Message_Type'Class;
-
-   function Transport_Message
-     (Empire   : Athena.Handles.Empire_Reference;
-      From     : Athena.Handles.Star_Reference;
-      To       : Athena.Handles.Star_Reference;
-      Cargo    : Athena.Handles.Cargo_Class;
+      Cargo    : Athena.Cargo.Cargo_Container;
       Priority : Athena.Handles.Order_Priority)
       return Message_Type'Class;
 

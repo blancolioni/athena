@@ -66,14 +66,6 @@ package body Athena.Handles.Design is
       return Non_Negative_Real
    is (Vector (Handle.Reference).Cargo_Space);
 
-   function Cargo_Space
-     (Handle : Design_Handle;
-      Cargo  : Cargo_Class)
-      return Non_Negative_Real
-   is (if Cargo = Colonists
-       then Handle.Passenger_Berths
-       else Handle.Free_Space);
-
    function Passenger_Berths
      (Handle : Design_Handle)
       return Non_Negative_Real
@@ -120,19 +112,27 @@ package body Athena.Handles.Design is
       if Design_Module.Component.Has_Berths then
          Rec.Berths := Rec.Berths + Design_Module.Component.Berths;
       end if;
-
-   --     Ada.Text_IO.Put_Line
-   --       ("  module: "
-   --        & Design_Module.Component.Tag
-   --        & " tonnage "
-   --        & Image (Design_Module.Component.Tonnage)
-   --        & " mass "
-   --        & Image (Design_Module.Component.Mass)
-   --        & " power "
-   --        & Image (Design_Module.Component.Idle_Power_Consumption)
-   --        & "/"
-   --        & Image (Design_Module.Component.Active_Power_Consumption));
    end Add_Design_Module;
+
+   -----------------
+   -- Cargo_Space --
+   -----------------
+
+   function Cargo_Space
+     (Handle : Design_Handle;
+      Cargo  : Athena.Cargo.Cargo_Category)
+      return Non_Negative_Real
+   is
+   begin
+      case Cargo is
+         when Athena.Cargo.Commodity =>
+            return Handle.Free_Space;
+         when Athena.Cargo.Fuel =>
+            return Handle.Tank_Size;
+         when Athena.Cargo.People =>
+            return Handle.Passenger_Berths;
+      end case;
+   end Cargo_Space;
 
    ------------
    -- Create --
