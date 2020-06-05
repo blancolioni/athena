@@ -1,5 +1,5 @@
 tonnage = 25
 mass = 2.5
-power = 5
+power = 2
 ship_tonnage = { 0 500 }
 price = 15

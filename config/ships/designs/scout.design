@@ -1,13 +1,13 @@
 hull = standard
-tonnage = 1000
-fuel_tank = 540
+tonnage = 710
+fuel_tank = 400
 default-script = escape
 default-rank = 9
 
 components = {
     bridge-6
     computer-5
-    impulse-2
+    thruster-1
     jump-1
-    fission-10
+    chemical-10
 }
