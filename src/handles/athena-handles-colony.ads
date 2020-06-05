@@ -38,6 +38,10 @@ package Athena.Handles.Colony is
      (Colony : Colony_Handle)
       return Non_Negative_Real;
 
+   function Employed
+     (Colony : Colony_Handle)
+      return Non_Negative_Real;
+
    function Construct
      (Colony : Colony_Handle)
       return Non_Negative_Real;

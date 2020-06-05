@@ -1,10 +1,4 @@
-build = {
-    construction-materials = 10
-}
-
-employees = 1000
-
-inputs = { power = 1 }
+inputs = { }
 constraints = { habitability agriculture }
 output = food
-quantity = 10
+quantity = 0.01

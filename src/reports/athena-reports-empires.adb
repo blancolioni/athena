@@ -43,6 +43,7 @@ package body Athena.Reports.Empires is
          Add_Cell (Table, Image (Colony.Star.Resource * 100.0));
          Add_Cell (Table, Image (Colony.Star.Habitability * 100.0));
          Add_Cell (Table, Image (Colony.Population));
+         Add_Cell (Table, Image (Colony.Employed));
          Add_Cell (Table, Image (Colony.Industry));
          Add_Cell (Table, Image (Colony.Material));
       end Add_Colony;
@@ -54,6 +55,7 @@ package body Athena.Reports.Empires is
       Add_Heading (Table, "res");
       Add_Heading (Table, "hab");
       Add_Heading (Table, "pop");
+      Add_Heading (Table, "emp");
       Add_Heading (Table, "ind");
       Add_Heading (Table, "mat");
       Empire.Iterate_Colonies (Add_Colony'Access);

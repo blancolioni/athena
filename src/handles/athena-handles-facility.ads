@@ -48,10 +48,11 @@ package Athena.Handles.Facility is
       return Non_Negative_Real;
 
    procedure Daily_Production
-     (Handle  : Facility_Handle;
-      Size    : Non_Negative_Real;
-      Context : Production_Context'Class;
-      Stock   : Athena.Handles.Commodity.Stock_Interface'Class);
+     (Handle    : Facility_Handle;
+      Size      : Non_Negative_Real;
+      Context   : Production_Context'Class;
+      Employees : Non_Negative_Real;
+      Stock     : Athena.Handles.Commodity.Stock_Interface'Class);
 
    function Exists (Tag : String) return Boolean;
 

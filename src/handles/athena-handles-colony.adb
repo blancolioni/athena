@@ -17,6 +17,8 @@ package body Athena.Handles.Colony is
    Signal_Colony_Owner_Changed : constant String :=
                                    "signal-colony-owner-changed";
 
+   Stock_History_Length : constant := 10;
+
    type Colony_Owner_Changed_Data is
      new Athena.Signals.Signal_Data_Interface with
       record
@@ -27,9 +29,6 @@ package body Athena.Handles.Colony is
    package Colony_Action_Lists is
      new Ada.Containers.Indefinite_Doubly_Linked_Lists
        (Root_Colony_Action'Class);
-
-   package Stock_Vectors is
-     new Ada.Containers.Vectors (Real_Commodity_Reference, Non_Negative_Real);
 
    type Production_Record is
       record
@@ -43,6 +42,11 @@ package body Athena.Handles.Colony is
    package Installation_Lists is
      new Ada.Containers.Doubly_Linked_Lists (Installation_Reference);
 
+   package Stock_History_Lists is
+     new Ada.Containers.Doubly_Linked_Lists
+       (Athena.Handles.Commodity.Stock_Type,
+        Athena.Handles.Commodity."=");
+
    type Colony_Record is
       record
          Identifier    : Object_Identifier;
@@ -52,12 +56,16 @@ package body Athena.Handles.Colony is
          Next_Update   : Athena.Calendar.Time;
          Construct     : Non_Negative_Real := 0.0;
          Pop           : Non_Negative_Real := 0.0;
+         Employed      : Non_Negative_Real := 0.0;
          Industry      : Non_Negative_Real := 0.0;
          Material      : Non_Negative_Real := 0.0;
          Actions       : Colony_Action_Lists.List;
          Stock         : Athena.Handles.Commodity.Stock_Type;
+         Stock_History : Stock_History_Lists.List;
          Production    : Production_Vectors.Vector;
          Installations : Installation_Lists.List;
+         Water_Crisis  : Boolean;
+         Food_Crisis   : Boolean;
       end record;
 
    package Colony_Vectors is
@@ -107,6 +115,11 @@ package body Athena.Handles.Colony is
       return Non_Negative_Real
    is (Vector (Colony.Reference).Pop);
 
+   function Employed
+     (Colony : Colony_Handle)
+      return Non_Negative_Real
+   is (Vector (Colony.Reference).Employed);
+
    function Industry
      (Colony : Colony_Handle)
       return Non_Negative_Real
@@ -147,6 +160,18 @@ package body Athena.Handles.Colony is
       return Non_Negative_Real
    is (Vector (Colony.Reference).Production (Production.Reference).Employment);
 
+   procedure Execute_Production (Colony : Colony_Handle)
+     with Pre => not Vector (Colony.Reference).Installations.Is_Empty;
+
+   procedure Execute_Artisan_Production
+     (Colony    : Colony_Handle;
+      Commodity : Athena.Handles.Commodity.Commodity_Handle);
+
+   function Stock_Trend
+     (Rec       : Colony_Record;
+      Commodity : Athena.Handles.Commodity.Commodity_Handle)
+      return Real;
+
    --------------
    -- Activate --
    --------------
@@ -181,11 +206,14 @@ package body Athena.Handles.Colony is
                              (Colony.Star.Habitability - 0.2)
                              * 0.02 / 360.0;
       begin
+         Vector (Colony.Reference).Water_Crisis := False;
+
          if Available_Water < Required_Water then
             Colony.Log ("insufficient water "
                         & Image (Available_Water)
                         & "t");
             Colony.Set_Stock (Athena.Handles.Commodity.Water, 0.0);
+            Vector (Colony.Reference).Water_Crisis := True;
             return -(Required_Water - Available_Water);
          elsif Environment_Water < Required_Water then
             Colony.Log ("consuming water from stock "
@@ -196,7 +224,10 @@ package body Athena.Handles.Colony is
             return 0.0;
          end if;
 
+         Vector (Colony.Reference).Food_Crisis := False;
+
          if Available_Food < Required_Food then
+            Vector (Colony.Reference).Food_Crisis := True;
             Colony.Log ("insufficient food "
                         & Image (Available_Food)
                         & "t");
@@ -212,89 +243,35 @@ package body Athena.Handles.Colony is
          end if;
       end Calculate_New_Population;
 
-      use Athena.Handles.Commodity;
-
-      Commodities : constant Commodity_Array := All_Commodities;
-      Available   : array (Commodities'Range) of Non_Negative_Real :=
-        (others => 0.0);
-      Required    : array (Commodities'Range) of Non_Negative_Real :=
-        (others => 0.0);
-      Supply : array (Commodities'Range) of Unit_Real :=
-        (others => 0.0);
-
    begin
+
       Colony.Log ("activating");
 
-      for Index in Commodities'Range loop
-         for Install_Ref of Vector (Colony.Reference).Installations loop
-            declare
-               use Athena.Handles.Installation;
-               Installation : constant Installation_Handle :=
-                 Get (Install_Ref);
-            begin
-               Required (Index) := Required (Index)
-                 + Installation.Facility.Required_Quantity
-                 (Installation.Size, Commodities (Index));
-            end;
+      Vector (Colony.Reference).Employed := 0.0;
+
+      if not Vector (Colony.Reference).Installations.Is_Empty then
+         Execute_Production (Colony);
+      end if;
+
+      declare
+         Artisan_Production : constant array (Positive range <>)
+           of Athena.Handles.Commodity.Commodity_Handle :=
+             (1 => Athena.Handles.Commodity.Food);
+      begin
+         for Commodity of Artisan_Production loop
+            Execute_Artisan_Production (Colony, Commodity);
          end loop;
+      end;
 
-         Available (Index) := Colony.Get_Stock (Commodities (Index));
-
-         if Required (Index) > 0.0 then
-            Colony.Log
-              (Commodities (Index).Tag
-               & ": required: "
-               & Image (Required (Index))
-               & "; available: " & Image (Available (Index)));
-            Supply (Index) :=
-              Unit_Clamp (Available (Index) / Required (Index));
+      declare
+         use type Ada.Containers.Count_Type;
+         Rec : Colony_Record renames Vector (Colony.Reference);
+      begin
+         Rec.Stock_History.Append (Rec.Stock);
+         if Rec.Stock_History.Length > Stock_History_Length then
+            Rec.Stock_History.Delete_First;
          end if;
-      end loop;
-
-      for Install_Ref of Vector (Colony.Reference).Installations loop
-         declare
-            use Athena.Handles.Installation;
-            Installation : constant Installation_Handle := Get (Install_Ref);
-         begin
-            Installation.Clear_Stock;
-
-            for Index in Commodities'Range loop
-               declare
-                  Commodity         : constant Athena.Handles.Commodity
-                    .Commodity_Handle := Commodities (Index);
-                  Quantity          : constant Non_Negative_Real :=
-                    Real'Min
-                      (Colony.Get_Stock (Commodity),
-                       Supply (Index) * Installation.Facility.Required_Quantity
-                       (Installation.Size, Commodity));
-
-               begin
-                  Installation.Add_Stock (Commodities (Index), Quantity);
-                  Colony.Remove_Stock
-                    (Commodities (Index), Quantity);
-               end;
-            end loop;
-
-            Installation.Facility.Daily_Production
-              (Size    => Installation.Size,
-               Context => Colony,
-               Stock   => Installation);
-         end;
-      end loop;
-
-      Colony.Set_Stock
-        (Athena.Handles.Commodity.Power, 0.0);
-
-      for Install_Ref of Vector (Colony.Reference).Installations loop
-         declare
-            use Athena.Handles.Installation;
-            Installation : constant Installation_Handle := Get (Install_Ref);
-            Commodity    : constant Handles.Commodity.Commodity_Handle :=
-              Installation.Facility.Output_Commodity;
-         begin
-            Installation.Transfer (Colony, Commodity);
-         end;
-      end loop;
+      end;
 
       if Colony.Construct > 0.0 then
          Athena.Empires.Earn
@@ -443,14 +420,9 @@ package body Athena.Handles.Colony is
    is
       use type Athena.Calendar.Time;
 
-      Stock : Stock_Vectors.Vector;
       Production : Production_Vectors.Vector;
 
    begin
-
-      for Item of Athena.Handles.Commodity.All_Commodities loop
-         Stock.Append (0.0);
-      end loop;
 
       for Item of Athena.Handles.Production.All_Production loop
          Production.Append (Production_Record'
@@ -460,21 +432,25 @@ package body Athena.Handles.Colony is
 
       Vector.Append
         (Colony_Record'
-           (Identifier  => Next_Identifier,
-            Star        => Star.Reference,
-            Owner       => Owner.Reference,
-            Founded     => Athena.Calendar.Clock,
-            Next_Update =>
+           (Identifier    => Next_Identifier,
+            Star          => Star.Reference,
+            Owner         => Owner.Reference,
+            Founded       => Athena.Calendar.Clock,
+            Next_Update   =>
               Athena.Calendar.Clock
             + Athena.Calendar.Days (Athena.Random.Unit_Random),
-            Construct   => 0.0,
-            Pop         => Pop,
-            Industry    => Industry,
-            Material    => Material,
-            Actions     => Colony_Action_Lists.Empty_List,
-            Stock       => <>,
-            Production  => Production,
-            Installations => Installation_Lists.Empty_List));
+            Construct     => 0.0,
+            Pop           => Pop,
+            Employed      => 0.0,
+            Industry      => Industry,
+            Material      => Material,
+            Actions       => Colony_Action_Lists.Empty_List,
+            Stock         => <>,
+            Stock_History => <>,
+            Production    => Production,
+            Installations => Installation_Lists.Empty_List,
+            Water_Crisis  => False,
+            Food_Crisis   => False));
       Update_Maps (Vector.Last_Index);
 
       return Handle : constant Colony_Handle := (True, Vector.Last_Index) do
@@ -492,6 +468,178 @@ package body Athena.Handles.Colony is
    begin
       Vector (Colony.Reference).Actions.Delete_First;
    end Delete_First_Action;
+
+   procedure Execute_Artisan_Production
+     (Colony    : Colony_Handle;
+      Commodity : Athena.Handles.Commodity.Commodity_Handle)
+   is
+      use type Athena.Handles.Commodity.Commodity_Handle;
+      Artisan_Pop   : Non_Negative_Real;
+      Output_Per_Pop : constant := 0.01;
+   begin
+
+      declare
+         Rec           : Colony_Record renames Vector (Colony.Reference);
+         Available_Pop : constant Non_Negative_Real :=
+                           Rec.Pop - Rec.Employed;
+         Trend         : constant Real := Stock_Trend (Rec, Commodity);
+      begin
+         if Commodity = Athena.Handles.Commodity.Food
+           and then Vector (Colony.Reference).Food_Crisis
+         then
+            Artisan_Pop := Available_Pop;
+         elsif Trend  < 0.0 then
+            Artisan_Pop :=
+              Real'Min (Available_Pop, abs Trend / Output_Per_Pop);
+         else
+            Artisan_Pop := Available_Pop / 10.0;
+         end if;
+      end;
+
+      if Artisan_Pop > 0.0 then
+         declare
+            use Athena.Handles.Commodity;
+            Output : constant Non_Negative_Real :=
+                       Artisan_Pop * Output_Per_Pop;
+         begin
+            Colony.Log
+              (Commodity.Tag
+               & ": previous stock "
+               & (if Vector (Colony.Reference).Stock_History.Is_Empty
+                 then "0.0"
+                 else Image
+                   (Get_Stock
+                      (Vector (Colony.Reference).Stock_History.Last_Element,
+                       Commodity)))
+               & "; current stock "
+               & Image (Get_Stock (Vector (Colony.Reference).Stock,
+                 Commodity))
+               & ": "
+               & Image (Artisan_Pop)
+               & " artisans produce "
+               & Image (Output)
+               & " " & Commodity.Tag);
+            Colony.Add_Stock (Commodity, Output);
+            Vector (Colony.Reference).Employed :=
+              Vector (Colony.Reference).Employed + Artisan_Pop;
+         end;
+      end if;
+
+   end Execute_Artisan_Production;
+
+   ------------------------
+   -- Execute_Production --
+   ------------------------
+
+   procedure Execute_Production (Colony : Colony_Handle) is
+      use Athena.Handles.Commodity;
+
+      Commodities : constant Commodity_Array := All_Commodities;
+      Available   : array (Commodities'Range) of Non_Negative_Real :=
+                      (others => 0.0);
+      Required    : array (Commodities'Range) of Non_Negative_Real :=
+                      (others => 0.0);
+      Supply      : array (Commodities'Range) of Unit_Real :=
+                      (others => 0.0);
+
+      Required_Pop : Non_Negative_Real := 0.0;
+      Pop_Supply   : Unit_Real;
+
+   begin
+      for Install_Ref of Vector (Colony.Reference).Installations loop
+         declare
+            use Athena.Handles.Installation;
+            Installation : constant Installation_Handle :=
+                             Get (Install_Ref);
+         begin
+            Required_Pop := Required_Pop
+              + Installation.Facility.Employment * Installation.Size;
+         end;
+      end loop;
+
+      Colony.Log ("population: required " & Image (Required_Pop)
+                  & "; available " & Image (Colony.Population));
+      Pop_Supply := Unit_Clamp (Colony.Population / Required_Pop);
+
+      Vector (Colony.Reference).Employed := Required_Pop;
+
+      for Index in Commodities'Range loop
+         for Install_Ref of Vector (Colony.Reference).Installations loop
+            declare
+               use Athena.Handles.Installation;
+               Installation : constant Installation_Handle :=
+                                Get (Install_Ref);
+            begin
+               Required (Index) := Required (Index)
+                 + Installation.Facility.Required_Quantity
+                 (Installation.Size, Commodities (Index));
+            end;
+         end loop;
+
+         Available (Index) := Colony.Get_Stock (Commodities (Index));
+
+         if Required (Index) > 0.0 then
+            Colony.Log
+              (Commodities (Index).Tag
+               & ": required: "
+               & Image (Required (Index))
+               & "; available: " & Image (Available (Index)));
+            Supply (Index) :=
+              Unit_Clamp (Available (Index) / Required (Index));
+         end if;
+      end loop;
+
+      for Install_Ref of Vector (Colony.Reference).Installations loop
+         declare
+            use Athena.Handles.Installation;
+            Installation : constant Installation_Handle := Get (Install_Ref);
+            Facility     : constant Athena.Handles.Facility.Facility_Handle :=
+                             Installation.Facility;
+         begin
+            Installation.Clear_Stock;
+
+            for Index in Commodities'Range loop
+               declare
+                  Commodity         : constant Athena.Handles.Commodity
+                    .Commodity_Handle := Commodities (Index);
+                  Required          : constant Non_Negative_Real :=
+                                        Facility.Required_Quantity
+                                          (Installation.Size, Commodity);
+                  Quantity          : constant Non_Negative_Real :=
+                                        Real'Min
+                                          (Colony.Get_Stock (Commodity),
+                                           Supply (Index) * Required);
+               begin
+                  Installation.Add_Stock (Commodities (Index), Quantity);
+                  Colony.Remove_Stock
+                    (Commodities (Index), Quantity);
+               end;
+            end loop;
+
+            Installation.Facility.Daily_Production
+              (Size      => Installation.Size,
+               Context   => Colony,
+               Employees =>
+                 Facility.Employment * Installation.Size * Pop_Supply,
+               Stock     => Installation);
+         end;
+      end loop;
+
+      Colony.Set_Stock
+        (Athena.Handles.Commodity.Power, 0.0);
+
+      for Install_Ref of Vector (Colony.Reference).Installations loop
+         declare
+            use Athena.Handles.Installation;
+            Installation : constant Installation_Handle := Get (Install_Ref);
+            Commodity    : constant Handles.Commodity.Commodity_Handle :=
+                             Installation.Facility.Output_Commodity;
+         begin
+            Installation.Transfer (Colony, Commodity);
+         end;
+      end loop;
+
+   end Execute_Production;
 
    ----------------------
    -- Extract_Resource --
@@ -636,6 +784,36 @@ package body Athena.Handles.Colony is
       Athena.Handles.Commodity.Set_Stock
         (Vector (Colony.Reference).Stock, Commodity, Quantity);
    end Set_Stock;
+
+   -----------------
+   -- Stock_Trend --
+   -----------------
+
+   function Stock_Trend
+     (Rec       : Colony_Record;
+      Commodity : Athena.Handles.Commodity.Commodity_Handle)
+      return Real
+   is
+      Xs     : array (1 .. Stock_History_Length + 1) of Real;
+      Count  : Natural := 0;
+   begin
+      for Stock of Rec.Stock_History loop
+         Count := Count + 1;
+         Xs (Count) := Athena.Handles.Commodity.Get_Stock (Stock, Commodity);
+      end loop;
+
+      Count := Count + 1;
+      Xs (Count) := Athena.Handles.Commodity.Get_Stock (Rec.Stock, Commodity);
+
+      if Count = 0 then
+         return 0.0;
+      elsif Count = 1 then
+         return 0.0;
+      else
+         return Xs (Count) - Xs (Count - 1);
+      end if;
+
+   end Stock_Trend;
 
    -----------------
    -- Update_Maps --

@@ -171,10 +171,11 @@ package body Athena.Handles.Facility is
    ----------------------
 
    procedure Daily_Production
-     (Handle  : Facility_Handle;
-      Size    : Non_Negative_Real;
-      Context : Production_Context'Class;
-      Stock   : Athena.Handles.Commodity.Stock_Interface'Class)
+     (Handle    : Facility_Handle;
+      Size      : Non_Negative_Real;
+      Context   : Production_Context'Class;
+      Employees : Non_Negative_Real;
+      Stock     : Athena.Handles.Commodity.Stock_Interface'Class)
    is
       Max : Non_Negative_Real := Size;
       Rec : Facility_Record renames Vector (Handle.Reference);
@@ -206,6 +207,25 @@ package body Athena.Handles.Facility is
             Max := Real'Min (Max, This_Max);
          end;
       end loop;
+
+      declare
+         Required_Workers : constant Non_Negative_Real :=
+                              Handle.Employment * Size;
+         Employment_Max   : constant Non_Negative_Real :=
+                              (if Employees < Required_Workers
+                               then Size * Employees / Required_Workers
+                               else Size);
+      begin
+         Handle.Log
+           ("workers: available "
+            & Image (Employees)
+            & "; required "
+            & Image (Required_Workers)
+            & "; max "
+            & Image (Employment_Max));
+
+         Max := Real'Min (Max, Employment_Max);
+      end;
 
       Handle.Log
         ("calculated maximum production: " & Image (Max));
