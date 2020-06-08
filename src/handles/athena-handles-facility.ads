@@ -49,6 +49,7 @@ package Athena.Handles.Facility is
 
    procedure Daily_Production
      (Handle    : Facility_Handle;
+      Id        : Object_Identifier;
       Size      : Non_Negative_Real;
       Context   : Production_Context'Class;
       Employees : Non_Negative_Real;

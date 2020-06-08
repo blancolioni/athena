@@ -2,6 +2,7 @@ with Ada.Streams.Stream_IO;
 
 with Athena.Cargo;
 
+with Athena.Handles.Commodity;
 with Athena.Handles.Design_Module;
 with Athena.Handles.Empire;
 with Athena.Handles.Hull;
@@ -67,6 +68,7 @@ package Athena.Handles.Design is
      (Name           : String;
       Owner          : Athena.Handles.Empire.Empire_Handle;
       Hull           : Athena.Handles.Hull.Hull_Handle;
+      Material       : Athena.Handles.Commodity.Commodity_Handle;
       Armor          : Athena.Handles.Hull_Armor.Hull_Armor_Handle;
       Armor_Points   : Natural;
       Tonnage        : Non_Negative_Real;

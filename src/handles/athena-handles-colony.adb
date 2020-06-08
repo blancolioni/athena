@@ -626,7 +626,8 @@ package body Athena.Handles.Colony is
             end loop;
 
             Installation.Facility.Daily_Production
-              (Size      => Installation.Size,
+              (Id        => Installation.Identifier,
+               Size      => Installation.Size,
                Context   => Colony,
                Employees =>
                  Facility.Employment * Installation.Size * Pop_Supply,

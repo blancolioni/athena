@@ -17,6 +17,8 @@ with Athena.Handles.Empire;
 with Athena.Handles.Hull;
 with Athena.Handles.Hull_Armor;
 
+with Athena.Handles.Commodity;
+
 with Athena.Paths;
 
 package body Athena.Configure.Ships is
@@ -162,7 +164,10 @@ package body Athena.Configure.Ships is
 
       Hull : constant Athena.Handles.Hull.Hull_Handle :=
                Athena.Handles.Hull.Get_By_Tag
-                 (Config.Get ("hull", "standard"));
+                 (Config.Child ("hull").Get ("type", "standard"));
+      Mat  : constant Athena.Handles.Commodity.Commodity_Handle :=
+                  Athena.Handles.Commodity.Get_By_Tag
+                    (Config.Child ("hull").Get ("material"));
       Tonnage : constant Non_Negative_Real := Get ("tonnage");
       Hull_Points : constant Non_Negative_Real :=
                       Tonnage / 2.5
@@ -198,6 +203,7 @@ package body Athena.Configure.Ships is
                    (Name           => Config.Get ("name", Config.Config_Name),
                     Owner          => Athena.Handles.Empire.Empty_Handle,
                     Hull           => Hull,
+                    Material       => Mat,
                     Armor          => Armor,
                     Armor_Points   => Armor_Points,
                     Tonnage        => Tonnage,

@@ -1,0 +1,3 @@
+class = resource
+density = 2.3290  # https://en.wikipedia.org/wiki/Silicon
+deposits = common

@@ -1,0 +1,3 @@
+class = resource
+density = 7.874  # https://en.wikipedia.org/wiki/Iron
+deposits = common

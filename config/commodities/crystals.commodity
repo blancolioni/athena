@@ -1,0 +1,9 @@
+class = resource
+density = 2.648  # https://en.wikipedia.org/wiki/Silicon_dioxide
+deposits = uncommon
+#{
+#	common = {
+#		life-bearing = 4
+#		minimum-age = 4G
+#	}
+#}

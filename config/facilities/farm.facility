@@ -2,7 +2,7 @@ build = {
     construction-materials = 10
 }
 
-employees = 1000
+employees = 100
 
 inputs = { power = 1 }
 constraints = { habitability agriculture }

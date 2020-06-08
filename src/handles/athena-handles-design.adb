@@ -16,6 +16,7 @@ package body Athena.Handles.Design is
          Name           : Ada.Strings.Unbounded.Unbounded_String;
          Owner          : Empire_Reference;
          Hull           : Hull_Reference;
+         Material       : Commodity_Reference;
          Armor          : Hull_Armor_Reference;
          Armor_Points   : Natural;
          Tonnage        : Non_Negative_Real;
@@ -142,6 +143,7 @@ package body Athena.Handles.Design is
      (Name           : String;
       Owner          : Athena.Handles.Empire.Empire_Handle;
       Hull           : Athena.Handles.Hull.Hull_Handle;
+      Material       : Athena.Handles.Commodity.Commodity_Handle;
       Armor          : Athena.Handles.Hull_Armor.Hull_Armor_Handle;
       Armor_Points   : Natural;
       Tonnage        : Non_Negative_Real;
@@ -163,7 +165,8 @@ package body Athena.Handles.Design is
                          then Armor.Mass * Armor_Tonnage
                          else 0.0);
       Empty_Mass : constant Non_Negative_Real :=
-                        Tonnage * Hull.Mass_Fraction + Armor_Mass;
+                        Tonnage * Hull.Mass_Fraction * Material.Density
+                          + Armor_Mass;
       Free_Space    : constant Non_Negative_Real :=
                         Tonnage - Fuel_Tank - Armor_Tonnage;
    begin
@@ -182,6 +185,7 @@ package body Athena.Handles.Design is
            (Name           => +Name,
             Owner          => Owner.Reference,
             Hull           => Hull.Reference,
+            Material       => Material.Reference,
             Armor          => Armor.Reference,
             Armor_Points   => Armor_Points,
             Tonnage        => Tonnage,

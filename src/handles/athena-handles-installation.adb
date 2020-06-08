@@ -16,6 +16,11 @@ package body Athena.Handles.Installation is
 
    Vector : Installation_Vectors.Vector;
 
+   overriding function Identifier
+     (Handle : Installation_Handle)
+      return Object_Identifier
+   is (Vector (Handle.Reference).Identifier);
+
    overriding function Get_Stock
      (Installation : Installation_Handle;
       Commodity    : Athena.Handles.Commodity.Commodity_Handle'Class)

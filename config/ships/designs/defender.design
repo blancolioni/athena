@@ -1,4 +1,4 @@
-hull = standard
+hull = { type = standard material = steel-hull }
 tonnage = 2000
 armor = { type = steel points = 5 }
 fuel_tank = 1000
