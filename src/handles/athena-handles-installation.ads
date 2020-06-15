@@ -7,6 +7,7 @@ package Athena.Handles.Installation is
 
    type Installation_Handle is
      new Root_Athena_Handle
+     and Has_Identifier_Interface
      and Athena.Handles.Commodity.Stock_Interface
    with private;
 
@@ -43,10 +44,15 @@ private
 
    type Installation_Handle is
      new Root_Athena_Handle
+     and Has_Identifier_Interface
      and Athena.Handles.Commodity.Stock_Interface with
       record
          Reference : Installation_Reference := 0;
       end record;
+
+   overriding function Identifier
+     (Handle : Installation_Handle)
+      return Object_Identifier;
 
    overriding function Get_Stock
      (Installation : Installation_Handle;

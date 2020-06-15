@@ -1,0 +1,10 @@
+class = resource
+density = 0.816  # https://en.wikipedia.org/wiki/Light_crude_oil
+deposits = uncommon
+
+#{
+#	common = {
+#		life-bearing = 4
+#		minimum-age = 4G
+#	}
+#}

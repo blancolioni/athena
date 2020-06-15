@@ -1,0 +1,3 @@
+class = resource
+density = 8.96  # https://en.wikipedia.org/wiki/Copper
+deposits = common

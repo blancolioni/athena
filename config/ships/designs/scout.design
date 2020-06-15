@@ -1,6 +1,6 @@
-hull = standard
-tonnage = 710
-fuel_tank = 400
+hull = { type = standard material = steel-hull }
+tonnage = 1000
+fuel_tank = 540
 default-script = escape
 default-rank = 9
 

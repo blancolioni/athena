@@ -1,0 +1,10 @@
+build = {
+    construction-materials = 10
+}
+
+employees = 100
+
+inputs = { power = 1 hydrocarbons = 5 }
+constraints = { }
+output = plastic
+quantity = 1

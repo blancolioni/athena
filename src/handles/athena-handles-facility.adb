@@ -1,7 +1,10 @@
 with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Containers.Indefinite_Doubly_Linked_Lists;
 with Ada.Containers.Vectors;
+
 with WL.String_Maps;
+
+with Athena.Logging;
 
 package body Athena.Handles.Facility is
 
@@ -172,6 +175,7 @@ package body Athena.Handles.Facility is
 
    procedure Daily_Production
      (Handle    : Facility_Handle;
+      Id        : Object_Identifier;
       Size      : Non_Negative_Real;
       Context   : Production_Context'Class;
       Employees : Non_Negative_Real;
@@ -179,30 +183,42 @@ package body Athena.Handles.Facility is
    is
       Max : Non_Negative_Real := Size;
       Rec : Facility_Record renames Vector (Handle.Reference);
+
+      procedure Log (Message : String);
+
+      ---------
+      -- Log --
+      ---------
+
+      procedure Log (Message : String) is
+      begin
+         Athena.Logging.Log
+           (Id & " " & Handle.Short_Name & ": "
+            & Message);
+      end Log;
+
    begin
 
-      Handle.Log
-        ("starting production: size = " & Image (Size));
+      Log ("starting production: size = " & Image (Size));
 
       for Input of Rec.Inputs loop
          declare
             Item : constant Athena.Handles.Commodity.Commodity_Handle :=
-              Athena.Handles.Commodity.Get (Input.Commodity);
+                     Athena.Handles.Commodity.Get (Input.Commodity);
             Required : constant Non_Negative_Real :=
-              Size * Input.Quantity;
+                         Size * Input.Quantity;
             Available : constant Non_Negative_Real :=
-              Stock.Get_Stock (Item);
+                          Stock.Get_Stock (Item);
             This_Max  : constant Non_Negative_Real :=
-              (if Available >= Required
-               then Size else Size * Available / Required);
+                          (if Available >= Required
+                           then Size else Size * Available / Required);
          begin
-            Handle.Log
-              ("input: " & Item.Tag & ": available "
-               & Image (Available)
-               & "; required "
-               & Image (Required)
-               & "; max "
-               & Image (This_Max));
+            Log ("input: " & Item.Tag & ": available "
+                 & Image (Available)
+                 & "; required "
+                 & Image (Required)
+                 & "; max "
+                 & Image (This_Max));
 
             Max := Real'Min (Max, This_Max);
          end;
@@ -216,7 +232,7 @@ package body Athena.Handles.Facility is
                                then Size * Employees / Required_Workers
                                else Size);
       begin
-         Handle.Log
+         Log
            ("workers: available "
             & Image (Employees)
             & "; required "
@@ -227,7 +243,7 @@ package body Athena.Handles.Facility is
          Max := Real'Min (Max, Employment_Max);
       end;
 
-      Handle.Log
+      Log
         ("calculated maximum production: " & Image (Max));
 
       for Input of Rec.Inputs loop
@@ -240,7 +256,7 @@ package body Athena.Handles.Facility is
               Real'Min (Max * Input.Quantity, Available);
          begin
 
-            Handle.Log
+            Log
               ("consuming " & Image (Required) & " " & Item.Tag);
             Stock.Remove_Stock (Item, Required);
          end;
@@ -249,7 +265,7 @@ package body Athena.Handles.Facility is
       declare
          Quantity     : Non_Negative_Real := Max * Rec.Quantity;
       begin
-         Handle.Log ("output: base quantity " & Image (Quantity));
+         Log ("output: base quantity " & Image (Quantity));
 
          for Constraint of Rec.Constraints loop
             case Constraint.Constraint is
@@ -257,16 +273,16 @@ package body Athena.Handles.Facility is
                   null;
                when Habitability =>
                   Quantity := Quantity * Context.Habitability;
-                  Handle.Log ("habitability "
-                              & Image (Context.Habitability * 100.0)
-                              & "%; quantity now " & Image (Quantity));
+                  Log ("habitability "
+                       & Image (Context.Habitability * 100.0)
+                       & "%; quantity now " & Image (Quantity));
 
                when Factor =>
                   Quantity := Quantity * Constraint.Factor_Constraint;
 
-                  Handle.Log ("factor "
-                              & Image (Constraint.Factor_Constraint)
-                              & "% quantity now " & Image (Quantity));
+                  Log ("factor "
+                       & Image (Constraint.Factor_Constraint)
+                       & "% quantity now " & Image (Quantity));
             end case;
          end loop;
 

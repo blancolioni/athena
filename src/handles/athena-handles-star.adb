@@ -280,7 +280,8 @@ package body Athena.Handles.Star is
                      then Quality - Change
                      else Quality / 2.0);
                   Handle.Log
-                    ("quality " & Image (Quality)
+                    (Resource.Tag
+                     & ": quality " & Image (Quality)
                      & "; size " & Image (Size)
                      & "; change " & Image (Change)
                      & "; new quality " & Image (Item.Quality)

@@ -469,13 +469,22 @@ package body Athena.Handles.Colony is
       Vector (Colony.Reference).Actions.Delete_First;
    end Delete_First_Action;
 
+   --------------------------------
+   -- Execute_Artisan_Production --
+   --------------------------------
+
    procedure Execute_Artisan_Production
      (Colony    : Colony_Handle;
       Commodity : Athena.Handles.Commodity.Commodity_Handle)
    is
       use type Athena.Handles.Commodity.Commodity_Handle;
+      Is_Food : constant Boolean :=
+                  Commodity = Athena.Handles.Commodity.Food;
       Artisan_Pop   : Non_Negative_Real;
-      Output_Per_Pop : constant := 0.01;
+      Output_Per_Pop : constant Non_Negative_Real :=
+                         0.01 * (if Is_Food
+                                 then Colony.Star.Habitability
+                                 else 1.0);
    begin
 
       declare
@@ -617,7 +626,8 @@ package body Athena.Handles.Colony is
             end loop;
 
             Installation.Facility.Daily_Production
-              (Size      => Installation.Size,
+              (Id        => Installation.Identifier,
+               Size      => Installation.Size,
                Context   => Colony,
                Employees =>
                  Facility.Employment * Installation.Size * Pop_Supply,

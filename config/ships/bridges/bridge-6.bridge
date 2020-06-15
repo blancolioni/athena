@@ -1,5 +1,10 @@
 tonnage = 60
-mass = 6
-power = 6
+mass = 20
+power = 12
 ship_tonnage = { 500 1000 }
 price = 3000
+build = {
+    steel = 2
+    plastic = 5
+    basic-electronics = 5
+}
