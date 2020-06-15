@@ -3,6 +3,7 @@ tonnage = 1000
 fuel_tank = 540
 default-script = escape
 default-rank = 9
+default-manager = exploration
 
 components = {
     bridge-6

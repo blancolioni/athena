@@ -1,5 +1,6 @@
 with Athena.Money;
 
+with Athena.Handles.Empire;
 with Athena.Handles.Ship;
 
 package Athena.Ships is
@@ -52,8 +53,9 @@ package Athena.Ships is
    procedure Add_Refuel_Action
      (Ship : Ship_Handle_Class);
 
-   --  function Get_Design
-   --    (Name : String)
-   --     return Athena.Handles.Design.Design_Handle;
+   function New_Name
+     (Empire    : Athena.Handles.Empire.Empire_Handle;
+      Base_Name : String)
+      return String;
 
 end Athena.Ships;

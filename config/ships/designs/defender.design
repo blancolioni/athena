@@ -4,10 +4,12 @@ armor = { type = steel points = 5 }
 fuel_tank = 1000
 default-script = escape
 default-rank = 6
+default-manager = defense
 
 components = {
     bridge-6
     computer-5
     impulse-2
     chemical-20
+    heavy-turret = { parts = heavy-cannon }
 }

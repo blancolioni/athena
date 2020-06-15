@@ -1,4 +1,7 @@
+with WL.Numerics.Roman;
+
 with Athena.Cargo.Commodities;
+with Athena.Empires;
 
 with Athena.Handles.Commodity;
 with Athena.Handles.Design_Module;
@@ -234,6 +237,33 @@ package body Athena.Ships is
    begin
       return Ship.Current_Mass;
    end Mass;
+
+   --------------
+   -- New_Name --
+   --------------
+
+   function New_Name
+     (Empire    : Athena.Handles.Empire.Empire_Handle;
+      Base_Name : String)
+      return String
+   is
+   begin
+      for I in 1 .. 9999 loop
+         declare
+            Name : constant String :=
+                     Base_Name & " "
+                     & WL.Numerics.Roman.Roman_Image (I);
+            Ship : constant Athena.Handles.Ship.Ship_Handle :=
+                     Athena.Empires.Find_Ship_With_Name
+                       (Empire, Name);
+         begin
+            if not Ship.Has_Element then
+               return Name;
+            end if;
+         end;
+      end loop;
+      return Base_Name;
+   end New_Name;
 
    ----------------
    -- On_Arrival --

@@ -58,6 +58,10 @@ package Athena.Handles.Design is
      (Handle : Design_Handle)
       return String;
 
+   function Default_Manager
+     (Handle : Design_Handle)
+      return Manager_Class;
+
    procedure Iterate_Design_Modules
      (Design : Design_Handle;
       Process : not null access
@@ -65,19 +69,20 @@ package Athena.Handles.Design is
           (Design_Module : Athena.Handles.Design_Module.Design_Module_Handle));
 
    function Create
-     (Name           : String;
-      Owner          : Athena.Handles.Empire.Empire_Handle;
-      Hull           : Athena.Handles.Hull.Hull_Handle;
-      Material       : Athena.Handles.Commodity.Commodity_Handle;
-      Armor          : Athena.Handles.Hull_Armor.Hull_Armor_Handle;
-      Armor_Points   : Natural;
-      Tonnage        : Non_Negative_Real;
-      Hull_Points    : Non_Negative_Real;
-      Fuel_Tank      : Non_Negative_Real;
-      Firm_Points    : Natural;
-      Hard_Points    : Natural;
-      Default_Script : String;
-      Default_Rank   : Positive)
+     (Name            : String;
+      Owner           : Athena.Handles.Empire.Empire_Handle;
+      Hull            : Athena.Handles.Hull.Hull_Handle;
+      Material        : Athena.Handles.Commodity.Commodity_Handle;
+      Armor           : Athena.Handles.Hull_Armor.Hull_Armor_Handle;
+      Armor_Points    : Natural;
+      Tonnage         : Non_Negative_Real;
+      Hull_Points     : Non_Negative_Real;
+      Fuel_Tank       : Non_Negative_Real;
+      Firm_Points     : Natural;
+      Hard_Points     : Natural;
+      Default_Script  : String;
+      Default_Rank    : Positive;
+      Default_Manager : Manager_Class)
       return Design_Handle;
 
    procedure Add_Design_Module

@@ -25,7 +25,7 @@ package body Athena.Handles.Component is
       return Non_Negative_Real
    is (Vector.Constant_Reference (Component.Reference).Element.Tonnage);
 
-   function Mass
+   function Empty_Mass
      (Component : Component_Handle)
       return Non_Negative_Real
    is (Vector.Constant_Reference (Component.Reference).Element.Mass);
@@ -86,12 +86,12 @@ package body Athena.Handles.Component is
    function Has_Berths
      (Component : Component_Handle)
       return Boolean
-   is (Vector (Component.Reference).Berths > 0.0);
+   is (Vector.Element (Component.Reference).Berths > 0.0);
 
    function Berths
      (Component : Component_Handle)
       return Non_Negative_Real
-   is (Vector (Component.Reference).Berths);
+   is (Vector.Element (Component.Reference).Berths);
 
    -------------------
    -- Add_Component --
@@ -105,11 +105,20 @@ package body Athena.Handles.Component is
       Map.Insert (-Component.Tag, Vector.Last_Index);
    end Add_Component;
 
+   ---------------------------
+   -- Empty_Component_Array --
+   ---------------------------
+
+   function Empty_Component_Array return Component_Array is
+   begin
+      return Result : Component_Array (1 .. 0);
+   end Empty_Component_Array;
+
    ----------------
    -- Get_By_Tag --
    ----------------
 
-   function Get_By_Tag (Tag : String) return Component_Handle'Class is
+   function Get_By_Tag (Tag : String) return Component_Handle is
       use Component_Maps;
       Position : constant Cursor := Map.Find (Tag);
    begin

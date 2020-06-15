@@ -20,8 +20,17 @@ package Athena.Handles.Design_Module is
      (Handle : Design_Module_Handle)
       return Athena.Handles.Component.Component_Handle'Class;
 
+   function Mass
+     (Handle : Design_Module_Handle)
+      return Non_Negative_Real;
+
+   function Parts
+     (Handle : Design_Module_Handle)
+      return Athena.Handles.Component.Component_Array;
+
    function Create
-     (From_Component : Athena.Handles.Component.Component_Handle'Class)
+     (From_Component : Athena.Handles.Component.Component_Handle'Class;
+      Parts          : Athena.Handles.Component.Component_Array)
       return Design_Module_Handle;
 
    procedure Load

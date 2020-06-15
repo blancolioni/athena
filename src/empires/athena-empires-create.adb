@@ -122,64 +122,27 @@ package body Athena.Empires.Create is
 
       declare
          use Athena.Handles.Design;
-
-         function Design (Name : String) return Design_Handle
-                          renames Athena.Handles.Design.Get_By_Name;
-
-         Scout_Design     : constant Design_Handle := Design ("scout");
-         Transport_Design : constant Design_Handle := Design ("transport");
-         Freighter_Design : constant Design_Handle := Design ("freighter");
-         Defender_Design  : constant Design_Handle := Design ("defender");
-         Destroyer_Design : constant Design_Handle := Design ("destroyer");
       begin
 
-         Athena.Ships.Create.Create_Ship
-           (Empire  => Empire,
-            Star    => Star,
-            Fleet   => Athena.Handles.Fleet.Empty_Handle,
-            Manager => Athena.Handles.Exploration_Manager,
-            Design  => Scout_Design,
-            Name    => "Scout I");
-
-         Athena.Ships.Create.Create_Ship
-           (Empire  => Empire,
-            Star    => Star,
-            Fleet   => Athena.Handles.Fleet.Empty_Handle,
-            Manager => Athena.Handles.Exploration_Manager,
-            Design  => Scout_Design,
-            Name    => "Scout II");
-
-         Athena.Ships.Create.Create_Ship
-           (Empire  => Empire,
-            Star    => Star,
-            Fleet   => Athena.Handles.Fleet.Empty_Handle,
-            Manager => Athena.Handles.Defense_Manager,
-            Design  => Defender_Design,
-            Name    => "Defender I");
-
-         Athena.Ships.Create.Create_Ship
-           (Empire  => Empire,
-            Star    => Star,
-            Fleet   => Athena.Handles.Fleet.Empty_Handle,
-            Manager => Athena.Handles.Transport_Manager,
-            Design  => Transport_Design,
-            Name    => "Transport I");
-
-         Athena.Ships.Create.Create_Ship
-           (Empire  => Empire,
-            Star    => Star,
-            Fleet   => Athena.Handles.Fleet.Empty_Handle,
-            Manager => Athena.Handles.Transport_Manager,
-            Design  => Freighter_Design,
-            Name    => "Freighter I");
-
-         Athena.Ships.Create.Create_Ship
-           (Empire  => Empire,
-            Star    => Star,
-            Fleet   => Athena.Handles.Fleet.Empty_Handle,
-            Manager => Athena.Handles.Attack_Manager,
-            Design  => Destroyer_Design,
-            Name    => "Destroyer I");
+         for Ship of Init.Child ("ships") loop
+            declare
+               Design : constant Design_Handle :=
+                          Athena.Handles.Design.Get_By_Name
+                            (Ship.Config_Name);
+               Count  : constant Natural :=
+                          (if Ship.Child_Count = 0 then 1 else Ship.Value);
+            begin
+               for I in 1 .. Count loop
+                  Athena.Ships.Create.Create_Ship
+                    (Empire  => Empire,
+                     Star    => Star,
+                     Fleet   => Athena.Handles.Fleet.Empty_Handle,
+                     Manager => Design.Default_Manager,
+                     Design  => Design,
+                     Name    => Athena.Ships.New_Name (Empire, Design.Name));
+               end loop;
+            end;
+         end loop;
 
       end;
 

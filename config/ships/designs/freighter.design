@@ -3,6 +3,7 @@ tonnage = 1200
 fuel_tank = 500
 default-script = escape
 default-rank = 9
+default-manager = transport
 
 components = {
     bridge-6
