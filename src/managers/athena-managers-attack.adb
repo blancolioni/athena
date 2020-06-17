@@ -126,6 +126,12 @@ package body Athena.Managers.Attack is
          Can_Launch : Boolean := True;
       begin
 
+         if Fleet.Location = Star then
+            Fleet.Log ("already engaged");
+            Stop := False;
+            return;
+         end if;
+
          if Fleet.Has_Destination
            and then Fleet.Destination = Star
          then
@@ -141,7 +147,10 @@ package body Athena.Managers.Attack is
             & "; distance "
             & Image (Athena.Stars.Distance (Star, Colony.Star)));
 
-         if Fleet.Location.Identifier /= Colony.Star.Identifier
+         Manager.Log
+           ("using fleet " & Fleet.Short_Name);
+
+         if Fleet.Location /= Colony.Star
            and then not Fleet.Has_Destination
          then
             Fleet.Log ("sending to " & Colony.Star.Short_Name);
@@ -223,7 +232,9 @@ package body Athena.Managers.Attack is
          Stop := False;
 
          Monitored_Count := Monitored_Count + 1;
-         if Knowledge.Turns_Since_Last_Visit (Star) <= Monitored_Count then
+         if Knowledge.Visited (Star)
+           and then Knowledge.Turns_Since_Last_Visit (Star) <= Monitored_Count
+         then
             return;
          end if;
 
@@ -334,15 +345,15 @@ package body Athena.Managers.Attack is
          Fleet : constant Athena.Handles.Fleet.Fleet_Handle :=
                    Athena.Handles.Fleet.Get (Reference);
       begin
-         if Fleet.Destination.Has_Element
+         if Fleet.Has_Destination
            and then Fleet.Destination = Origin
          then
             Available := Fleet;
-         elsif not Fleet.Destination.Has_Element
+         elsif not Fleet.Has_Destination
            and then Fleet.Location = Origin
          then
             Available := Fleet;
-         elsif Fleet.Destination.Has_Element
+         elsif Fleet.Has_Destination
            and then Fleet.Destination = Destination
          then
             Available := Fleet;

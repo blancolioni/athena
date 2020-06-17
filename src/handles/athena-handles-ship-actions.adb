@@ -240,6 +240,9 @@ package body Athena.Handles.Ship.Actions is
       if not Ship.Has_Destination
         or else Ship.Destination /= Action.Destination
       then
+         Ship.Log
+           ("departure: set destination to "
+            & Action.Destination.Name);
          Ship.Set_Destination (Action.Destination);
       end if;
 
