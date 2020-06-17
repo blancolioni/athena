@@ -6,7 +6,7 @@ with Athena.Handles.Empire;
 
 --  with Athena.Handles.Manager;
 --
---  with Athena.Managers.Attack;
+with Athena.Managers.Attack;
 with Athena.Managers.Colonization;
 --  with Athena.Managers.Defend;
 with Athena.Managers.Development;
@@ -100,6 +100,10 @@ package body Athena.Managers is
         (Athena.Handles.Transport_Manager'Image,
          Transportation.Default_Transportation_Manager);
 
+      Manager_Map.Insert
+        (Athena.Handles.Attack_Manager'Image,
+         Attack.Default_Attack_Manager);
+
       --     Manager_Orders.Insert
    --       ("attack", Athena.Managers.Attack.Create_Orders'Access);
    --     Manager_Orders.Insert
@@ -144,7 +148,9 @@ package body Athena.Managers is
       Message : Message_Type'Class)
    is
    begin
-      To.Messages.Append (Message);
+      if not Message_Lists.Has_Element (To.Messages.Find (Message)) then
+         To.Messages.Append (Message);
+      end if;
    end Send_Message;
 
    ---------------------

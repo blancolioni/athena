@@ -113,6 +113,34 @@ package body Athena.Ships is
         * 1.0e4;
    end Get_Impulse_Speed;
 
+   -----------------------
+   -- Get_Impulse_Speed --
+   -----------------------
+
+   function Get_Impulse_Speed
+     (Fleet : Fleet_Handle_Class)
+      return Non_Negative_Real
+   is
+      Result : Non_Negative_Real := Non_Negative_Real'Last;
+
+      procedure Check_Minimum (Reference : Athena.Handles.Ship_Reference);
+
+      -------------------
+      -- Check_Minimum --
+      -------------------
+
+      procedure Check_Minimum (Reference : Athena.Handles.Ship_Reference) is
+         Speed : constant Non_Negative_Real :=
+                   Get_Impulse_Speed (Athena.Handles.Ship.Get (Reference));
+      begin
+         Result := Real'Min (Result, Speed);
+      end Check_Minimum;
+
+   begin
+      Fleet.Iterate_Ships (Check_Minimum'Access);
+      return Result;
+   end Get_Impulse_Speed;
+
    --------------------
    -- Get_Jump_Speed --
    --------------------
@@ -130,6 +158,34 @@ package body Athena.Ships is
       else
          return 0.0;
       end if;
+   end Get_Jump_Speed;
+
+   --------------------
+   -- Get_Jump_Speed --
+   --------------------
+
+   function Get_Jump_Speed
+     (Fleet : Fleet_Handle_Class)
+      return Non_Negative_Real
+   is
+      Result : Non_Negative_Real := Non_Negative_Real'Last;
+
+      procedure Check_Minimum (Reference : Athena.Handles.Ship_Reference);
+
+      -------------------
+      -- Check_Minimum --
+      -------------------
+
+      procedure Check_Minimum (Reference : Athena.Handles.Ship_Reference) is
+         Speed : constant Non_Negative_Real :=
+                   Get_Jump_Speed (Athena.Handles.Ship.Get (Reference));
+      begin
+         Result := Real'Min (Result, Speed);
+      end Check_Minimum;
+
+   begin
+      Fleet.Iterate_Ships (Check_Minimum'Access);
+      return Result;
    end Get_Jump_Speed;
 
    --------------------------
@@ -203,9 +259,8 @@ package body Athena.Ships is
      (Ship : Ship_Handle_Class)
       return Boolean
    is
-      pragma Unreferenced (Ship);
    begin
-      return False;
+      return Ship.Design.Is_Armed;
    end Is_Armed;
 
    ----------------

@@ -32,6 +32,9 @@ package body Athena.Handles.Empire is
    package Ship_Lists is
      new Ada.Containers.Doubly_Linked_Lists (Ship_Reference);
 
+   package Fleet_Lists is
+     new Ada.Containers.Doubly_Linked_Lists (Fleet_Reference);
+
    type Manager_Update is
      new Athena.Updates.Update_Interface with
       record
@@ -58,6 +61,7 @@ package body Athena.Handles.Empire is
          Designs     : Design_Array;
          Colonies    : Colony_Lists.List;
          Ships       : Ship_Lists.List;
+         Fleets      : Fleet_Lists.List;
          Knowledge   : Knowledge_Reference;
          Next_Update : Athena.Calendar.Time;
       end record;
@@ -171,6 +175,18 @@ package body Athena.Handles.Empire is
       Vector (Empire.Reference).Colonies.Append (Colony);
    end Add_Colony;
 
+   ---------------
+   -- Add_Fleet --
+   ---------------
+
+   procedure Add_Fleet
+     (Empire  : Empire_Handle;
+      Fleet   : Fleet_Reference)
+   is
+   begin
+      Vector (Empire.Reference).Fleets.Append (Fleet);
+   end Add_Fleet;
+
    --------------
    -- Add_Ship --
    --------------
@@ -218,6 +234,7 @@ package body Athena.Handles.Empire is
             Designs     => (others => 0),
             Colonies    => <>,
             Ships       => <>,
+            Fleets      => <>,
             Next_Update => Athena.Calendar.Clock + First_Update_Delay,
             Knowledge   => <>));
       Map.Insert (Name, Vector.Last_Index);
@@ -308,6 +325,21 @@ package body Athena.Handles.Empire is
          Process (Colony);
       end loop;
    end Iterate_Colonies;
+
+   --------------------
+   -- Iterate_Fleets --
+   --------------------
+
+   procedure Iterate_Fleets
+     (Empire  : Empire_Handle;
+      Process : not null access
+        procedure (Fleet : Fleet_Reference))
+   is
+   begin
+      for Fleet of Vector (Empire.Reference).Fleets loop
+         Process (Fleet);
+      end loop;
+   end Iterate_Fleets;
 
    ---------------------------
    -- Iterate_Managed_Ships --
@@ -428,6 +460,24 @@ package body Athena.Handles.Empire is
       Colonies.Delete (Position);
    end Remove_Colony;
 
+   ------------------
+   -- Remove_Fleet --
+   ------------------
+
+   procedure Remove_Fleet
+     (Empire : Empire_Handle;
+      Fleet  : Fleet_Reference)
+   is
+      use Fleet_Lists;
+      Fleets    : List renames Vector (Empire.Reference).Fleets;
+      Position : Cursor := Fleets.Find (Fleet);
+   begin
+      pragma Assert (Has_Element (Position),
+                     Empire.Name & ": does not contain fleet"
+                     & Fleet'Image);
+      Fleets.Delete (Position);
+   end Remove_Fleet;
+
    -----------------
    -- Remove_Ship --
    -----------------
@@ -480,17 +530,23 @@ package body Athena.Handles.Empire is
       To      : Manager_Class;
       Message : Athena.Managers.Message_Type'Class)
    is
+      use type Athena.Calendar.Time;
       Rec : Empire_Record renames
               Vector (Empire.Reference);
    begin
       if not Rec.Managers (To).Is_Empty then
          Rec.Managers (To).Reference.Send_Message (Message);
-         Rec.Managers (To).Reference.Set_Next_Update_Delay (0.0);
-         Athena.Updates.Events.Update_With_Delay
-           (0.0,
-            Manager_Update'
-              (Empire  => Empire,
-               Manager => To));
+         if not Rec.Managers (To).Element.Has_Next_Update
+           or else Rec.Managers (To).Element.Next_Update
+           > Athena.Calendar.Clock + 3600.0
+         then
+            Rec.Managers (To).Reference.Set_Next_Update_Delay (0.0);
+            Athena.Updates.Events.Update_With_Delay
+              (0.0,
+               Manager_Update'
+                 (Empire  => Empire,
+                  Manager => To));
+         end if;
       end if;
    end Send_Message;
 
@@ -502,10 +558,15 @@ package body Athena.Handles.Empire is
      (Empire  : Empire_Handle;
       To      : Manager_Class)
    is
+      use type Athena.Calendar.Time;
       Rec : Empire_Record renames
         Vector (Empire.Reference);
    begin
-      if not Rec.Managers (To).Is_Empty then
+      if not Rec.Managers (To).Is_Empty
+        and then (not Rec.Managers (To).Element.Has_Next_Update
+                  or else Rec.Managers (To).Element.Next_Update
+                  > Athena.Calendar.Clock + 3600.0)
+      then
          Rec.Managers (To).Reference.Set_Next_Update_Delay (0.0);
          Athena.Updates.Events.Update_With_Delay
            (0.0,

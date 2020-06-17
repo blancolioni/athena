@@ -79,12 +79,12 @@ package body Athena.Handles.Ship is
       return Athena.Handles.Empire.Empire_Handle
    is (Athena.Handles.Empire.Get (Vector (Ship.Reference).Owner));
 
-   function Alive
+   function Is_Alive
      (Ship : Ship_Handle)
       return Boolean
    is (Vector (Ship.Reference).Alive);
 
-   function Idle
+   function Is_Idle
      (Ship : Ship_Handle)
       return Boolean
    is (not Ship.Has_Destination
@@ -134,6 +134,16 @@ package body Athena.Handles.Ship is
      (Ship : Ship_Handle)
       return Athena.Handles.Star.Star_Handle
    is (Athena.Handles.Star.Get (Vector (Ship.Reference).Destination));
+
+   function Has_Fleet
+     (Ship : Ship_Handle)
+      return Boolean
+   is (Vector (Ship.Reference).Fleet /= Null_Fleet_Reference);
+
+   function Fleet
+     (Ship : Ship_Handle)
+      return Fleet_Reference
+   is (Vector (Ship.Reference).Fleet);
 
    function Jump_Drive
      (Ship : Ship_Handle)
@@ -571,6 +581,18 @@ package body Athena.Handles.Ship is
    begin
       Rec.Destination := Destination.Reference;
    end Set_Destination;
+
+   ---------------
+   -- Set_Fleet --
+   ---------------
+
+   procedure Set_Fleet
+     (Ship  : Ship_Handle;
+      Fleet : Fleet_Reference)
+   is
+   begin
+      Vector (Ship.Reference).Fleet := Fleet;
+   end Set_Fleet;
 
    --------------
    -- Set_Name --

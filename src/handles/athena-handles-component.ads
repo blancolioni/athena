@@ -80,6 +80,10 @@ package Athena.Handles.Component is
      (Component : Component_Handle)
       return Non_Negative_Real;
 
+   function Is_Weapon
+     (Component : Component_Handle)
+      return Boolean;
+
    function Get_By_Tag
      (Tag : String)
       return Component_Handle;
@@ -129,6 +133,11 @@ private
          Active_Power      : Non_Negative_Real;
          Berths            : Non_Negative_Real;
       end record;
+
+   function Is_Weapon
+     (Rec : Root_Component_Record)
+      return Boolean
+   is (False);
 
    function Jump
      (Rec : Root_Component_Record)

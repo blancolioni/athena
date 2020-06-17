@@ -57,6 +57,21 @@ package body Athena.Handles.Design_Module is
       return Get (Vector.Last_Index);
    end Create;
 
+   ---------------
+   -- Is_Weapon --
+   ---------------
+
+   function Is_Weapon
+     (Handle : Design_Module_Handle)
+      return Boolean
+   is
+      use Athena.Handles.Component;
+      Rec : Design_Module_Record renames Vector (Handle.Reference);
+   begin
+      return Get (Rec.Component).Is_Weapon
+        or else (for some Item of Rec.Parts => Get (Item).Is_Weapon);
+   end Is_Weapon;
+
    ----------
    -- Load --
    ----------

@@ -8,6 +8,11 @@ package body Athena.Handles.Component.Weapon is
          Damage    : Non_Negative_Real;
       end record;
 
+   overriding function Is_Weapon
+     (Component : Weapon_Component_Record)
+      return Boolean
+   is (True);
+
    -----------------
    -- Create_Beam --
    -----------------

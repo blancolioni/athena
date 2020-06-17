@@ -54,6 +54,10 @@ package Athena.Handles.Design is
      (Handle : Design_Handle)
       return Natural;
 
+   function Is_Armed
+     (Handle : Design_Handle)
+      return Boolean;
+
    function Default_Script
      (Handle : Design_Handle)
       return String;

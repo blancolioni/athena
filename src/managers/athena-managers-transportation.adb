@@ -170,7 +170,7 @@ package body Athena.Managers.Transportation is
                               Ships.First_Element;
                   begin
                      Ships.Delete_First;
-                     if Ship.Idle then
+                     if Ship.Is_Idle then
                         Manager.Log
                           ("using ship: " & Ship.Short_Name
                            & " to transport " & Container.Content_Summary);
@@ -287,7 +287,7 @@ package body Athena.Managers.Transportation is
          Ship : constant Athena.Handles.Ship.Ship_Handle :=
                   Athena.Handles.Ship.Get (Reference);
 
-         Suitable : Boolean := Ship.Idle;
+         Suitable : Boolean := Ship.Is_Idle;
 
       begin
 

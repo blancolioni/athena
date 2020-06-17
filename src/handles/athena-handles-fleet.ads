@@ -23,6 +23,10 @@ package Athena.Handles.Fleet is
      (Fleet : Fleet_Handle)
       return Athena.Handles.Star.Star_Handle;
 
+   function Has_Destination
+     (Fleet : Fleet_Handle)
+      return Boolean;
+
    function Destination
      (Fleet : Fleet_Handle)
       return Athena.Handles.Star.Star_Handle;
@@ -35,10 +39,24 @@ package Athena.Handles.Fleet is
      (Fleet       : Fleet_Handle;
       Destination : Athena.Handles.Star.Star_Handle);
 
-   procedure Create
+   function Create
      (Name  : String;
       Star  : Athena.Handles.Star.Star_Handle;
-      Owner : Athena.Handles.Empire.Empire_Handle);
+      Owner : Athena.Handles.Empire.Empire_Handle)
+     return Fleet_Handle;
+
+   procedure Add_Ship
+     (Fleet : Fleet_Handle;
+      Ship  : Ship_Reference);
+
+   procedure Remove_Ship
+     (Fleet : Fleet_Handle;
+      Ship  : Ship_Reference);
+
+   procedure Iterate_Ships
+     (Fleet : Fleet_Handle;
+      Process : not null access procedure
+        (Ship : Ship_Reference));
 
    procedure Load
      (Stream : Ada.Streams.Stream_IO.Stream_Access);

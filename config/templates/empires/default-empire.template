@@ -35,4 +35,5 @@ standard-designs = {
     freighter = freighter
     defender = defender
     destroyer = destroyer
+    recon = recon
 }

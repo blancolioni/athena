@@ -93,6 +93,11 @@ package body Athena.Handles.Component is
       return Non_Negative_Real
    is (Vector.Element (Component.Reference).Berths);
 
+   function Is_Weapon
+     (Component : Component_Handle)
+      return Boolean
+   is (Vector.Element (Component.Reference).Is_Weapon);
+
    -------------------
    -- Add_Component --
    -------------------

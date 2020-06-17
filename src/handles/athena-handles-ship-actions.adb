@@ -156,6 +156,7 @@ package body Athena.Handles.Ship.Actions is
       Ship.Clear_Destination;
       Athena.Ships.On_Arrival (Ship);
       Set_Activity (Ship, Idle);
+      Ship.Owner.Send_Signal (Attack_Manager);
    end On_Finished;
 
    -----------

@@ -155,7 +155,7 @@ package body Athena.Managers.Exploration is
          for Ship of Scout_Ships loop
             if Ship.Destination = Star then
                return;
-            elsif Ship.Idle then
+            elsif Ship.Is_Idle then
                if Ship.Star_Location = Nearest.Star then
                   Closest := Ship;
                   exit;
@@ -343,7 +343,7 @@ package body Athena.Managers.Exploration is
          Available_Ships : Athena.Ships.Lists.List;
       begin
          for Ship of Scout_Ships loop
-            if Ship.Idle then
+            if Ship.Is_Idle then
                Available_Ships.Append (Ship);
             else
                Busy_Count := Busy_Count + 1;

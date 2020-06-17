@@ -9,6 +9,6 @@ default-manager = attack
 components = {
     bridge-6
     computer-5
-    impulse-2
+    thruster-1
     jump-1
 }

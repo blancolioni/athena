@@ -24,6 +24,10 @@ package Athena.Handles.Design_Module is
      (Handle : Design_Module_Handle)
       return Non_Negative_Real;
 
+   function Is_Weapon
+     (Handle : Design_Module_Handle)
+      return Boolean;
+
    function Parts
      (Handle : Design_Module_Handle)
       return Athena.Handles.Component.Component_Array;

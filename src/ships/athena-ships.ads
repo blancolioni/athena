@@ -1,11 +1,13 @@
 with Athena.Money;
 
 with Athena.Handles.Empire;
+with Athena.Handles.Fleet;
 with Athena.Handles.Ship;
 
 package Athena.Ships is
 
    subtype Ship_Handle_Class is Athena.Handles.Ship.Ship_Handle'Class;
+   subtype Fleet_Handle_Class is Athena.Handles.Fleet.Fleet_Handle'Class;
 
    function Tonnage
      (Ship : Ship_Handle_Class)
@@ -41,6 +43,14 @@ package Athena.Ships is
 
    function Get_Jump_Speed
      (Ship : Ship_Handle_Class)
+      return Non_Negative_Real;
+
+   function Get_Impulse_Speed
+     (Fleet : Fleet_Handle_Class)
+      return Non_Negative_Real;
+
+   function Get_Jump_Speed
+     (Fleet : Fleet_Handle_Class)
       return Non_Negative_Real;
 
    function Get_Impulse_Speed

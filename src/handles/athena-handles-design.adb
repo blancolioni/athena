@@ -25,6 +25,7 @@ package body Athena.Handles.Design is
          Berths          : Non_Negative_Real;
          Firm_Points     : Natural;
          Hard_Points     : Natural;
+         Is_Armed        : Boolean;
          Default_Script  : Ada.Strings.Unbounded.Unbounded_String;
          Default_Rank    : Positive;
          Default_Manager : Manager_Class;
@@ -65,6 +66,11 @@ package body Athena.Handles.Design is
      (Handle : Design_Handle)
       return Non_Negative_Real
    is (Vector (Handle.Reference).Cargo_Space);
+
+   function Is_Armed
+     (Handle : Design_Handle)
+      return Boolean
+   is (Vector (Handle.Reference).Is_Armed);
 
    function Passenger_Berths
      (Handle : Design_Handle)
@@ -116,6 +122,9 @@ package body Athena.Handles.Design is
       Rec.Mass := Rec.Mass + Design_Module.Mass;
       if Design_Module.Component.Has_Berths then
          Rec.Berths := Rec.Berths + Design_Module.Component.Berths;
+      end if;
+      if Design_Module.Is_Weapon then
+         Rec.Is_Armed := True;
       end if;
    end Add_Design_Module;
 
@@ -191,6 +200,7 @@ package body Athena.Handles.Design is
             Berths          => 0.0,
             Firm_Points     => Firm_Points,
             Hard_Points     => Hard_Points,
+            Is_Armed        => False,
             Default_Script  => +Default_Script,
             Default_Rank    => Default_Rank,
             Default_Manager => Default_Manager,
