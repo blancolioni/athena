@@ -328,7 +328,7 @@ package body Athena.Ships is
      (Ship : Ship_Handle_Class)
    is
    begin
-      Ship.Owner.Knowledge.Visit (Ship.Star_Location);
+      null;
    end On_Arrival;
 
    -------------

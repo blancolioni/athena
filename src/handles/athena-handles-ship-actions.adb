@@ -61,8 +61,7 @@ package body Athena.Handles.Ship.Actions is
 
    overriding procedure On_Finished
      (Action : Jump_To_Action;
-      Ship   : Ship_Handle'Class)
-   is null;
+      Ship   : Ship_Handle'Class);
 
    type Load_Cargo_Action is
      new Root_Ship_Action with
@@ -154,9 +153,21 @@ package body Athena.Handles.Ship.Actions is
    begin
       Ship.Set_Star_Location (Ship.Destination);
       Ship.Clear_Destination;
-      Athena.Ships.On_Arrival (Ship);
       Set_Activity (Ship, Idle);
+      Athena.Ships.On_Arrival (Ship);
       Ship.Owner.Send_Signal (Attack_Manager);
+   end On_Finished;
+
+   -----------------
+   -- On_Finished --
+   -----------------
+
+   overriding procedure On_Finished
+     (Action : Jump_To_Action;
+      Ship   : Ship_Handle'Class)
+   is
+   begin
+      Ship.Owner.Knowledge.Visit (Ship.Destination);
    end On_Finished;
 
    -----------
