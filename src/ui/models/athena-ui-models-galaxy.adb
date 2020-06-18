@@ -391,10 +391,11 @@ package body Athena.UI.Models.Galaxy is
                   Model.Move_To (X, Y);
                   Model.Set_Fill (True);
                   Model.Set_Color (To_Nazar_Color (Journey.Color));
-                  Model.Circle (3.0);
+                  Model.Circle (Journey.Size);
+                  Model.Render;
                   Model.Set_Fill (False);
                   Model.Set_Color ((0.8, 0.8, 0.8, 1.0));
-                  Model.Circle (3.0);
+                  Model.Circle (Journey.Size);
                   Model.Render;
                end;
                Model.Restore_State;
@@ -658,7 +659,7 @@ package body Athena.UI.Models.Galaxy is
                To       => Fleet.Destination,
                Empire   => Fleet.Owner,
                Progress => Fleet.Progress,
-               Size     => Non_Negative_Real (Fleet.Ship_Count * 3));
+               Size     => Non_Negative_Real (Fleet.Ship_Count));
          end if;
       end Add_Fleet;
 
