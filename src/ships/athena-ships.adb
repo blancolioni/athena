@@ -2,9 +2,11 @@ with WL.Numerics.Roman;
 
 with Athena.Cargo.Commodities;
 with Athena.Empires;
+with Athena.Treaties;
 
 with Athena.Handles.Commodity;
 with Athena.Handles.Design_Module;
+with Athena.Handles.Encounter;
 with Athena.Handles.Module;
 
 package body Athena.Ships is
@@ -327,8 +329,67 @@ package body Athena.Ships is
    procedure On_Arrival
      (Ship : Ship_Handle_Class)
    is
+      Have_Encounter : Boolean := False;
+      Encounter      : Athena.Handles.Encounter.Encounter_Handle;
+
+      procedure Check_Relation (Ship_Ref : Athena.Handles.Ship_Reference);
+      procedure Add_Hostile (Ship_Ref : Athena.Handles.Ship_Reference);
+
+      -----------------
+      -- Add_Hostile --
+      -----------------
+
+      procedure Add_Hostile (Ship_Ref : Athena.Handles.Ship_Reference) is
+         use type Athena.Handles.Empire.Empire_Handle;
+         Other : constant Athena.Handles.Ship.Ship_Handle :=
+                   Athena.Handles.Ship.Get (Ship_Ref);
+      begin
+         if Ship.Owner /= Other.Owner
+           and then Athena.Treaties.At_War
+             (Ship.Owner, Other.Owner)
+         then
+            Encounter.Add_Actor (Other);
+         end if;
+      end Add_Hostile;
+
+      --------------------
+      -- Check_Relation --
+      --------------------
+
+      procedure Check_Relation (Ship_Ref : Athena.Handles.Ship_Reference) is
+         use type Athena.Handles.Empire.Empire_Handle;
+         Other : constant Athena.Handles.Ship.Ship_Handle :=
+                   Athena.Handles.Ship.Get (Ship_Ref);
+      begin
+         if Ship.Owner /= Other.Owner then
+
+            if Athena.Treaties.At_War
+              (Ship.Owner, Other.Owner)
+            then
+               Ship.Log ("hostile ship detected: " & Other.Short_Name);
+               Have_Encounter := True;
+            else
+               Ship.Log ("foreign ship detected: " & Other.Short_Name);
+            end if;
+         end if;
+      end Check_Relation;
+
    begin
-      null;
+      Encounter :=
+        Athena.Handles.Encounter.Find_Active_Encounter
+          (Ship.Star_Location, Ship.Owner);
+      if Encounter.Has_Element then
+         Encounter.Add_Actor (Ship);
+      else
+         Ship.Star_Location.Iterate_Orbiting_Ships (Check_Relation'Access);
+
+         if Have_Encounter then
+            Encounter :=
+              Athena.Handles.Encounter.Create (Ship.Star_Location);
+            Ship.Star_Location.Iterate_Orbiting_Ships (Add_Hostile'Access);
+            Encounter.Add_Actor (Ship);
+         end if;
+      end if;
    end On_Arrival;
 
    -------------

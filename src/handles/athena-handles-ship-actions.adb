@@ -167,6 +167,7 @@ package body Athena.Handles.Ship.Actions is
       Ship   : Ship_Handle'Class)
    is
    begin
+      Ship.Destination.Add_Ship (Ship.Reference);
       Ship.Owner.Knowledge.Visit (Ship.Destination);
    end On_Finished;
 
@@ -305,6 +306,7 @@ package body Athena.Handles.Ship.Actions is
               & "; travel time " & Image (Total_Distance / Speed)
               & " days");
 
+         Ship.Star_Location.Remove_Ship (Ship.Reference);
          Ship.Add_Experience (XP);
          Ship.Set_Activity (Jumping);
          return Journey_Time;
