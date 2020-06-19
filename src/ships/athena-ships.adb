@@ -1,7 +1,12 @@
+with WL.Numerics.Roman;
+
 with Athena.Cargo.Commodities;
+with Athena.Empires;
+with Athena.Treaties;
 
 with Athena.Handles.Commodity;
 with Athena.Handles.Design_Module;
+with Athena.Handles.Encounter;
 with Athena.Handles.Module;
 
 package body Athena.Ships is
@@ -110,6 +115,34 @@ package body Athena.Ships is
         * 1.0e4;
    end Get_Impulse_Speed;
 
+   -----------------------
+   -- Get_Impulse_Speed --
+   -----------------------
+
+   function Get_Impulse_Speed
+     (Fleet : Fleet_Handle_Class)
+      return Non_Negative_Real
+   is
+      Result : Non_Negative_Real := Non_Negative_Real'Last;
+
+      procedure Check_Minimum (Reference : Athena.Handles.Ship_Reference);
+
+      -------------------
+      -- Check_Minimum --
+      -------------------
+
+      procedure Check_Minimum (Reference : Athena.Handles.Ship_Reference) is
+         Speed : constant Non_Negative_Real :=
+                   Get_Impulse_Speed (Athena.Handles.Ship.Get (Reference));
+      begin
+         Result := Real'Min (Result, Speed);
+      end Check_Minimum;
+
+   begin
+      Fleet.Iterate_Ships (Check_Minimum'Access);
+      return Result;
+   end Get_Impulse_Speed;
+
    --------------------
    -- Get_Jump_Speed --
    --------------------
@@ -127,6 +160,34 @@ package body Athena.Ships is
       else
          return 0.0;
       end if;
+   end Get_Jump_Speed;
+
+   --------------------
+   -- Get_Jump_Speed --
+   --------------------
+
+   function Get_Jump_Speed
+     (Fleet : Fleet_Handle_Class)
+      return Non_Negative_Real
+   is
+      Result : Non_Negative_Real := Non_Negative_Real'Last;
+
+      procedure Check_Minimum (Reference : Athena.Handles.Ship_Reference);
+
+      -------------------
+      -- Check_Minimum --
+      -------------------
+
+      procedure Check_Minimum (Reference : Athena.Handles.Ship_Reference) is
+         Speed : constant Non_Negative_Real :=
+                   Get_Jump_Speed (Athena.Handles.Ship.Get (Reference));
+      begin
+         Result := Real'Min (Result, Speed);
+      end Check_Minimum;
+
+   begin
+      Fleet.Iterate_Ships (Check_Minimum'Access);
+      return Result;
    end Get_Jump_Speed;
 
    --------------------------
@@ -200,9 +261,8 @@ package body Athena.Ships is
      (Ship : Ship_Handle_Class)
       return Boolean
    is
-      pragma Unreferenced (Ship);
    begin
-      return False;
+      return Ship.Design.Is_Armed;
    end Is_Armed;
 
    ----------------
@@ -235,6 +295,33 @@ package body Athena.Ships is
       return Ship.Current_Mass;
    end Mass;
 
+   --------------
+   -- New_Name --
+   --------------
+
+   function New_Name
+     (Empire    : Athena.Handles.Empire.Empire_Handle;
+      Base_Name : String)
+      return String
+   is
+   begin
+      for I in 1 .. 9999 loop
+         declare
+            Name : constant String :=
+                     Base_Name & " "
+                     & WL.Numerics.Roman.Roman_Image (I);
+            Ship : constant Athena.Handles.Ship.Ship_Handle :=
+                     Athena.Empires.Find_Ship_With_Name
+                       (Empire, Name);
+         begin
+            if not Ship.Has_Element then
+               return Name;
+            end if;
+         end;
+      end loop;
+      return Base_Name;
+   end New_Name;
+
    ----------------
    -- On_Arrival --
    ----------------
@@ -242,8 +329,67 @@ package body Athena.Ships is
    procedure On_Arrival
      (Ship : Ship_Handle_Class)
    is
+      Have_Encounter : Boolean := False;
+      Encounter      : Athena.Handles.Encounter.Encounter_Handle;
+
+      procedure Check_Relation (Ship_Ref : Athena.Handles.Ship_Reference);
+      procedure Add_Hostile (Ship_Ref : Athena.Handles.Ship_Reference);
+
+      -----------------
+      -- Add_Hostile --
+      -----------------
+
+      procedure Add_Hostile (Ship_Ref : Athena.Handles.Ship_Reference) is
+         use type Athena.Handles.Empire.Empire_Handle;
+         Other : constant Athena.Handles.Ship.Ship_Handle :=
+                   Athena.Handles.Ship.Get (Ship_Ref);
+      begin
+         if Ship.Owner /= Other.Owner
+           and then Athena.Treaties.At_War
+             (Ship.Owner, Other.Owner)
+         then
+            Encounter.Add_Actor (Other);
+         end if;
+      end Add_Hostile;
+
+      --------------------
+      -- Check_Relation --
+      --------------------
+
+      procedure Check_Relation (Ship_Ref : Athena.Handles.Ship_Reference) is
+         use type Athena.Handles.Empire.Empire_Handle;
+         Other : constant Athena.Handles.Ship.Ship_Handle :=
+                   Athena.Handles.Ship.Get (Ship_Ref);
+      begin
+         if Ship.Owner /= Other.Owner then
+
+            if Athena.Treaties.At_War
+              (Ship.Owner, Other.Owner)
+            then
+               Ship.Log ("hostile ship detected: " & Other.Short_Name);
+               Have_Encounter := True;
+            else
+               Ship.Log ("foreign ship detected: " & Other.Short_Name);
+            end if;
+         end if;
+      end Check_Relation;
+
    begin
-      Ship.Owner.Knowledge.Visit (Ship.Star_Location);
+      Encounter :=
+        Athena.Handles.Encounter.Find_Active_Encounter
+          (Ship.Star_Location, Ship.Owner);
+      if Encounter.Has_Element then
+         Encounter.Add_Actor (Ship);
+      else
+         Ship.Star_Location.Iterate_Orbiting_Ships (Check_Relation'Access);
+
+         if Have_Encounter then
+            Encounter :=
+              Athena.Handles.Encounter.Create (Ship.Star_Location);
+            Ship.Star_Location.Iterate_Orbiting_Ships (Add_Hostile'Access);
+            Encounter.Add_Actor (Ship);
+         end if;
+      end if;
    end On_Arrival;
 
    -------------

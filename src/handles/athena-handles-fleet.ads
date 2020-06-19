@@ -23,22 +23,58 @@ package Athena.Handles.Fleet is
      (Fleet : Fleet_Handle)
       return Athena.Handles.Star.Star_Handle;
 
+   function Has_Destination
+     (Fleet : Fleet_Handle)
+      return Boolean;
+
    function Destination
      (Fleet : Fleet_Handle)
-      return Athena.Handles.Star.Star_Handle;
+      return Athena.Handles.Star.Star_Handle
+     with Pre => Fleet.Has_Destination;
+
+   function Is_Jumping
+     (Fleet : Fleet_Handle)
+      return Boolean;
 
    function Progress
      (Fleet : Fleet_Handle)
-      return Unit_Real;
+      return Unit_Real
+     with Pre => Fleet.Has_Destination;
 
    procedure Set_Destination
      (Fleet       : Fleet_Handle;
       Destination : Athena.Handles.Star.Star_Handle);
 
-   procedure Create
+   function Is_Empty
+     (Fleet : Fleet_Handle)
+      return Boolean;
+
+   function Ship_Count
+     (Fleet : Fleet_Handle)
+      return Natural;
+
+   function Create
      (Name  : String;
       Star  : Athena.Handles.Star.Star_Handle;
-      Owner : Athena.Handles.Empire.Empire_Handle);
+      Owner : Athena.Handles.Empire.Empire_Handle)
+     return Fleet_Handle;
+
+   procedure Add_Ship
+     (Fleet : Fleet_Handle;
+      Ship  : Ship_Reference);
+
+   procedure Remove_Ship
+     (Fleet : Fleet_Handle;
+      Ship  : Ship_Reference);
+
+   procedure Iterate_Ships
+     (Fleet : Fleet_Handle;
+      Process : not null access procedure
+        (Ship : Ship_Reference));
+
+   procedure Iterate_All
+     (Process : not null access procedure
+        (Fleet   : Fleet_Handle));
 
    procedure Load
      (Stream : Ada.Streams.Stream_IO.Stream_Access);
@@ -65,8 +101,7 @@ private
 
    overriding function Short_Name
      (Fleet : Fleet_Handle)
-      return String
-   is (Fleet.Name);
+      return String;
 
    function Reference (Fleet : Fleet_Handle) return Fleet_Reference
    is (Fleet.Reference);

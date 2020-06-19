@@ -61,8 +61,7 @@ package body Athena.Handles.Ship.Actions is
 
    overriding procedure On_Finished
      (Action : Jump_To_Action;
-      Ship   : Ship_Handle'Class)
-   is null;
+      Ship   : Ship_Handle'Class);
 
    type Load_Cargo_Action is
      new Root_Ship_Action with
@@ -154,8 +153,22 @@ package body Athena.Handles.Ship.Actions is
    begin
       Ship.Set_Star_Location (Ship.Destination);
       Ship.Clear_Destination;
-      Athena.Ships.On_Arrival (Ship);
       Set_Activity (Ship, Idle);
+      Athena.Ships.On_Arrival (Ship);
+      Ship.Owner.Send_Signal (Attack_Manager);
+   end On_Finished;
+
+   -----------------
+   -- On_Finished --
+   -----------------
+
+   overriding procedure On_Finished
+     (Action : Jump_To_Action;
+      Ship   : Ship_Handle'Class)
+   is
+   begin
+      Ship.Destination.Add_Ship (Ship.Reference);
+      Ship.Owner.Knowledge.Visit (Ship.Destination);
    end On_Finished;
 
    -----------
@@ -239,6 +252,9 @@ package body Athena.Handles.Ship.Actions is
       if not Ship.Has_Destination
         or else Ship.Destination /= Action.Destination
       then
+         Ship.Log
+           ("departure: set destination to "
+            & Action.Destination.Name);
          Ship.Set_Destination (Action.Destination);
       end if;
 
@@ -290,6 +306,7 @@ package body Athena.Handles.Ship.Actions is
               & "; travel time " & Image (Total_Distance / Speed)
               & " days");
 
+         Ship.Star_Location.Remove_Ship (Ship.Reference);
          Ship.Add_Experience (XP);
          Ship.Set_Activity (Jumping);
          return Journey_Time;

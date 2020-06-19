@@ -4,10 +4,11 @@ armor = { type = steel points = 1 }
 fuel_tank = 500
 default-script = escape
 default-rank = 9
+default-manager = attack
 
 components = {
     bridge-6
     computer-5
-    impulse-2
+    thruster-1
     jump-1
 }

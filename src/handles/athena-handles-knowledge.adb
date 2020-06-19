@@ -218,7 +218,7 @@ package body Athena.Handles.Knowledge is
                    Stop        : out Boolean))
    is
    begin
-      for Element of Vector (Knowledge.Reference).Neighbour_List loop
+      for Element of Vector (Knowledge.Reference).Threat_List loop
          exit when Element.Distance > Max_Range;
 
          declare

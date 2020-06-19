@@ -1,7 +1,9 @@
 category = turret
-concealable = yes
+concealable = { tonnage = 1 mass = 40 }
 price = 200
 hardpoints = 1
+firmpoints = 2
 weapons = 1
 power = 1
 tonnage = 1
+mass = 150

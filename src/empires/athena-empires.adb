@@ -86,6 +86,36 @@ package body Athena.Empires is
       Empire.Set_Cash (New_Cash);
    end Earn;
 
+   -------------------------
+   -- Find_Ship_With_Name --
+   -------------------------
+
+   function Find_Ship_With_Name
+     (Owner : Athena.Handles.Empire.Empire_Handle;
+      Name  : String)
+      return Athena.Handles.Ship.Ship_Handle
+   is
+      Found : Athena.Handles.Ship.Ship_Handle :=
+                Athena.Handles.Ship.Empty_Handle;
+
+      procedure Check_Ship (Ship : Athena.Handles.Ship_Reference);
+
+      ----------------
+      -- Check_Ship --
+      ----------------
+
+      procedure Check_Ship (Ship : Athena.Handles.Ship_Reference) is
+      begin
+         if Athena.Handles.Ship.Get (Ship).Name = Name then
+            Found := Athena.Handles.Ship.Get (Ship);
+         end if;
+      end Check_Ship;
+
+   begin
+      Owner.Iterate_Ships (Check_Ship'Access);
+      return Found;
+   end Find_Ship_With_Name;
+
    ---------
    -- Pay --
    ---------

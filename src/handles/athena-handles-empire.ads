@@ -163,6 +163,19 @@ package Athena.Handles.Empire is
       Process : not null access
         procedure (Ship : Ship_Reference));
 
+   procedure Add_Fleet
+     (Empire : Empire_Handle;
+      Fleet   : Fleet_Reference);
+
+   procedure Remove_Fleet
+     (Empire : Empire_Handle;
+      Fleet  : Fleet_Reference);
+
+   procedure Iterate_Fleets
+     (Empire  : Empire_Handle;
+      Process : not null access
+        procedure (Fleet : Fleet_Reference));
+
    procedure Iterate_All
      (Process : not null access
         procedure (Empire  : Empire_Handle));

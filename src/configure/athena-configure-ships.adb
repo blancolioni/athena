@@ -10,6 +10,8 @@ with Athena.Handles.Component.Jump_Drive;
 with Athena.Handles.Component.Maneuver;
 with Athena.Handles.Component.Power;
 with Athena.Handles.Component.Quarters;
+with Athena.Handles.Component.Weapon;
+with Athena.Handles.Component.Weapon_Mount;
 
 with Athena.Handles.Design;
 with Athena.Handles.Design_Module;
@@ -73,8 +75,11 @@ package body Athena.Configure.Ships is
    --  procedure Configure_Sensor
    --    (Config : Tropos.Configuration);
 
-   --  procedure Configure_Weapon_Mount
-   --    (Config : Tropos.Configuration);
+   procedure Configure_Weapon
+     (Config : Tropos.Configuration);
+
+   procedure Configure_Weapon_Mount
+     (Config : Tropos.Configuration);
 
    --  type Configure_Option is access
    --    procedure (Config : Tropos.Configuration);
@@ -171,21 +176,21 @@ package body Athena.Configure.Ships is
       Tonnage : constant Non_Negative_Real := Get ("tonnage");
       Hull_Points : constant Non_Negative_Real :=
                       Tonnage / 2.5
-                        + (if Tonnage > 25_000.0
-                           then (Tonnage - 25_000.0) / 4.0 else 0.0)
-                        + (if Tonnage > 100_000.0
-                           then (Tonnage - 100_000.0) / 2.0 else 0.0);
+                        + (if Tonnage > 250_000.0
+                           then (Tonnage - 250_000.0) / 4.0 else 0.0)
+                        + (if Tonnage > 1_000_000.0
+                           then (Tonnage - 1_000_000.0) / 2.0 else 0.0);
 
       Fuel_Tank : constant Non_Negative_Real :=
                     Get_Value (Config, "fuel_tank");
 
       Firm_Points : constant Natural :=
-                      (if Tonnage < 35.0 then 1
-                       elsif Tonnage < 70.0 then 2
-                       elsif Tonnage < 100.0 then 3
+                      (if Tonnage < 500.0 then 1
+                       elsif Tonnage < 1000.0 then 2
+                       elsif Tonnage < 2000.0 then 3
                        else 0);
       Hard_Points : constant Natural :=
-                      Natural (Real'Truncation (Tonnage / 100.0));
+                      Natural (Real'Truncation (Tonnage / 2000.0));
 
       function Armor return Athena.Handles.Hull_Armor.Hull_Armor_Handle
       is (if Config.Contains ("armor")
@@ -197,6 +202,31 @@ package body Athena.Configure.Ships is
       is (if Config.Contains ("armor")
           then Config.Child ("armor").Get ("points")
           else 0);
+
+      function Parts
+        (Config : Tropos.Configuration)
+        return Athena.Handles.Component.Component_Array;
+
+      -----------
+      -- Parts --
+      -----------
+
+      function Parts
+        (Config : Tropos.Configuration)
+         return Athena.Handles.Component.Component_Array
+      is
+         Count : constant Natural := Config.Child_Count;
+         Index : Natural := 0;
+      begin
+         return Arr : Athena.Handles.Component.Component_Array (1 .. Count) do
+            for Child of Config loop
+               Index := Index + 1;
+               Arr (Index) :=
+                 Athena.Handles.Component.Get_By_Tag
+                   (Child.Config_Name);
+            end loop;
+         end return;
+      end Parts;
 
       Design : constant Athena.Handles.Design.Design_Handle :=
                  Athena.Handles.Design.Create
@@ -214,7 +244,11 @@ package body Athena.Configure.Ships is
                     Default_Script =>
                       Config.Get ("default-script", "escape"),
                     Default_Rank   =>
-                      Config.Get ("default-rank", 5));
+                      Config.Get ("default-rank", 5),
+                    Default_Manager =>
+                      Athena.Handles.Manager_Class'Value
+                        (Config.Get ("default-manager", "defense")
+                        & "_Manager"));
 
    begin
 
@@ -229,7 +263,8 @@ package body Athena.Configure.Ships is
          begin
             for I in 1 .. Component_Config.Get ("count", 1) loop
                Design.Add_Design_Module
-                 (Athena.Handles.Design_Module.Create (Component));
+                 (Athena.Handles.Design_Module.Create
+                    (Component, Parts (Component_Config.Child ("parts"))));
             end loop;
          end;
       end loop;
@@ -465,41 +500,64 @@ package body Athena.Configure.Ships is
       Configure ("computers", "computer", Configure_Computer'Access);
       Configure ("quarters", "quarters", Configure_Quarters'Access);
       --  Configure ("sensors", "sensor", Configure_Sensor'Access);
-      --  Configure ("weapon-mounts", "mount", Configure_Weapon_Mount'Access);
+      Configure ("weapons", "weapon", Configure_Weapon'Access);
+      Configure ("weapon-mounts", "mount", Configure_Weapon_Mount'Access);
 
       Configure ("designs", "design", Configure_Design'Access);
 
    end Configure_Ships;
 
+   ----------------------
+   -- Configure_Weapon --
+   ----------------------
+
+   procedure Configure_Weapon
+     (Config : Tropos.Configuration)
+   is
+      function Get (Name : String) return Real
+      is (Get_Value (Config, Name));
+
+      Tonnage   : constant Non_Negative_Real := Get ("tonnage");
+
+   begin
+      if Config.Get ("cannon") then
+         Athena.Handles.Component.Weapon.Create_Cannon
+           (Tag               => Config.Config_Name,
+            Tonnage           => Tonnage,
+            Mass              => Get ("mass"),
+            Power             => Get ("power"),
+            Price             => Athena.Money.To_Price (Get ("price")),
+            Max_Range         => Get ("max-range"),
+            Damage            => Get ("damage"));
+      end if;
+   end Configure_Weapon;
+
    ----------------------------
    -- Configure_Weapon_Mount --
    ----------------------------
 
-   --  procedure Configure_Weapon_Mount
-   --    (Config : Tropos.Configuration)
-   --  is
-   --
-   --     function Get (Name : String) return Real
-   --     is (Get_Value (Config, Name));
-   --
-   --     function Get (Name : String) return Athena.Money.Price_Type
-   --     is (Athena.Money.To_Price (Get (Name)));
-   --
-   --     function Get (Name : String) return Athena.Db.Weapon_Mount_Category
-   --     is (Athena.Db.Weapon_Mount_Category'Value
-   --         (Config.Get (Name)));
-   --
-   --  begin
-   --     Athena.Db.Weapon_Mount.Create
-   --       (Tag             => Config.Config_Name,
-   --        Power_Per_Ton   => Get ("power"),
-   --        Minimum_Tonnage => Get ("tonnage"),
-   --        Price_Per_Ton   => Get ("price"),
-   --        Category        => Get ("category"),
-   --        Fixed           => Config.Get ("fixed"),
-   --        Hardpoints      => Config.Get ("hardpoints"),
-   --        Weapon_Count    => Config.Get ("weapons"),
-   --        Tonnage         => Get ("tonnage"));
-   --  end Configure_Weapon_Mount;
+   procedure Configure_Weapon_Mount
+     (Config : Tropos.Configuration)
+   is
+      function Get (Name : String) return Real
+      is (Get_Value (Config, Name));
+
+      Tonnage   : constant Non_Negative_Real := Get ("tonnage");
+
+      Concealment : constant Tropos.Configuration :=
+                      Config.Child ("concealable");
+   begin
+      Athena.Handles.Component.Weapon_Mount.Create
+        (Tag               => Config.Config_Name,
+         Tonnage           => Tonnage,
+         Mass              => Get ("mass"),
+         Power             => Get ("power"),
+         Price             => Athena.Money.To_Price (Get ("price")),
+         Concealed_Tonnage => Get_Value (Concealment, "tonnage"),
+         Concealed_Mass    => Get_Value (Concealment, "mass"),
+         Hard_Points       => Config.Get ("hardpoints", 1),
+         Firm_Points       => Config.Get ("firmpoints", 1),
+         Weapon_Count      => Config.Get ("weapons"));
+   end Configure_Weapon_Mount;
 
 end Athena.Configure.Ships;

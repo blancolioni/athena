@@ -1,5 +1,3 @@
-with Ada.Text_IO;
-
 with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Containers.Vectors;
 with Ada.Strings.Unbounded;
@@ -13,23 +11,25 @@ package body Athena.Handles.Design is
 
    type Design_Record is
       record
-         Name           : Ada.Strings.Unbounded.Unbounded_String;
-         Owner          : Empire_Reference;
-         Hull           : Hull_Reference;
-         Material       : Commodity_Reference;
-         Armor          : Hull_Armor_Reference;
-         Armor_Points   : Natural;
-         Tonnage        : Non_Negative_Real;
-         Mass           : Non_Negative_Real;
-         Hull_Points    : Non_Negative_Real;
-         Tank_Size      : Non_Negative_Real;
-         Cargo_Space    : Non_Negative_Real;
-         Berths         : Non_Negative_Real;
-         Firm_Points    : Natural;
-         Hard_Points    : Natural;
-         Default_Script : Ada.Strings.Unbounded.Unbounded_String;
-         Default_Rank   : Positive;
-         Design_Modules : Design_Module_Lists.List;
+         Name            : Ada.Strings.Unbounded.Unbounded_String;
+         Owner           : Empire_Reference;
+         Hull            : Hull_Reference;
+         Material        : Commodity_Reference;
+         Armor           : Hull_Armor_Reference;
+         Armor_Points    : Natural;
+         Tonnage         : Non_Negative_Real;
+         Mass            : Non_Negative_Real;
+         Hull_Points     : Non_Negative_Real;
+         Tank_Size       : Non_Negative_Real;
+         Cargo_Space     : Non_Negative_Real;
+         Berths          : Non_Negative_Real;
+         Firm_Points     : Natural;
+         Hard_Points     : Natural;
+         Is_Armed        : Boolean;
+         Default_Script  : Ada.Strings.Unbounded.Unbounded_String;
+         Default_Rank    : Positive;
+         Default_Manager : Manager_Class;
+         Design_Modules  : Design_Module_Lists.List;
       end record;
 
    package Design_Vectors is
@@ -67,6 +67,11 @@ package body Athena.Handles.Design is
       return Non_Negative_Real
    is (Vector (Handle.Reference).Cargo_Space);
 
+   function Is_Armed
+     (Handle : Design_Handle)
+      return Boolean
+   is (Vector (Handle.Reference).Is_Armed);
+
    function Passenger_Berths
      (Handle : Design_Handle)
       return Non_Negative_Real
@@ -92,6 +97,11 @@ package body Athena.Handles.Design is
       return String
    is (-(Vector (Handle.Reference).Default_Script));
 
+   function Default_Manager
+     (Handle : Design_Handle)
+      return Manager_Class
+   is (Vector (Handle.Reference).Default_Manager);
+
    function Get_By_Name
      (Name : String)
       return Design_Handle
@@ -109,9 +119,12 @@ package body Athena.Handles.Design is
    begin
       Rec.Design_Modules.Append (Design_Module.Reference);
       Rec.Cargo_Space := Rec.Cargo_Space - Design_Module.Component.Tonnage;
-      Rec.Mass := Rec.Mass + Design_Module.Component.Mass;
+      Rec.Mass := Rec.Mass + Design_Module.Mass;
       if Design_Module.Component.Has_Berths then
          Rec.Berths := Rec.Berths + Design_Module.Component.Berths;
+      end if;
+      if Design_Module.Is_Weapon then
+         Rec.Is_Armed := True;
       end if;
    end Add_Design_Module;
 
@@ -140,19 +153,20 @@ package body Athena.Handles.Design is
    ------------
 
    function Create
-     (Name           : String;
-      Owner          : Athena.Handles.Empire.Empire_Handle;
-      Hull           : Athena.Handles.Hull.Hull_Handle;
-      Material       : Athena.Handles.Commodity.Commodity_Handle;
-      Armor          : Athena.Handles.Hull_Armor.Hull_Armor_Handle;
-      Armor_Points   : Natural;
-      Tonnage        : Non_Negative_Real;
-      Hull_Points    : Non_Negative_Real;
-      Fuel_Tank      : Non_Negative_Real;
-      Firm_Points    : Natural;
-      Hard_Points    : Natural;
-      Default_Script : String;
-      Default_Rank   : Positive)
+     (Name            : String;
+      Owner           : Athena.Handles.Empire.Empire_Handle;
+      Hull            : Athena.Handles.Hull.Hull_Handle;
+      Material        : Athena.Handles.Commodity.Commodity_Handle;
+      Armor           : Athena.Handles.Hull_Armor.Hull_Armor_Handle;
+      Armor_Points    : Natural;
+      Tonnage         : Non_Negative_Real;
+      Hull_Points     : Non_Negative_Real;
+      Fuel_Tank       : Non_Negative_Real;
+      Firm_Points     : Natural;
+      Hard_Points     : Natural;
+      Default_Script  : String;
+      Default_Rank    : Positive;
+      Default_Manager : Manager_Class)
       return Design_Handle
    is
       Armor_Tonnage : constant Non_Negative_Real :=
@@ -170,35 +184,27 @@ package body Athena.Handles.Design is
       Free_Space    : constant Non_Negative_Real :=
                         Tonnage - Fuel_Tank - Armor_Tonnage;
    begin
-      Ada.Text_IO.Put_Line
-        ("design: " & Name
-         & ": tonnage "
-         & Image (Tonnage)
-         & " armor "
-         & Image (Armor_Mass)
-         & " dry mass "
-         & Image (Empty_Mass)
-         & " free space "
-         & Image (Free_Space));
       Vector.Append
         (Design_Record'
-           (Name           => +Name,
-            Owner          => Owner.Reference,
-            Hull           => Hull.Reference,
-            Material       => Material.Reference,
-            Armor          => Armor.Reference,
-            Armor_Points   => Armor_Points,
-            Tonnage        => Tonnage,
-            Mass           => Empty_Mass,
-            Hull_Points    => Hull_Points,
-            Tank_Size      => Fuel_Tank,
-            Cargo_Space    => Free_Space,
-            Berths         => 0.0,
-            Firm_Points    => Firm_Points,
-            Hard_Points    => Hard_Points,
-            Default_Script => +Default_Script,
-            Default_Rank   => Default_Rank,
-            Design_Modules => <>));
+           (Name            => +Name,
+            Owner           => Owner.Reference,
+            Hull            => Hull.Reference,
+            Material        => Material.Reference,
+            Armor           => Armor.Reference,
+            Armor_Points    => Armor_Points,
+            Tonnage         => Tonnage,
+            Mass            => Empty_Mass,
+            Hull_Points     => Hull_Points,
+            Tank_Size       => Fuel_Tank,
+            Cargo_Space     => Free_Space,
+            Berths          => 0.0,
+            Firm_Points     => Firm_Points,
+            Hard_Points     => Hard_Points,
+            Is_Armed        => False,
+            Default_Script  => +Default_Script,
+            Default_Rank    => Default_Rank,
+            Default_Manager => Default_Manager,
+            Design_Modules  => <>));
       Map.Insert (Name, Vector.Last_Index);
 
       return Get (Vector.Last_Index);

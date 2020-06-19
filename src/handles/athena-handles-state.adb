@@ -11,6 +11,7 @@ with Athena.Handles.Component;
 with Athena.Handles.Design;
 with Athena.Handles.Design_Module;
 with Athena.Handles.Empire;
+with Athena.Handles.Encounter;
 with Athena.Handles.Facility;
 with Athena.Handles.Fleet;
 with Athena.Handles.Hull;
@@ -58,6 +59,7 @@ package body Athena.Handles.State is
          Athena.Handles.Design.Load (S);
          Athena.Handles.Design_Module.Load (S);
          Athena.Handles.Empire.Load (S);
+         Athena.Handles.Encounter.Load (S);
          Athena.Handles.Facility.Load (S);
          Athena.Handles.Fleet.Load (S);
          Athena.Handles.Hull.Load (S);
@@ -106,6 +108,7 @@ package body Athena.Handles.State is
          Athena.Handles.Design.Save (S);
          Athena.Handles.Design_Module.Save (S);
          Athena.Handles.Empire.Save (S);
+         Athena.Handles.Encounter.Save (S);
          Athena.Handles.Facility.Save (S);
          Athena.Handles.Fleet.Save (S);
          Athena.Handles.Hull.Save (S);

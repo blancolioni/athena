@@ -1,0 +1,7 @@
+cannon = yes
+price = 200
+power = 1
+tonnage = 8
+mass = 10
+max-range = 100
+damage = 1

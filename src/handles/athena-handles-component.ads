@@ -25,7 +25,7 @@ package Athena.Handles.Component is
      (Component : Component_Handle)
       return Non_Negative_Real;
 
-   function Mass
+   function Empty_Mass
      (Component : Component_Handle)
       return Non_Negative_Real;
 
@@ -80,15 +80,23 @@ package Athena.Handles.Component is
      (Component : Component_Handle)
       return Non_Negative_Real;
 
+   function Is_Weapon
+     (Component : Component_Handle)
+      return Boolean;
+
    function Get_By_Tag
      (Tag : String)
-      return Component_Handle'Class;
+      return Component_Handle;
 
    procedure Load
      (Stream : Ada.Streams.Stream_IO.Stream_Access);
 
    procedure Save
      (Stream : Ada.Streams.Stream_IO.Stream_Access);
+
+   type Component_Array is array (Positive range <>) of Component_Handle;
+
+   function Empty_Component_Array return Component_Array;
 
 private
 
@@ -125,6 +133,11 @@ private
          Active_Power      : Non_Negative_Real;
          Berths            : Non_Negative_Real;
       end record;
+
+   function Is_Weapon
+     (Rec : Root_Component_Record)
+      return Boolean
+   is (False);
 
    function Jump
      (Rec : Root_Component_Record)

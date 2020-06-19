@@ -37,11 +37,11 @@ package Athena.Handles.Ship is
      (Ship : Ship_Handle)
       return Athena.Handles.Empire.Empire_Handle;
 
-   function Alive
+   function Is_Alive
      (Ship : Ship_Handle)
       return Boolean;
 
-   function Idle
+   function Is_Idle
      (Ship : Ship_Handle)
       return Boolean;
 
@@ -76,6 +76,18 @@ package Athena.Handles.Ship is
    function Progress
      (Ship : Ship_Handle)
       return Unit_Real;
+
+   function Has_Fleet
+     (Ship : Ship_Handle)
+      return Boolean;
+
+   function Fleet
+     (Ship : Ship_Handle)
+      return Fleet_Reference;
+
+   procedure Set_Fleet
+     (Ship  : Ship_Handle;
+      Fleet : Fleet_Reference);
 
    function Has_Manager
      (Ship : Ship_Handle)

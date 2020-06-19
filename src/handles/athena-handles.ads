@@ -145,6 +145,8 @@ package Athena.Handles is
 
    type Star_Reference is private;
 
+   Null_Star_Reference : constant Star_Reference;
+
    type Technology_Reference is private;
 
    Null_Technology_Reference : constant Technology_Reference;
@@ -312,6 +314,8 @@ private
 
    subtype Real_Star_Reference is
      Star_Reference range 1 .. Star_Reference'Last;
+
+   Null_Star_Reference : constant Star_Reference := 0;
 
    type Technology_Reference is new Natural;
 

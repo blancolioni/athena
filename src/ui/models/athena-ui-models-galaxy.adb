@@ -18,6 +18,7 @@ with Athena.Empires;
 --  with Athena.Knowledge.Stars;
 
 with Athena.Handles.Colony;
+with Athena.Handles.Fleet;
 with Athena.Handles.Knowledge;
 with Athena.Handles.Ship;
 with Athena.Handles.Star;
@@ -390,10 +391,11 @@ package body Athena.UI.Models.Galaxy is
                   Model.Move_To (X, Y);
                   Model.Set_Fill (True);
                   Model.Set_Color (To_Nazar_Color (Journey.Color));
-                  Model.Circle (3.0);
+                  Model.Circle (Journey.Size);
+                  Model.Render;
                   Model.Set_Fill (False);
                   Model.Set_Color ((0.8, 0.8, 0.8, 1.0));
-                  Model.Circle (3.0);
+                  Model.Circle (Journey.Size);
                   Model.Render;
                end;
                Model.Restore_State;
@@ -634,6 +636,62 @@ package body Athena.UI.Models.Galaxy is
       procedure Add_Ship
         (Ship : Athena.Handles.Ship.Ship_Handle);
 
+      procedure Add_Fleet
+        (Fleet : Athena.Handles.Fleet.Fleet_Handle);
+
+      procedure Add_Journey
+        (From, To : Athena.Handles.Star.Star_Handle;
+         Empire   : Athena.Handles.Empire.Empire_Handle;
+         Progress : Unit_Real;
+         Size     : Non_Negative_Real);
+
+      ---------------
+      -- Add_Fleet --
+      ---------------
+
+      procedure Add_Fleet
+        (Fleet : Athena.Handles.Fleet.Fleet_Handle)
+      is
+      begin
+         if Fleet.Is_Jumping then
+            Add_Journey
+              (From     => Fleet.Location,
+               To       => Fleet.Destination,
+               Empire   => Fleet.Owner,
+               Progress => Fleet.Progress,
+               Size     => Non_Negative_Real (Fleet.Ship_Count));
+         end if;
+      end Add_Fleet;
+
+      -----------------
+      -- Add_Journey --
+      -----------------
+
+      procedure Add_Journey
+        (From, To : Athena.Handles.Star.Star_Handle;
+         Empire   : Athena.Handles.Empire.Empire_Handle;
+         Progress : Unit_Real;
+         Size     : Non_Negative_Real)
+      is
+         use Nazar;
+         X1       : constant Real := From.X;
+         Y1       : constant Real := From.Y;
+         X2       : constant Real := To.X;
+         Y2       : constant Real := To.Y;
+         Rec      : constant Journey_Record :=
+                      Journey_Record'
+                        (Empire   => Empire,
+                         Size     => Nazar_Float (Size),
+                         X1       => Nazar_Float (X1),
+                         Y1       => Nazar_Float (Y1),
+                         X2       => Nazar_Float (X2),
+                         Y2       => Nazar_Float (Y2),
+                         Progress => Nazar_Float (Progress),
+                         Color    => Empire.Color);
+      begin
+         Data.Journeys.Append (Rec);
+      end Add_Journey;
+
       --------------
       -- Add_Ship --
       --------------
@@ -642,38 +700,19 @@ package body Athena.UI.Models.Galaxy is
         (Ship : Athena.Handles.Ship.Ship_Handle)
       is
       begin
-         if Ship.Is_Jumping then
-            declare
-               use Nazar;
-               From     : constant Athena.Handles.Star.Star_Handle :=
-                            Ship.Origin;
-               To       : constant Athena.Handles.Star.Star_Handle :=
-                            Ship.Destination;
-               X1       : constant Real := From.X;
-               Y1       : constant Real := From.Y;
-               X2       : constant Real := To.X;
-               Y2       : constant Real := To.Y;
-               Progress : constant Unit_Real := Ship.Progress;
-               Rec      : constant Journey_Record :=
-                            Journey_Record'
-                              (Empire   => Ship.Owner,
-                               Size     =>
-                                 Nazar.Nazar_Float
-                                   (Ship.Design.Tonnage / 100.0),
-                               X1       => Nazar_Float (X1),
-                               Y1       => Nazar_Float (Y1),
-                               X2       => Nazar_Float (X2),
-                               Y2       => Nazar_Float (Y2),
-                               Progress => Nazar_Float (Progress),
-                               Color    => Ship.Owner.Color);
-            begin
-               Data.Journeys.Append (Rec);
-            end;
+         if not Ship.Has_Fleet and then Ship.Is_Jumping then
+            Add_Journey
+              (From     => Ship.Origin,
+               To       => Ship.Destination,
+               Empire   => Ship.Owner,
+               Progress => Ship.Progress,
+               Size     => 3.0); --  Ship.Design.Tonnage / 100.0);
          end if;
       end Add_Ship;
    begin
       Data.Journeys.Clear;
       Athena.Handles.Ship.Iterate_All (Add_Ship'Access);
+      Athena.Handles.Fleet.Iterate_All (Add_Fleet'Access);
    end Load_Journeys;
 
    --------------------
