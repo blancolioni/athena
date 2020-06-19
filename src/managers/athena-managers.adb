@@ -9,7 +9,7 @@ with Athena.Handles.Empire;
 --  with Athena.Managers.Attack;
 with Athena.Managers.Colonization;
 --  with Athena.Managers.Defend;
-with Athena.Managers.Development;
+--  with Athena.Managers.Development;
 with Athena.Managers.Exploration;
 --  with Athena.Managers.Research;
 with Athena.Managers.Transportation;
@@ -88,9 +88,9 @@ package body Athena.Managers is
         (Athena.Handles.Colonization_Manager'Image,
          Colonization.Default_Colonization_Manager);
 
-      Manager_Map.Insert
-        (Athena.Handles.Development_Manager'Image,
-         Development.Default_Development_Manager);
+      --  Manager_Map.Insert
+      --    (Athena.Handles.Development_Manager'Image,
+      --     Development.Default_Development_Manager);
 
       Manager_Map.Insert
         (Athena.Handles.Exploration_Manager'Image,

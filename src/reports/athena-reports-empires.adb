@@ -37,11 +37,11 @@ package body Athena.Reports.Empires is
                     Athena.Handles.Colony.Get (Ref);
       begin
          Add_Row (Table);
-         Add_Cell (Table, Colony.Star.Name);
+         Add_Cell (Table, Colony.World.Name);
          Add_Cell (Table, Athena.Calendar.Image (Colony.Founded));
-         Add_Cell (Table, Image (Real (Colony.Star.Space)));
-         Add_Cell (Table, Image (Colony.Star.Resource * 100.0));
-         Add_Cell (Table, Image (Colony.Star.Habitability * 100.0));
+         Add_Cell (Table, Image (Real (Colony.World.Space)));
+         Add_Cell (Table, Image (Colony.World.Resource * 100.0));
+         Add_Cell (Table, Image (Colony.World.Habitability * 100.0));
          Add_Cell (Table, Image (Colony.Population));
          Add_Cell (Table, Image (Colony.Employed));
          Add_Cell (Table, Image (Colony.Industry));

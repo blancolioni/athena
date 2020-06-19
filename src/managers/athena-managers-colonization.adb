@@ -13,6 +13,7 @@ with Athena.Handles.Commodity;
 with Athena.Handles.Empire;
 with Athena.Handles.Knowledge;
 with Athena.Handles.Star;
+with Athena.Handles.World;
 
 package body Athena.Managers.Colonization is
 
@@ -60,7 +61,7 @@ package body Athena.Managers.Colonization is
 
       type Target_Record is
          record
-            Star  : Athena.Handles.Star.Star_Handle;
+            World : Athena.Handles.World.World_Handle;
             Score : Non_Negative_Real;
          end record;
 
@@ -87,6 +88,31 @@ package body Athena.Managers.Colonization is
         (Star : Athena.Handles.Star.Star_Handle;
          Stop : out Boolean)
       is
+         Best_World : Athena.Handles.World.World_Handle :=
+                        Athena.Handles.World.Empty_Handle;
+         Best_Score : Non_Negative_Real := 0.0;
+
+         procedure Check_World
+           (Reference : Athena.Handles.World_Reference);
+
+         -----------------
+         -- Check_World --
+         -----------------
+
+         procedure Check_World
+           (Reference : Athena.Handles.World_Reference)
+         is
+            World : constant Athena.Handles.World.World_Handle :=
+                      Athena.Handles.World.Get (Reference);
+            Score : constant Non_Negative_Real :=
+                      1000.0 * World.Resource * World.Habitability ** 2;
+         begin
+            if Score > Best_Score then
+               Best_Score := Score;
+               Best_World := World;
+            end if;
+         end Check_World;
+
       begin
 
          Stop := False;
@@ -101,23 +127,23 @@ package body Athena.Managers.Colonization is
             return;
          end if;
 
+         Star.Iterate_Worlds (Check_World'Access);
+
          declare
             Distance : constant Non_Negative_Real :=
                          Athena.Stars.Distance
                            (Star, Athena.Empires.Capital (Empire));
             Rec : constant Target_Record :=
                     Target_Record'
-                      (Star  => Star,
-                       Score =>
-                         1000.0 * Star.Resource
-                       * Star.Habitability ** 2
-                       / Distance ** 2);
+                      (World => Best_World,
+                       Score => Best_Score / Distance ** 2);
          begin
             Manager.Log
-              ("colonization target " & Star.Name
-               & ": resource " & Image (Star.Resource * 100.0) & "%"
-               & "; habitability " & Image (Star.Habitability * 100.0) & "%"
-               & "; space" & Star.Space'Image
+              ("colonization target " & Best_World.Name
+               & ": resource " & Image (Best_World.Resource * 100.0) & "%"
+               & "; habitability "
+               & Image (Best_World.Habitability * 100.0) & "%"
+               & "; space" & Best_World.Space'Image
                & "; distance " & Image (Distance)
                & "; colonization score " & Image (Rec.Score));
             Targets.Append (Rec);
@@ -132,7 +158,7 @@ package body Athena.Managers.Colonization is
       if not Targets.Is_Empty then
          Target_Sorting.Sort (Targets);
          Manager.Log
-           ("colonizing: " & Targets.First_Element.Star.Name
+           ("colonizing: " & Targets.First_Element.World.Name
             & " score " & Image (Targets.First_Element.Score));
 
          declare
@@ -145,7 +171,7 @@ package body Athena.Managers.Colonization is
                        (Empire, Pop'Access);
             Cargo : Athena.Cargo.Cargo_Container;
          begin
-            Manager.Log ("colonizing from " & From.Star.Name);
+            Manager.Log ("colonizing from " & From.World.Name);
 
             Cargo.Add_Cargo
               (Item     => Athena.Cargo.Colonists.Colonist_Cargo (Empire),
@@ -161,8 +187,8 @@ package body Athena.Managers.Colonization is
               (Athena.Handles.Transport_Manager,
                Athena.Managers.Transportation.Transport_Message
                  (Empire   => Empire.Reference,
-                  From     => From.Star.Reference,
-                  To       => Targets.First_Element.Star.Reference,
+                  From     => From.World.Reference,
+                  To       => Targets.First_Element.World.Reference,
                   Cargo    => Cargo,
                   Priority => Manager.Priority));
 

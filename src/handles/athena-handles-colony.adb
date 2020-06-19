@@ -50,7 +50,7 @@ package body Athena.Handles.Colony is
    type Colony_Record is
       record
          Identifier    : Object_Identifier;
-         Star          : Star_Reference;
+         World         : World_Reference;
          Owner         : Empire_Reference;
          Founded       : Athena.Calendar.Time;
          Next_Update   : Athena.Calendar.Time;
@@ -90,10 +90,10 @@ package body Athena.Handles.Colony is
    procedure Update_Maps
      (Colony : Colony_Reference);
 
-   function Star
+   function World
      (Colony : Colony_Handle)
-      return Athena.Handles.Star.Star_Handle
-   is (Athena.Handles.Star.Get (Vector (Colony.Reference).Star));
+      return Athena.Handles.World.World_Handle
+   is (Athena.Handles.World.Get (Vector (Colony.Reference).World));
 
    function Founded
      (Colony : Colony_Handle)
@@ -148,18 +148,6 @@ package body Athena.Handles.Colony is
        (Vector (Colony.Reference).Stock,
         Commodity));
 
-   function Production_Size
-     (Colony     : Colony_Handle;
-      Production : Athena.Handles.Production.Production_Handle)
-      return Non_Negative_Real
-   is (Vector (Colony.Reference).Production (Production.Reference).Size);
-
-   function Production_Employment
-     (Colony     : Colony_Handle;
-      Production : Athena.Handles.Production.Production_Handle)
-      return Non_Negative_Real
-   is (Vector (Colony.Reference).Production (Production.Reference).Employment);
-
    procedure Execute_Production (Colony : Colony_Handle)
      with Pre => not Vector (Colony.Reference).Installations.Is_Empty;
 
@@ -184,7 +172,7 @@ package body Athena.Handles.Colony is
       Water_Stock : constant Non_Negative_Real :=
                       Colony.Get_Stock (Athena.Handles.Commodity.Water);
       Environment_Water : constant Non_Negative_Real :=
-                            Colony.Star.Habitability ** 2
+                            Colony.World.Habitability ** 2
                               * 1.0e10;
 
       function Calculate_New_Population return Real;
@@ -203,7 +191,7 @@ package body Athena.Handles.Colony is
          Available_Food  : constant Non_Negative_Real :=
                              Food_Stock;
          Base_Increase   : constant Real :=
-                             (Colony.Star.Habitability - 0.2)
+                             (Colony.World.Habitability - 0.2)
                              * 0.02 / 360.0;
       begin
          Vector (Colony.Reference).Water_Crisis := False;
@@ -276,7 +264,7 @@ package body Athena.Handles.Colony is
       if Colony.Construct > 0.0 then
          Athena.Empires.Earn
            (Colony.Owner, Athena.Money.To_Money (Colony.Construct),
-            "unused production on " & Colony.Star.Name);
+            "unused production on " & Colony.Short_Name);
       end if;
 
       declare
@@ -295,24 +283,6 @@ package body Athena.Handles.Colony is
             & "; pop = " & Image (Colony.Population));
          Athena.Updates.Events.Update_With_Delay
            (Athena.Calendar.Days (1.0), Colony);
-      end;
-
-      declare
-         Rec : Colony_Record renames Vector (Colony.Reference);
-      begin
-         for Ref in 1 .. Rec.Production.Last_Index loop
-            declare
-               Production : constant Handles.Production.Production_Handle :=
-                              Athena.Handles.Production.Get (Ref);
-            begin
-               if Rec.Production (Ref).Size > 0.0 then
-                  Production.Daily_Production
-                    (Size  => Rec.Production (Ref).Size,
-                     Star  => Colony.Star,
-                     Stock => Colony);
-               end if;
-            end;
-         end loop;
       end;
 
       if Colony.Has_Actions then
@@ -368,7 +338,7 @@ package body Athena.Handles.Colony is
       for Commodity of Commodities loop
          if Commodity.Class = Resource
            and then not Commodity.Is_Abstract
-           and then Colony.Star.Resource_Quality (Commodity) > 0.0
+           and then Colony.World.Resource_Quality (Commodity) > 0.0
          then
             Count := Count + 1;
             Result (Count) := Commodity;
@@ -411,7 +381,7 @@ package body Athena.Handles.Colony is
    ------------
 
    function Create
-     (Star      : Athena.Handles.Star.Star_Handle;
+     (World     : Athena.Handles.World.World_Handle;
       Owner     : Athena.Handles.Empire.Empire_Handle;
       Pop       : Non_Negative_Real := 0.0;
       Industry  : Non_Negative_Real := 0.0;

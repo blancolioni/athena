@@ -153,6 +153,10 @@ package Athena.Handles is
 
    Null_War_Reference : constant War_Reference;
 
+   type World_Reference is private;
+
+   Null_World_Reference : constant World_Reference;
+
    type Zone_Reference is private;
 
    Null_Zone_Reference : constant Zone_Reference;
@@ -322,6 +326,13 @@ private
      War_Reference range 1 .. War_Reference'Last;
 
    Null_War_Reference : constant War_Reference := 0;
+
+   type World_Reference is new Natural;
+
+   subtype Real_World_Reference is
+     World_Reference range 1 .. World_Reference'Last;
+
+   Null_World_Reference : constant World_Reference := 0;
 
    type Zone_Reference is new Natural;
 

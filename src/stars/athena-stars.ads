@@ -7,13 +7,13 @@ package Athena.Stars is
      (From, To : Athena.Handles.Star.Star_Handle)
       return Non_Negative_Real;
 
-   function Get_Colony
-     (Of_Star : Athena.Handles.Star.Star_Handle)
-      return Athena.Handles.Colony.Colony_Handle;
-
-   procedure Set_Colony
-     (Star   : Athena.Handles.Star.Star_Handle;
-      Colony : Athena.Handles.Colony.Colony_Handle);
+   --  function Get_Colony
+   --    (Of_Star : Athena.Handles.Star.Star_Handle)
+   --     return Athena.Handles.Colony.Colony_Handle;
+   --
+   --  procedure Set_Colony
+   --    (Star   : Athena.Handles.Star.Star_Handle;
+   --     Colony : Athena.Handles.Colony.Colony_Handle);
 
    procedure Iterate_Nearest
      (To_Star   : Athena.Handles.Star.Star_Handle;

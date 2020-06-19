@@ -11,12 +11,13 @@ with Athena.Real_Images;
 
 with Athena.Configure.Commodities;
 with Athena.Configure.Facilities;
-with Athena.Configure.Production;
 with Athena.Configure.Ships;
 
 with Athena.Handles.Star;
 
 package body Athena.Configure is
+
+   function Random_Star_Mass return Non_Negative_Real;
 
    function Image (X : Real) return String
                    renames Athena.Real_Images.Approximate_Image;
@@ -210,22 +211,14 @@ package body Athena.Configure is
             Gen          : constant Generated_Star_Record :=
                              Vector.Element (I);
             Star_Name    : constant String := Create_System_Name;
-            Resource     : constant Unit_Real :=
-                             Athena.Random.Unit_Random;
-            Habitability : constant Unit_Real :=
-                             Athena.Random.Unit_Random;
-            Space        : constant Positive :=
-                             Natural (Habitability ** 2 * 10_000.0) + 1;
             Star_Handle  : constant Athena.Handles.Star.Star_Handle :=
                              Athena.Handles.Star.Create
                                (X             => Gen.X,
                                 Y             => Gen.Y,
+                                Solar_Masses  => Random_Star_Mass,
                                 Core_Distance =>
                                   Sqrt (Gen.X ** 2 + Gen.Y ** 2),
-                                Name          => Star_Name,
-                                Space         => Space,
-                                Resource      => Resource,
-                                Habitability  => Habitability);
+                                Name          => Star_Name);
          begin
 
             Vector.Reference (I).Handle := Star_Handle;
@@ -268,9 +261,33 @@ package body Athena.Configure is
 
       Athena.Configure.Commodities.Configure_Commodities;
       Athena.Configure.Facilities.Configure_Facilities;
-      Athena.Configure.Production.Configure_Production;
       Athena.Configure.Ships.Configure_Ships;
 
    end Initialize_Database;
+
+   ----------------------
+   -- Random_Star_Mass --
+   ----------------------
+
+   function Random_Star_Mass return Non_Negative_Real is
+      Seed             : constant Real := Athena.Random.Unit_Random;
+      Solar_Mass_Count : Real;
+   begin
+      if Seed <= 0.99 then
+         Solar_Mass_Count :=
+           0.1 + 6.0 * Seed - 15.0 * Seed ** 2
+             + 11.0 * Seed ** 3;
+      else
+         declare
+            X : constant Real := (Seed - 0.99) * 1.0E4;
+            A : constant Real := 0.110833;
+            B : constant Real := -14.0358;
+            C : constant Real := 445.25;
+         begin
+            Solar_Mass_Count := A * X ** 2 + B * X + C;
+         end;
+      end if;
+      return Solar_Mass_Count;
+   end Random_Star_Mass;
 
 end Athena.Configure;

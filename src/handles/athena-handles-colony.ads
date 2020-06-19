@@ -8,8 +8,7 @@ with Athena.Handles.Commodity;
 with Athena.Handles.Empire;
 with Athena.Handles.Facility;
 with Athena.Handles.Installation;
-with Athena.Handles.Production;
-with Athena.Handles.Star;
+with Athena.Handles.World;
 
 package Athena.Handles.Colony is
 
@@ -26,9 +25,9 @@ package Athena.Handles.Colony is
    function Get (Colony : Colony_Reference) return Colony_Handle;
    function Empty_Handle return Colony_Handle;
 
-   function Star
+   function World
      (Colony : Colony_Handle)
-      return Athena.Handles.Star.Star_Handle;
+      return Athena.Handles.World.World_Handle;
 
    function Founded
      (Colony : Colony_Handle)
@@ -71,21 +70,6 @@ package Athena.Handles.Colony is
      (Colony    : Colony_Handle;
       Commodity : Athena.Handles.Commodity.Commodity_Handle'Class;
       Quantity  : Non_Negative_Real);
-
-   function Production_Size
-     (Colony     : Colony_Handle;
-      Production : Athena.Handles.Production.Production_Handle)
-      return Non_Negative_Real;
-
-   function Production_Employment
-     (Colony     : Colony_Handle;
-      Production : Athena.Handles.Production.Production_Handle)
-      return Non_Negative_Real;
-
-   procedure Set_Production
-     (Colony     : Colony_Handle;
-      Production : Athena.Handles.Production.Production_Handle;
-      Fraction   : Unit_Real);
 
    procedure Set_Population
      (Colony   : Colony_Handle;
@@ -131,7 +115,7 @@ package Athena.Handles.Colony is
      with Pre => Colony.Has_Actions;
 
    function Create
-     (Star      : Athena.Handles.Star.Star_Handle;
+     (World     : Athena.Handles.World.World_Handle;
       Owner     : Athena.Handles.Empire.Empire_Handle;
       Pop       : Non_Negative_Real := 0.0;
       Industry  : Non_Negative_Real := 0.0;
@@ -170,12 +154,12 @@ private
    overriding function Short_Name
      (Colony : Colony_Handle)
       return String
-   is (Colony.Owner.Adjective & " colony at " & Colony.Star.Name);
+   is (Colony.Owner.Adjective & " colony on " & Colony.World.Name);
 
    overriding function Habitability
      (Colony : Colony_Handle)
       return Unit_Real
-   is (Colony.Star.Habitability);
+   is (Colony.World.Habitability);
 
    overriding function Available_Resources
      (Colony : Colony_Handle)

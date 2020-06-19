@@ -117,7 +117,7 @@ package Athena.Handles.Empire is
       return Empire_Handle;
 
    function Create_Empire
-     (Star      : Star_Reference;
+     (World     : World_Reference;
       Name      : String;
       Plural    : String;
       Adjective : String;

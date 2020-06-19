@@ -16,18 +16,10 @@ with Athena.Random_Names;
 
 with Athena.Managers;
 
---  with Athena.Colonies;
 with Athena.Empires.Create;
---  with Athena.Ships.Scripts;
---  with Athena.Stars;
-
---  with Athena.Db.Database;
 
 with Athena.Handles.Star;
---  with Athena.Db.Star;
-
---  with Athena.Handles.Empire;
---  with Athena.Handles.Star_Distance.Selections;
+with Athena.Handles.World;
 
 with Athena.Handles.State;
 
@@ -67,31 +59,25 @@ package body Athena.Server is
       Color     : String)
    is
 
+      World   : Athena.Handles.World.World_Handle :=
+                  Athena.Handles.World.Empty_Handle;
+
       function Check_Star
         (Handle : Athena.Handles.Star.Star_Handle)
          return Boolean;
+
+      ----------------
+      -- Check_Star --
+      ----------------
 
       function Check_Star
         (Handle : Athena.Handles.Star.Star_Handle)
          return Boolean
       is
       begin
-         if Handle.Has_Owner
-           or else Handle.Space < 2500
-           or else Handle.Resource not in 0.5 .. 1.0
-           or else Handle.Habitability not in 0.5 .. 1.0
-         then
+         if Handle.Has_Owner then
             return False;
          end if;
-
-         --  for (Neighbour : Athena.Handles.Star.Star_Handle) of
-         --    Athena.Handles.Star.Iterate_Nearest_Stars
-         --      (Handle, 20.0)
-         --  loop
-         --     if Neighbour.Owner.Has_Element then
-         --        return False;
-         --     end if;
-         --  end loop;
 
          declare
             Found_Empire : Boolean := False;
@@ -126,26 +112,53 @@ package body Athena.Server is
             end if;
          end;
 
-         return True;
+         declare
+
+            procedure Check_World (Ref : Athena.Handles.World_Reference);
+
+            -----------------
+            -- Check_World --
+            -----------------
+
+            procedure Check_World (Ref : Athena.Handles.World_Reference) is
+               Candidate : constant Athena.Handles.World.World_Handle :=
+                             Athena.Handles.World.Get (Ref);
+            begin
+               if World.Has_Element then
+                  return;
+               end if;
+
+               if Candidate.Space >= 2500
+                 and then Candidate.Resource > 0.5
+                 and then Candidate.Habitability > 0.5
+               then
+                  World := Candidate;
+               end if;
+            end Check_World;
+
+         begin
+            Handle.Iterate_Worlds (Check_World'Access);
+            return World.Has_Element;
+         end;
 
       end Check_Star;
 
-      Home : constant Athena.Handles.Star.Star_Handle :=
-               Athena.Handles.Star.Find_Star (Check_Star'Access);
+      Home_Star : constant Athena.Handles.Star.Star_Handle :=
+                    Athena.Handles.Star.Find_Star (Check_Star'Access);
       Template : constant Tropos.Configuration :=
                    Tropos.Reader.Read_Config
                      (Athena.Paths.Config_File
                         ("templates/empires/default-empire.template"));
    begin
 
-      if not Home.Has_Element then
+      if not Home_Star.Has_Element then
          Ada.Text_IO.Put_Line
            (Name & ": unable to find home world");
          return;
       end if;
 
       Athena.Empires.Create.New_Empire
-        (Star      => Home,
+        (World     => World,
          Name      => Name,
          Plural    => (if Plural = "" then Name else Plural),
          Adjective => (if Adjective = "" then Name else Adjective),
@@ -154,7 +167,7 @@ package body Athena.Server is
          Template  => Template);
 
       Ada.Text_IO.Put_Line
-        (Name & " founded at " & Home.Name);
+        (Name & " founded at " & World.Star.Name & "/" & World.Name);
 
    end Add_Empire;
 

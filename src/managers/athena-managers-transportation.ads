@@ -7,8 +7,8 @@ package Athena.Managers.Transportation is
 
    function Transport_Message
      (Empire   : Athena.Handles.Empire_Reference;
-      From     : Athena.Handles.Star_Reference;
-      To       : Athena.Handles.Star_Reference;
+      From     : Athena.Handles.World_Reference;
+      To       : Athena.Handles.World_Reference;
       Cargo    : Athena.Cargo.Cargo_Container;
       Priority : Athena.Handles.Order_Priority)
       return Message_Type'Class;

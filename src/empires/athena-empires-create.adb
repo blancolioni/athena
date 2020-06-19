@@ -11,7 +11,6 @@ with Athena.Handles.Empire;
 with Athena.Handles.Facility;
 with Athena.Handles.Fleet;
 with Athena.Handles.Installation;
-with Athena.Handles.Production;
 
 package body Athena.Empires.Create is
 
@@ -20,7 +19,7 @@ package body Athena.Empires.Create is
    ----------------
 
    procedure New_Empire
-     (Star      : Athena.Handles.Star.Star_Handle;
+     (World     : Athena.Handles.World.World_Handle;
       Name      : String;
       Plural    : String;
       Adjective : String;
@@ -39,7 +38,7 @@ package body Athena.Empires.Create is
                            (Name       => Name,
                             Plural     => Plural,
                             Adjective  => Adjective,
-                            Star       => Star.Reference,
+                            World      => World.Reference,
                             Cash       =>
                               Athena.Money.To_Money (Get ("cash")),
                             Debt       =>
@@ -48,13 +47,13 @@ package body Athena.Empires.Create is
 
    begin
 
-      Star.Set_Name (Capital);
-      Star.Set_Owner (Empire.Reference);
+      World.Set_Name (Capital);
+      World.Set_Owner (Empire.Reference);
 
       declare
          Colony : constant Athena.Handles.Colony.Colony_Handle :=
                     Athena.Colonies.New_Colony
-                      (At_Star    => Star,
+                      (World      => World,
                        Owner      => Empire,
                        Pop        => Get ("pop"),
                        Industry   => Get ("ind"),
@@ -84,14 +83,6 @@ package body Athena.Empires.Create is
                  Real (Long_Float'(Stock_Config.Value)));
          end loop;
 
-         for Production_Config of Init.Child ("economy") loop
-            Colony.Set_Production
-              (Production =>
-                 Athena.Handles.Production.Get_By_Tag
-                   (Production_Config.Config_Name),
-               Fraction   =>
-                 Real (Long_Float'(Production_Config.Value)));
-         end loop;
       end;
 
       for Manager in Athena.Handles.Manager_Class loop

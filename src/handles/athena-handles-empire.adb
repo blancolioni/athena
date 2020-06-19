@@ -11,7 +11,7 @@ with Athena.Random;
 with Athena.Updates.Events;
 
 with Athena.Handles.Ship;
-with Athena.Handles.Star;
+with Athena.Handles.World;
 
 package body Athena.Handles.Empire is
 
@@ -45,7 +45,7 @@ package body Athena.Handles.Empire is
    type Empire_Record is
       record
          Identifier  : Object_Identifier;
-         Home        : Star_Reference;
+         Home        : World_Reference;
          Capital     : Colony_Reference;
          Name        : Ada.Strings.Unbounded.Unbounded_String;
          Plural      : Ada.Strings.Unbounded.Unbounded_String;
@@ -188,7 +188,7 @@ package body Athena.Handles.Empire is
    -------------------
 
    function Create_Empire
-     (Star      : Star_Reference;
+     (World     : World_Reference;
       Name      : String;
       Plural    : String;
       Adjective : String;
@@ -206,7 +206,7 @@ package body Athena.Handles.Empire is
         (Empire_Record'
            (Identifier  => Next_Identifier,
             Name        => +Name,
-            Home        => Star,
+            Home        => World,
             Capital     => Null_Colony_Reference,
             Plural      => +Plural,
             Adjective   => +Adjective,
@@ -221,7 +221,14 @@ package body Athena.Handles.Empire is
             Next_Update => Athena.Calendar.Clock + First_Update_Delay,
             Knowledge   => <>));
       Map.Insert (Name, Vector.Last_Index);
-      Athena.Handles.Star.Get (Star).Set_Owner (Vector.Last_Index);
+
+      declare
+         W : constant Athena.Handles.World.World_Handle :=
+               Athena.Handles.World.Get (World);
+      begin
+         W.Set_Owner (Vector.Last_Index);
+         W.Star.Set_Owner (Vector.Last_Index);
+      end;
 
       Vector (Vector.Last_Index).Knowledge :=
         Athena.Handles.Knowledge.Create (Vector.Last_Index).Reference;

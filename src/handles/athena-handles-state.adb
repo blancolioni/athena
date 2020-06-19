@@ -19,12 +19,12 @@ with Athena.Handles.Installation;
 with Athena.Handles.Knowledge;
 with Athena.Handles.Module;
 with Athena.Handles.Order;
-with Athena.Handles.Production;
 with Athena.Handles.Relationship;
 with Athena.Handles.Ship;
 with Athena.Handles.Star;
 with Athena.Handles.Technology;
 with Athena.Handles.War;
+with Athena.Handles.World;
 
 package body Athena.Handles.State is
 
@@ -66,12 +66,12 @@ package body Athena.Handles.State is
          Athena.Handles.Knowledge.Load (S);
          Athena.Handles.Module.Load (S);
          Athena.Handles.Order.Load (S);
-         Athena.Handles.Production.Load (S);
          Athena.Handles.Relationship.Load (S);
          Athena.Handles.Ship.Load (S);
          Athena.Handles.Star.Load (S);
          Athena.Handles.Technology.Load (S);
          Athena.Handles.War.Load (S);
+         Athena.Handles.World.Load (S);
       end;
       Close (File);
    end Load_State;
@@ -114,12 +114,12 @@ package body Athena.Handles.State is
          Athena.Handles.Knowledge.Save (S);
          Athena.Handles.Module.Save (S);
          Athena.Handles.Order.Save (S);
-         Athena.Handles.Production.Save (S);
          Athena.Handles.Relationship.Save (S);
          Athena.Handles.Ship.Save (S);
          Athena.Handles.Star.Save (S);
          Athena.Handles.Technology.Save (S);
          Athena.Handles.War.Save (S);
+         Athena.Handles.World.Save (S);
       end;
       Close (File);
    end Save_State;

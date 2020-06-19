@@ -1,5 +1,7 @@
 with Ada.Streams.Stream_IO;
 
+with Athena.Orbits;
+
 with Athena.Handles.Commodity;
 
 package Athena.Handles.Star is
@@ -7,23 +9,13 @@ package Athena.Handles.Star is
    type Star_Handle is
      new Root_Athena_Handle
      and Has_Identifier_Interface
+     and Athena.Orbits.Massive_Interface
    with private;
 
    function Reference (Handle : Star_Handle) return Star_Reference;
    function Get (Reference : Star_Reference) return Star_Handle;
 
    function Empty_Handle return Star_Handle;
-
-   function Resource_Quality
-     (Handle   : Star_Handle;
-      Resource : Athena.Handles.Commodity.Commodity_Handle)
-      return Non_Negative_Real;
-
-   function Extract_Resource
-     (Handle   : Star_Handle;
-      Resource : Athena.Handles.Commodity.Commodity_Handle;
-      Size     : Non_Negative_Real)
-      return Non_Negative_Real;
 
    function Name
      (Star : Star_Handle)
@@ -45,18 +37,6 @@ package Athena.Handles.Star is
      (Star      : Star_Handle;
       New_Owner : Empire_Reference);
 
-   function Has_Colony
-     (Star : Star_Handle)
-      return Boolean;
-
-   function Colony
-     (Star : Star_Handle)
-      return Colony_Reference;
-
-   procedure Set_Colony
-     (Star   : Star_Handle;
-      Colony : Colony_Reference);
-
    function X
      (Star : Star_Handle)
       return Real;
@@ -65,25 +45,11 @@ package Athena.Handles.Star is
      (Star : Star_Handle)
       return Real;
 
-   function Space
-     (Star : Star_Handle)
-      return Natural;
-
-   function Resource
-     (Star : Star_Handle)
-      return Unit_Real;
-
-   function Habitability
-     (Star : Star_Handle)
-      return Unit_Real;
-
    function Create
      (X, Y          : Real;
       Name          : String;
-      Core_Distance : Non_Negative_Real;
-      Space         : Positive;
-      Resource      : Unit_Real;
-      Habitability  : Unit_Real)
+      Solar_Masses  : Non_Negative_Real;
+      Core_Distance : Non_Negative_Real)
       return Star_Handle;
 
    function Get_By_Name
@@ -100,9 +66,14 @@ package Athena.Handles.Star is
       Process      : not null access
         function (Handle : Star_Handle) return Boolean);
 
-   procedure Iterate_Stars
-     (Process      : not null access
-        procedure (Handle : Star_Handle));
+   procedure Iterate_Worlds
+     (Star         : Star_Handle;
+      Process      : not null access
+        procedure (Reference : World_Reference));
+
+   procedure Add_World
+     (Star  : Star_Handle;
+      World : World_Reference);
 
    procedure Iterate_Orbiting_Ships
      (Star         : Star_Handle;
@@ -116,6 +87,10 @@ package Athena.Handles.Star is
    procedure Remove_Ship
      (Star : Star_Handle;
       Ship : Ship_Reference);
+
+   procedure Iterate_Stars
+     (Process      : not null access
+        procedure (Handle : Star_Handle));
 
    procedure Load
      (Stream : Ada.Streams.Stream_IO.Stream_Access);
@@ -146,7 +121,8 @@ private
    --
    type Star_Handle is
      new Root_Athena_Handle
-     and Has_Identifier_Interface with
+     and Has_Identifier_Interface
+     and Athena.Orbits.Massive_Interface with
       record
          Reference : Star_Reference;
       end record;
@@ -159,6 +135,10 @@ private
    overriding function Identifier
      (Star : Star_Handle)
       return Object_Identifier;
+
+   overriding function Mass
+     (Star : Star_Handle)
+      return Non_Negative_Real;
 
    function Reference (Handle : Star_Handle) return Star_Reference
    is (Handle.Reference);

@@ -447,7 +447,7 @@ package body Athena.Handles.Knowledge is
          Position : constant Neighbour_Maps.Cursor :=
                       Knowledge.Neighbour_Map.Find (Neighbour.Identifier);
          Distance : constant Non_Negative_Real :=
-                      Athena.Stars.Distance (Neighbour, Colony.Star);
+                      Athena.Stars.Distance (Neighbour, Colony.World.Star);
       begin
          if Neighbour.Has_Owner
            and then Neighbour.Owner = Knowledge.Empire
@@ -477,7 +477,7 @@ package body Athena.Handles.Knowledge is
    begin
 
       Athena.Handles.Star.Iterate_Nearest_Stars
-        (To_Star      => Colony.Star,
+        (To_Star      => Colony.World.Star,
          Max_Distance => 20.0,
          Process      => Update'Access);
 

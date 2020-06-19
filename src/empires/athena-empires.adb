@@ -50,7 +50,7 @@ package body Athena.Empires is
       return Athena.Handles.Star.Star_Handle
    is
    begin
-      return Athena.Handles.Colony.Get (Of_Empire.Capital).Star;
+      return Athena.Handles.Colony.Get (Of_Empire.Capital).World.Star;
    end Capital;
 
    -------------

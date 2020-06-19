@@ -2,6 +2,7 @@ with Athena.Cargo;
 
 with Athena.Handles.Colony;
 with Athena.Handles.Empire;
+with Athena.Handles.World;
 with Athena.Handles.Star;
 
 package Athena.Colonies is
@@ -53,7 +54,7 @@ package Athena.Colonies is
       Captured_By : Athena.Handles.Empire.Empire_Handle);
 
    function New_Colony
-     (At_Star  : Athena.Handles.Star.Star_Handle;
+     (World    : Athena.Handles.World.World_Handle;
       Owner    : Athena.Handles.Empire.Empire_Handle;
       Pop      : Non_Negative_Real;
       Industry : Non_Negative_Real;

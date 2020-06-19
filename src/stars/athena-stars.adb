@@ -31,13 +31,13 @@ package body Athena.Stars is
    -- Get_Colony --
    ----------------
 
-   function Get_Colony
-     (Of_Star : Athena.Handles.Star.Star_Handle)
-      return Athena.Handles.Colony.Colony_Handle
-   is
-   begin
-      return Athena.Handles.Colony.Get (Of_Star.Colony);
-   end Get_Colony;
+   --  function Get_Colony
+   --    (Of_Star : Athena.Handles.Star.Star_Handle)
+   --     return Athena.Handles.Colony.Colony_Handle
+   --  is
+   --  begin
+   --     return Athena.Handles.Colony.Get (Of_Star.Colony);
+   --  end Get_Colony;
 
    ---------------------
    -- Iterate_Nearest --
@@ -76,13 +76,13 @@ package body Athena.Stars is
    -- Set_Colony --
    ----------------
 
-   procedure Set_Colony
-     (Star   : Athena.Handles.Star.Star_Handle;
-      Colony : Athena.Handles.Colony.Colony_Handle)
-   is
-   begin
-      Star.Set_Colony (Colony.Reference);
-      Star.Set_Owner (Colony.Owner.Reference);
-   end Set_Colony;
+   --  procedure Set_Colony
+   --    (Star   : Athena.Handles.Star.Star_Handle;
+   --     Colony : Athena.Handles.Colony.Colony_Handle)
+   --  is
+   --  begin
+   --     Star.Set_Colony (Colony.Reference);
+   --     Star.Set_Owner (Colony.Owner.Reference);
+   --  end Set_Colony;
 
 end Athena.Stars;
