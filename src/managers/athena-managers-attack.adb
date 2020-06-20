@@ -1,3 +1,4 @@
+with Athena.Movers;
 with Athena.Ships;
 with Athena.Stars;
 with Athena.Treaties;
@@ -11,8 +12,11 @@ with Athena.Handles.Design;
 with Athena.Handles.Empire;
 with Athena.Handles.Fleet;
 with Athena.Handles.Knowledge;
-with Athena.Handles.Ship.Actions;
+with Athena.Handles.Ship;
 with Athena.Handles.Star;
+with Athena.Handles.World;
+
+with Athena.Handles.Ship.Actions;
 
 package body Athena.Managers.Attack is
 
@@ -32,7 +36,7 @@ package body Athena.Managers.Attack is
 
    function Find_Available_Fleet
      (Manager    : in out Attack_Manager'Class;
-      Origin      : Athena.Handles.Star.Star_Handle;
+      Origin      : Athena.Handles.World.World_Handle;
       Destination : Athena.Handles.Star.Star_Handle)
       return Athena.Handles.Fleet.Fleet_Handle;
 
@@ -115,6 +119,7 @@ package body Athena.Managers.Attack is
          Nearest    : Athena.Handles.Colony_Reference;
          Stop       : out Boolean)
       is
+         use all type Athena.Movers.Mover_Location_Type;
          use type Athena.Handles.Star.Star_Handle;
          Threat     : constant Athena.Handles.Empire.Empire_Handle :=
                         Athena.Handles.Empire.Get (Reference);
@@ -122,18 +127,20 @@ package body Athena.Managers.Attack is
                         Athena.Handles.Colony.Get (Nearest);
          Fleet      : constant Athena.Handles.Fleet.Fleet_Handle :=
                         Find_Available_Fleet
-                          (Manager, Colony.Star, Star);
+                          (Manager, Colony.World, Star);
          Can_Launch : Boolean := True;
       begin
 
-         if Fleet.Location = Star then
+         if Fleet.Location in System_Space | World_Orbit
+           and then Fleet.Location_Star = Star
+         then
             Fleet.Log ("already engaged");
             Stop := False;
             return;
          end if;
 
          if Fleet.Has_Destination
-           and then Fleet.Destination = Star
+           and then Fleet.Destination_Star = Star
          then
             Stop := False;
             return;
@@ -143,18 +150,16 @@ package body Athena.Managers.Attack is
            ("checking threat from "
             & Threat.Name & " at " & Star.Name
             & ": nearest colony on "
-            & Colony.Star.Name
+            & Colony.World.Name
             & "; distance "
-            & Image (Athena.Stars.Distance (Star, Colony.Star)));
+            & Image (Athena.Stars.Distance (Star, Colony.World.Star)));
 
          Manager.Log
            ("using fleet " & Fleet.Short_Name);
 
-         if Fleet.Location /= Colony.Star
-           and then not Fleet.Has_Destination
-         then
-            Fleet.Log ("sending to " & Colony.Star.Short_Name);
-            Fleet.Set_Destination (Colony.Star);
+         if not Fleet.At_World (Colony.World) then
+            Fleet.Log ("sending to " & Colony.World.Short_Name);
+            Fleet.Move_To (Colony.World);
             Can_Launch := False;
          end if;
 
@@ -181,10 +186,10 @@ package body Athena.Managers.Attack is
                if not Ship.Has_Fleet
                  and then Ship.Is_Idle
                then
-                  if Ship.Star_Location /= Colony.Star then
-                     Athena.Handles.Ship.Actions.Move_To
-                       (Ship, Colony.Star);
-                  elsif Fleet.Location = Colony.Star then
+                  if not Ship.At_World (Colony.World) then
+                     Athena.Handles.Ship.Actions.Move_To_World
+                       (Ship, Colony.World);
+                  elsif Fleet.At_World (Colony.World) then
                      Fleet.Add_Ship (Ship.Reference);
                   end if;
                end if;
@@ -203,7 +208,7 @@ package body Athena.Managers.Attack is
                Athena.Treaties.Declare_War (Empire, Threat);
             end if;
 
-            Fleet.Set_Destination (Star);
+            Fleet.Move_To (Star);
 
          --     Athena.Orders.Move_Fleet (Fleet, Star);
          end if;
@@ -225,7 +230,6 @@ package body Athena.Managers.Attack is
          pragma Unreferenced (Nearest);
          Threat       : constant Athena.Handles.Empire.Empire_Handle :=
                           Athena.Handles.Empire.Get (Reference);
-         Min_Distance : Non_Negative_Real := Non_Negative_Real'Last;
          Assigned     : Athena.Handles.Ship.Ship_Handle :=
                           Athena.Handles.Ship.Empty_Handle;
       begin
@@ -240,15 +244,11 @@ package body Athena.Managers.Attack is
 
          for Ship of Recon_Ships loop
             if Ship.Is_Idle then
-               declare
-                  D : constant Non_Negative_Real :=
-                        Athena.Stars.Distance (Ship.Star_Location, Star);
-               begin
-                  if D < Min_Distance then
-                     Min_Distance := D;
-                     Assigned := Ship;
-                  end if;
-               end;
+               if not Assigned.Has_Element
+                 or else Ship.Is_Closer (Assigned, Star)
+               then
+                  Assigned := Ship;
+               end if;
             end if;
          end loop;
 
@@ -258,7 +258,7 @@ package body Athena.Managers.Attack is
                & " to observe "
                & Threat.Name & " colony on " & Star.Name);
 
-            Athena.Handles.Ship.Actions.Move_To (Assigned, Star);
+            Athena.Handles.Ship.Actions.Move_To_Star (Assigned, Star);
          else
             Required_Ships := Required_Ships + 1;
          end if;
@@ -317,7 +317,7 @@ package body Athena.Managers.Attack is
 
    function Find_Available_Fleet
      (Manager     : in out Attack_Manager'Class;
-      Origin      : Athena.Handles.Star.Star_Handle;
+      Origin      : Athena.Handles.World.World_Handle;
       Destination : Athena.Handles.Star.Star_Handle)
       return Athena.Handles.Fleet.Fleet_Handle
    is
@@ -326,7 +326,6 @@ package body Athena.Managers.Attack is
 
       Available : Athena.Handles.Fleet.Fleet_Handle :=
                     Athena.Handles.Fleet.Empty_Handle;
-      Closest : Non_Negative_Real := Non_Negative_Real'Last;
 
       procedure Check_Assigned_Fleet
         (Reference : Athena.Handles.Fleet_Reference);
@@ -341,20 +340,17 @@ package body Athena.Managers.Attack is
       procedure Check_Assigned_Fleet
         (Reference : Athena.Handles.Fleet_Reference)
       is
-         use type Athena.Handles.Star.Star_Handle;
          Fleet : constant Athena.Handles.Fleet.Fleet_Handle :=
                    Athena.Handles.Fleet.Get (Reference);
       begin
-         if Fleet.Has_Destination
-           and then Fleet.Destination = Origin
-         then
+         if Fleet.Travelling_To (Origin) then
             Available := Fleet;
          elsif not Fleet.Has_Destination
-           and then Fleet.Location = Origin
+           and then Fleet.At_World (Origin)
          then
             Available := Fleet;
          elsif Fleet.Has_Destination
-           and then Fleet.Destination = Destination
+           and then Fleet.Travelling_To (Destination)
          then
             Available := Fleet;
          end if;
@@ -369,14 +365,11 @@ package body Athena.Managers.Attack is
       is
          Fleet : constant Athena.Handles.Fleet.Fleet_Handle :=
                    Athena.Handles.Fleet.Get (Reference);
-         D     : constant Non_Negative_Real :=
-                   Athena.Stars.Distance
-                     (Fleet.Location, Origin);
       begin
          if not Fleet.Has_Destination
-           and then D < Closest
+           and then (not Available.Has_Element
+                     or else Fleet.Is_Closer (Available, Origin))
          then
-            Closest   := D;
             Available := Fleet;
          end if;
       end Check_Idle_Fleet;
@@ -400,7 +393,7 @@ package body Athena.Managers.Attack is
 
       return Athena.Handles.Fleet.Create
         (Name  => "Task Force",
-         Star  => Origin,
+         World => Origin,
          Owner => Empire);
 
    end Find_Available_Fleet;

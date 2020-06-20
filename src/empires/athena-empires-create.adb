@@ -126,7 +126,7 @@ package body Athena.Empires.Create is
                for I in 1 .. Count loop
                   Athena.Ships.Create.Create_Ship
                     (Empire  => Empire,
-                     Star    => Star,
+                     World   => World,
                      Fleet   => Athena.Handles.Fleet.Empty_Handle,
                      Manager => Design.Default_Manager,
                      Design  => Design,

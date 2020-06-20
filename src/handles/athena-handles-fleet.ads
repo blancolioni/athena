@@ -1,13 +1,20 @@
 with Ada.Streams.Stream_IO;
 
+with Athena.Real_Arrays;
+
+with Athena.Movers;
+
+with Athena.Handles.Ship;
 with Athena.Handles.Star;
 with Athena.Handles.Empire;
+with Athena.Handles.World;
 
 package Athena.Handles.Fleet is
 
    type Fleet_Handle is
      new Root_Athena_Handle
      and Has_Name_Interface
+     and Athena.Movers.Mover_Interface
    with private;
 
    function Reference (Fleet : Fleet_Handle) return Fleet_Reference;
@@ -19,31 +26,51 @@ package Athena.Handles.Fleet is
      (Fleet : Fleet_Handle)
       return Athena.Handles.Empire.Empire_Handle;
 
-   function Location
+   overriding function Location
+     (Fleet : Fleet_Handle)
+      return Athena.Movers.Mover_Location_Type;
+
+   overriding function Has_Destination
+     (Fleet : Fleet_Handle)
+      return Boolean;
+
+   overriding function Location_Star
      (Fleet : Fleet_Handle)
       return Athena.Handles.Star.Star_Handle;
 
-   function Has_Destination
+   overriding function Location_World
      (Fleet : Fleet_Handle)
-      return Boolean;
+      return Athena.Handles.World.World_Handle;
 
-   function Destination
+   overriding function System_Position
      (Fleet : Fleet_Handle)
-      return Athena.Handles.Star.Star_Handle
-     with Pre => Fleet.Has_Destination;
+      return Athena.Real_Arrays.Real_Vector;
 
-   function Is_Jumping
+   overriding function Origin_Star
      (Fleet : Fleet_Handle)
-      return Boolean;
+      return Athena.Handles.Star.Star_Handle;
 
-   function Progress
+   overriding function Destination_Star
      (Fleet : Fleet_Handle)
-      return Unit_Real
-     with Pre => Fleet.Has_Destination;
+      return Athena.Handles.Star.Star_Handle;
 
-   procedure Set_Destination
+   overriding function Destination_World
+     (Fleet : Fleet_Handle)
+      return Athena.Handles.World.World_Handle;
+
+   overriding function Progress
+     (Fleet : Fleet_Handle)
+      return Unit_Real;
+
+   procedure Move_To
      (Fleet       : Fleet_Handle;
-      Destination : Athena.Handles.Star.Star_Handle);
+      Destination : Athena.Handles.Star.Star_Handle)
+     with Pre => not Fleet.Is_Empty;
+
+   procedure Move_To
+     (Fleet       : Fleet_Handle;
+      Destination : Athena.Handles.World.World_Handle)
+     with Post => not Fleet.Is_Empty or else Fleet.At_World (Destination);
 
    function Is_Empty
      (Fleet : Fleet_Handle)
@@ -55,7 +82,7 @@ package Athena.Handles.Fleet is
 
    function Create
      (Name  : String;
-      Star  : Athena.Handles.Star.Star_Handle;
+      World : Athena.Handles.World.World_Handle;
       Owner : Athena.Handles.Empire.Empire_Handle)
      return Fleet_Handle;
 
@@ -86,7 +113,8 @@ private
 
    type Fleet_Handle is
      new Root_Athena_Handle
-     and Has_Name_Interface with
+     and Has_Name_Interface
+     and Athena.Movers.Mover_Interface with
       record
          Reference : Fleet_Reference := 0;
       end record;

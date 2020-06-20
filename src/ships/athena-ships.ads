@@ -3,6 +3,7 @@ with Athena.Money;
 with Athena.Handles.Empire;
 with Athena.Handles.Fleet;
 with Athena.Handles.Ship;
+with Athena.Handles.World;
 
 package Athena.Ships is
 

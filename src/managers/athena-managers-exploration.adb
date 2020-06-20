@@ -101,36 +101,31 @@ package body Athena.Managers.Exploration is
         (Available : in out Athena.Ships.Lists.List;
          To_Star   : Athena.Handles.Star.Star_Handle)
       is
-         Assigned : Athena.Ships.Lists.Cursor :=
-                      Athena.Ships.Lists.No_Element;
-         Closest  : Non_Negative_Real := Non_Negative_Real'Last;
+         Assigned : Athena.Handles.Ship.Ship_Handle :=
+                      Athena.Handles.Ship.Empty_Handle;
       begin
-         for Position in Available.Iterate loop
-            declare
-               D : constant Non_Negative_Real :=
-                     Athena.Stars.Distance
-                       (Athena.Ships.Lists.Element (Position).Star_Location,
-                        To_Star);
-            begin
-               if D < Closest then
-                  Closest := D;
-                  Assigned := Position;
-               end if;
-            end;
+         for Check of Available loop
+            if not Assigned.Has_Element
+              or else Check.Is_Closer (Assigned, To_Star)
+            then
+               Assigned := Check;
+            end if;
          end loop;
 
-         pragma Assert (Athena.Ships.Lists.Has_Element (Assigned),
+         pragma Assert (Assigned.Has_Element,
                         "expected a non-empty available list");
 
+         Manager.Log ("move " & Assigned.Name & " to " & To_Star.Name);
+         Athena.Handles.Ship.Actions.Move_To_Star (Assigned, To_Star);
+
          declare
-            Ship : constant Athena.Handles.Ship.Ship_Handle :=
-                     Athena.Ships.Lists.Element (Assigned);
+            Position : Athena.Ships.Lists.Cursor :=
+                         Available.Find (Assigned);
          begin
-            Manager.Log ("move " & Ship.Name & " to " & To_Star.Name);
-            Athena.Handles.Ship.Actions.Move_To (Ship, To_Star);
+            pragma Assert (Athena.Ships.Lists.Has_Element (Position));
+            Available.Delete (Position);
          end;
 
-         Available.Delete (Assigned);
       end Assign_Ship;
 
       ------------------------
@@ -142,10 +137,8 @@ package body Athena.Managers.Exploration is
          Nearest : Athena.Handles.Colony.Colony_Handle;
          Stop    : out Boolean)
       is
-         use type Athena.Handles.Star.Star_Handle;
          Closest : Athena.Handles.Ship.Ship_Handle :=
                      Athena.Handles.Ship.Empty_Handle;
-         Min_D   : Non_Negative_Real := Non_Negative_Real'Last;
       begin
          Stop := False;
          if Knowledge.Visited (Star) then
@@ -153,29 +146,24 @@ package body Athena.Managers.Exploration is
          end if;
 
          for Ship of Scout_Ships loop
-            if Ship.Destination = Star then
+            if Ship.Travelling_To (Star) then
                return;
             elsif Ship.Is_Idle then
-               if Ship.Star_Location = Nearest.Star then
+               if Ship.At_Star (Nearest.World.Star) then
                   Closest := Ship;
                   exit;
-               else
-                  declare
-                     D : constant Non_Negative_Real :=
-                           Athena.Stars.Distance (Ship.Star_Location, Star);
-                  begin
-                     if D < Min_D then
-                        Min_D := D;
-                        Closest := Ship;
-
-                     end if;
-                  end;
+               elsif not Closest.Has_Element
+                 or else Ship.Is_Closer (Closest, Star)
+               then
+                  Closest := Ship;
                end if;
             end if;
          end loop;
 
          if Closest.Has_Element then
-            Athena.Handles.Ship.Actions.Move_To (Closest, Star);
+            Athena.Handles.Ship.Actions.Move_To_Star
+              (Ship  => Closest,
+               Star  => Star);
          else
             Stop := True;
          end if;
@@ -275,26 +263,21 @@ package body Athena.Managers.Exploration is
          Nearest : Athena.Handles.Colony_Reference;
          Stop    : out Boolean)
       is
-         use type Athena.Handles.Star.Star_Handle;
          Colony : constant Athena.Handles.Colony.Colony_Handle :=
                     Athena.Handles.Colony.Get (Nearest);
          Score     : constant Non_Negative_Real :=
                        (Colony.Population + Colony.Industry)
-                       / Athena.Stars.Distance (Colony.Star, Star);
+                       / Athena.Stars.Distance (Colony.World.Star, Star);
          Is_Target : Boolean := False;
       begin
          if not Knowledge.Visited (Star) then
             for Ship of Scout_Ships loop
-               if Ship.Has_Destination
-                 and then Ship.Destination = Star
-               then
+               if Ship.Travelling_To (Star) then
                   Is_Target := True;
                   exit;
                end if;
 
-               if Ship.Has_Star_Location
-                 and then Ship.Star_Location = Star
-               then
+               if Ship.At_Star (Star) then
                   Is_Target := True;
                   exit;
                end if;

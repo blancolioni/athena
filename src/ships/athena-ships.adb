@@ -375,18 +375,19 @@ package body Athena.Ships is
       end Check_Relation;
 
    begin
+
       Encounter :=
         Athena.Handles.Encounter.Find_Active_Encounter
-          (Ship.Star_Location, Ship.Owner);
+          (Ship.Location_Star, Ship.Owner);
       if Encounter.Has_Element then
          Encounter.Add_Actor (Ship);
       else
-         Ship.Star_Location.Iterate_Orbiting_Ships (Check_Relation'Access);
+         Ship.Location_Star.Iterate_Ships (Check_Relation'Access);
 
          if Have_Encounter then
             Encounter :=
-              Athena.Handles.Encounter.Create (Ship.Star_Location);
-            Ship.Star_Location.Iterate_Orbiting_Ships (Add_Hostile'Access);
+              Athena.Handles.Encounter.Create (Ship.Location_Star);
+            Ship.Location_Star.Iterate_Ships (Add_Hostile'Access);
             Encounter.Add_Actor (Ship);
          end if;
       end if;

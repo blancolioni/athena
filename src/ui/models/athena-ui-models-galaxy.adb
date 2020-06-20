@@ -13,6 +13,8 @@ with Athena.Voronoi_Diagrams;
 with Athena.Server;
 with Athena.Signals;
 
+with Athena.Movers;
+
 with Athena.Empires;
 
 --  with Athena.Knowledge.Stars;
@@ -482,7 +484,7 @@ package body Athena.UI.Models.Galaxy is
       Model  : constant Galaxy_Model_Access :=
                  Model_User_Data (User_Data).Model;
    begin
-      Model.Data.Stars (Model.Data.Index_Map (Colony.Star.Name)).Color :=
+      Model.Data.Stars (Model.Data.Index_Map (Colony.World.Star.Name)).Color :=
         To_Nazar_Color (Colony.Owner.Color);
       Model.Draw_Galaxy;
       Model.Queue_Render;
@@ -652,11 +654,12 @@ package body Athena.UI.Models.Galaxy is
       procedure Add_Fleet
         (Fleet : Athena.Handles.Fleet.Fleet_Handle)
       is
+         use all type Athena.Movers.Mover_Location_Type;
       begin
-         if Fleet.Is_Jumping then
+         if Fleet.Location = Deep_Space then
             Add_Journey
-              (From     => Fleet.Location,
-               To       => Fleet.Destination,
+              (From     => Fleet.Origin_Star,
+               To       => Fleet.Destination_Star,
                Empire   => Fleet.Owner,
                Progress => Fleet.Progress,
                Size     => Non_Negative_Real (Fleet.Ship_Count));
@@ -699,11 +702,12 @@ package body Athena.UI.Models.Galaxy is
       procedure Add_Ship
         (Ship : Athena.Handles.Ship.Ship_Handle)
       is
+         use all type Athena.Movers.Mover_Location_Type;
       begin
-         if not Ship.Has_Fleet and then Ship.Is_Jumping then
+         if not Ship.Has_Fleet and then Ship.Location = Deep_Space then
             Add_Journey
-              (From     => Ship.Origin,
-               To       => Ship.Destination,
+              (From     => Ship.Origin_Star,
+               To       => Ship.Destination_Star,
                Empire   => Ship.Owner,
                Progress => Ship.Progress,
                Size     => 3.0); --  Ship.Design.Tonnage / 100.0);

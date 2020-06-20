@@ -75,16 +75,16 @@ package body Athena.Handles.Colony is
    package Colony_Lists is
      new Ada.Containers.Doubly_Linked_Lists (Colony_Reference);
 
-   package Star_Colony_Maps is
+   package World_Colony_Maps is
      new Ada.Containers.Ordered_Maps
-       (Star_Reference, Colony_Lists.List, "<", Colony_Lists."=");
+       (World_Reference, Colony_Lists.List, "<", Colony_Lists."=");
 
    package Empire_Colony_Maps is
      new Ada.Containers.Ordered_Maps
        (Empire_Reference, Colony_Lists.List, "<", Colony_Lists."=");
 
    Vector     : Colony_Vectors.Vector;
-   Star_Map   : Star_Colony_Maps.Map;
+   World_Map  : World_Colony_Maps.Map;
    Empire_Map : Empire_Colony_Maps.Map;
 
    procedure Update_Maps
@@ -394,16 +394,10 @@ package body Athena.Handles.Colony is
 
    begin
 
-      for Item of Athena.Handles.Production.All_Production loop
-         Production.Append (Production_Record'
-                              (Size       => 0.0,
-                               Employment => 0.0));
-      end loop;
-
       Vector.Append
         (Colony_Record'
            (Identifier    => Next_Identifier,
-            Star          => Star.Reference,
+            World         => World.Reference,
             Owner         => Owner.Reference,
             Founded       => Athena.Calendar.Clock,
             Next_Update   =>
@@ -453,7 +447,7 @@ package body Athena.Handles.Colony is
       Artisan_Pop   : Non_Negative_Real;
       Output_Per_Pop : constant Non_Negative_Real :=
                          0.01 * (if Is_Food
-                                 then Colony.Star.Habitability
+                                 then Colony.World.Habitability
                                  else 1.0);
    begin
 
@@ -632,7 +626,7 @@ package body Athena.Handles.Colony is
       return Non_Negative_Real
    is
    begin
-      return Colony.Star.Extract_Resource (Resource, Size);
+      return Colony.World.Extract_Resource (Resource, Size);
    end Extract_Resource;
 
    -----------------
@@ -733,24 +727,6 @@ package body Athena.Handles.Colony is
       Vector (Colony.Reference).Pop := Quantity;
    end Set_Population;
 
-   --------------------
-   -- Set_Production --
-   --------------------
-
-   procedure Set_Production
-     (Colony     : Colony_Handle;
-      Production : Athena.Handles.Production.Production_Handle;
-      Fraction   : Unit_Real)
-   is
-      Pop : constant Non_Negative_Real := Colony.Population * Fraction;
-      Size : constant Non_Negative_Real := Pop / Production.Employment;
-   begin
-      Vector (Colony.Reference).Production (Production.Reference) :=
-        Production_Record'
-          (Size       => Size,
-           Employment => Pop);
-   end Set_Production;
-
    ---------------
    -- Set_Stock --
    ---------------
@@ -804,14 +780,14 @@ package body Athena.Handles.Colony is
    is
       Rec : Colony_Record renames Vector (Colony);
    begin
-      if not Star_Map.Contains (Rec.Star) then
-         Star_Map.Insert (Rec.Star, Colony_Lists.Empty_List);
+      if not World_Map.Contains (Rec.World) then
+         World_Map.Insert (Rec.World, Colony_Lists.Empty_List);
       end if;
       if not Empire_Map.Contains (Rec.Owner) then
          Empire_Map.Insert (Rec.Owner, Colony_Lists.Empty_List);
       end if;
 
-      Star_Map (Rec.Star).Append (Vector.Last_Index);
+      World_Map (Rec.World).Append (Vector.Last_Index);
       Empire_Map (Rec.Owner).Append (Vector.Last_Index);
 
    end Update_Maps;

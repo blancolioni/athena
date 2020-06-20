@@ -555,7 +555,7 @@ package body Athena.Handles.Knowledge is
 
       Rec.Last_Visit := Current_Turn;
       Rec.Ships.Clear;
-      Star.Iterate_Orbiting_Ships (Add_Orbiting_Ship'Access);
+      Star.Iterate_Ships (Add_Orbiting_Ship'Access);
       Update_Star_Knowledge (Knowledge, Star.Reference, Rec);
       Star.Log
         ("visited by "

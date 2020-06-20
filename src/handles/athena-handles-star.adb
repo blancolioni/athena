@@ -30,6 +30,9 @@ package body Athena.Handles.Star is
    package Neighbour_Lists is
      new Ada.Containers.Doubly_Linked_Lists (Neighbour_Record);
 
+   package World_Lists is
+     new Ada.Containers.Doubly_Linked_Lists (World_Reference);
+
    package Ship_Lists is
      new Ada.Containers.Doubly_Linked_Lists (Ship_Reference);
 
@@ -43,7 +46,8 @@ package body Athena.Handles.Star is
          Occupier       : Empire_Reference;
          Core_Distance  : Non_Negative_Real;
          Neighbours     : Neighbour_Lists.List;
-         Orbiting_Ships : Ship_Lists.List;
+         Worlds         : World_Lists.List;
+         Ships          : Ship_Lists.List;
       end record;
 
    package Star_Vectors is
@@ -100,8 +104,20 @@ package body Athena.Handles.Star is
       Ship : Ship_Reference)
    is
    begin
-      Vector (Star.Reference).Orbiting_Ships.Append (Ship);
+      Vector (Star.Reference).Ships.Append (Ship);
    end Add_Ship;
+
+   ---------------
+   -- Add_World --
+   ---------------
+
+   procedure Add_World
+     (Star  : Star_Handle;
+      World : World_Reference)
+   is
+   begin
+      Vector (Star.Reference).Worlds.Append (World);
+   end Add_World;
 
    -------------------------
    -- Calculate_Distances --
@@ -214,7 +230,8 @@ package body Athena.Handles.Star is
             Occupier       => 0,
             Core_Distance  => Core_Distance,
             Neighbours     => <>,
-            Orbiting_Ships => <>));
+            Ships          => <>,
+            Worlds         => <>));
       Map.Insert (Name, Vector.Last_Index);
       return Star_Handle'
         (Has_Element => True,
@@ -314,20 +331,20 @@ package body Athena.Handles.Star is
       end loop;
    end Iterate_Nearest_Stars;
 
-   ----------------------------
-   -- Iterate_Orbiting_Ships --
-   ----------------------------
+   -------------------
+   -- Iterate_Ships --
+   -------------------
 
-   procedure Iterate_Orbiting_Ships
+   procedure Iterate_Ships
      (Star         : Star_Handle;
       Process      : not null access
         procedure (Reference : Ship_Reference))
    is
    begin
-      for Reference of Vector (Star.Reference).Orbiting_Ships loop
+      for Reference of Vector (Star.Reference).Ships loop
          Process (Reference);
       end loop;
-   end Iterate_Orbiting_Ships;
+   end Iterate_Ships;
 
    -------------------
    -- Iterate_Stars --
@@ -342,6 +359,21 @@ package body Athena.Handles.Star is
          Process (Get (Reference));
       end loop;
    end Iterate_Stars;
+
+   --------------------
+   -- Iterate_Worlds --
+   --------------------
+
+   procedure Iterate_Worlds
+     (Star         : Star_Handle;
+      Process      : not null access
+        procedure (Reference : World_Reference))
+   is
+   begin
+      for World of Vector (Star.Reference).Worlds loop
+         Process (World);
+      end loop;
+   end Iterate_Worlds;
 
    ----------
    -- Load --
@@ -367,13 +399,13 @@ package body Athena.Handles.Star is
    is
       use Ship_Lists;
       Rec : Star_Record renames Vector (Star.Reference);
-      Position : Cursor := Rec.Orbiting_Ships.Find (Ship);
+      Position : Cursor := Rec.Ships.Find (Ship);
    begin
       pragma Assert (Has_Element (Position),
                      "cannot remove ship" & Ship'Image
                      & " from " & Star.Name
                      & " because it is not there");
-      Rec.Orbiting_Ships.Delete (Position);
+      Rec.Ships.Delete (Position);
    end Remove_Ship;
 
    ----------------------

@@ -1,13 +1,12 @@
 with Athena.Ships;
-with Athena.Stars;
 
 with Athena.Ships.Lists;
 
 with Athena.Handles.Design;
 with Athena.Handles.Empire;
-with Athena.Handles.Fleet;
 with Athena.Handles.Ship.Actions;
 with Athena.Handles.Star;
+with Athena.Handles.World;
 
 package body Athena.Managers.Transportation is
 
@@ -26,15 +25,15 @@ package body Athena.Managers.Transportation is
      new Message_Type with
       record
          Empire   : Athena.Handles.Empire_Reference;
-         From     : Athena.Handles.Star_Reference;
-         To       : Athena.Handles.Star_Reference;
+         From     : Athena.Handles.World_Reference;
+         To       : Athena.Handles.World_Reference;
          Cargo    : Athena.Cargo.Cargo_Container;
          Priority : Athena.Handles.Order_Priority;
       end record;
 
    procedure Get_Transport
      (For_Empire : Athena.Handles.Empire.Empire_Handle;
-      From_Star  : Athena.Handles.Star.Star_Handle;
+      From_World : Athena.Handles.World.World_Handle;
       Cargo      : Athena.Cargo.Cargo_Container;
       Ships      : out Athena.Ships.Lists.List);
 
@@ -101,45 +100,46 @@ package body Athena.Managers.Transportation is
             Message : constant Transport_Message_Type :=
                         Transport_Message_Type
                           (Manager.Messages.First_Element);
-            From    : constant Athena.Handles.Star.Star_Handle :=
-                        Athena.Handles.Star.Get (Message.From);
+            From    : constant Athena.Handles.World.World_Handle :=
+                        Athena.Handles.World.Get (Message.From);
 
             function More_Convenient
               (Left, Right : Athena.Handles.Ship.Ship_Handle)
-               return Boolean;
+               return Boolean
+            is (Left.Is_Closer (Right, From));
 
             ---------------------
             -- More_Convenient --
             ---------------------
 
-            function More_Convenient
-              (Left, Right : Athena.Handles.Ship.Ship_Handle)
-               return Boolean
-            is
-               use type Athena.Handles.Star.Star_Handle;
-            begin
-               if Left.Has_Star_Location then
-                  if Left.Star_Location = From then
-                     return True;
-                  elsif Right.Has_Star_Location then
-                     if Right.Star_Location = From then
-                        return False;
-                     else
-                        return Athena.Stars.Distance (Left.Star_Location, From)
-                          < Athena.Stars.Distance (Right.Star_Location, From);
-                     end if;
-                  else
-                     return Right.Destination /= From;
-                  end if;
-               elsif Right.Has_Star_Location then
-                  return Right.Star_Location = From
-                    or else Left.Destination /= From;
-               elsif Left.Destination = From then
-                  return True;
-               else
-                  return False;
-               end if;
-            end More_Convenient;
+            --  function More_Convenient
+            --    (Left, Right : Athena.Handles.Ship.Ship_Handle)
+            --     return Boolean
+            --  is
+            --     use type Athena.Handles.Star.Star_Handle;
+            --  begin
+            --     if Left.Has_Star_Location then
+            --        if Left.Star_Location = From then
+            --           return True;
+            --        elsif Right.Has_Star_Location then
+            --           if Right.Star_Location = From then
+            --              return False;
+            --           else
+            --       return Athena.Stars.Distance (Left.Star_Location, From)
+            --             < Athena.Stars.Distance (Right.Star_Location, From);
+            --           end if;
+            --        else
+            --           return Right.Destination /= From;
+            --        end if;
+            --     elsif Right.Has_Star_Location then
+            --        return Right.Star_Location = From
+            --          or else Left.Destination /= From;
+            --     elsif Left.Destination = From then
+            --        return True;
+            --     else
+            --        return False;
+            --     end if;
+            --  end More_Convenient;
 
             package Ship_Sorting is
               new Athena.Ships.Lists.Generic_Sorting (More_Convenient);
@@ -149,15 +149,14 @@ package body Athena.Managers.Transportation is
             Manager.Messages.Delete_First;
 
             Get_Transport
-              (For_Empire => Empire,
-               From_Star  => From,
-               Cargo      => Message.Cargo,
-               Ships      => Ships);
+              (For_Empire  => Empire,
+               From_World  => From,
+               Cargo       => Message.Cargo,
+               Ships       => Ships);
 
             Ship_Sorting.Sort (Ships);
 
             declare
-               use type Athena.Handles.Star.Star_Handle;
                Container : Athena.Cargo.Cargo_Container :=
                              Message.Cargo;
             begin
@@ -178,9 +177,11 @@ package body Athena.Managers.Transportation is
                         Container.Remove (Ship);
 
                         if not Container.Is_Empty
-                          and then Ship.Star_Location /= From
+                          and then not Ship.At_World (From)
                         then
-                           Athena.Handles.Ship.Actions.Move_To (Ship, From);
+                           Athena.Handles.Ship.Actions.Move_To_World
+                             (Ship  => Ship,
+                              World => From);
                         end if;
 
                         declare
@@ -194,8 +195,10 @@ package body Athena.Managers.Transportation is
                            Container.Remove_Cargo (Cargo);
                         end;
 
-                        Athena.Handles.Ship.Actions.Move_To
-                          (Ship, Athena.Handles.Star.Get (Message.To));
+                        Athena.Handles.Ship.Actions.Move_To_World
+                          (Ship  => Ship,
+                           World =>
+                             Athena.Handles.World.Get (Message.To));
 
                         Ship.Add_Action
                           (Athena.Handles.Ship.Actions.Unload_Cargo
@@ -268,11 +271,11 @@ package body Athena.Managers.Transportation is
 
    procedure Get_Transport
      (For_Empire : Athena.Handles.Empire.Empire_Handle;
-      From_Star  : Athena.Handles.Star.Star_Handle;
+      From_World : Athena.Handles.World.World_Handle;
       Cargo      : Athena.Cargo.Cargo_Container;
       Ships      : out Athena.Ships.Lists.List)
    is
-      pragma Unreferenced (From_Star);
+      pragma Unreferenced (From_World);
 
       procedure Check_Available
         (Reference : Athena.Handles.Ship_Reference);
@@ -322,8 +325,8 @@ package body Athena.Managers.Transportation is
 
    function Transport_Message
      (Empire   : Athena.Handles.Empire_Reference;
-      From     : Athena.Handles.Star_Reference;
-      To       : Athena.Handles.Star_Reference;
+      From     : Athena.Handles.World_Reference;
+      To       : Athena.Handles.World_Reference;
       Cargo    : Athena.Cargo.Cargo_Container;
       Priority : Athena.Handles.Order_Priority)
       return Message_Type'Class

@@ -18,6 +18,7 @@ source_dir = src/ui
 source_dir = src/ui/nazar
 source_dir = src/ui/models
 source_dir = src/updates
+source_dir = src/worlds
 source_dir = src/voronoi
 depend = { project = Tropos version = any }
 depend = { project = Wlib version = any }

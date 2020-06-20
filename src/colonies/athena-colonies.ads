@@ -7,22 +7,6 @@ with Athena.Handles.Star;
 
 package Athena.Colonies is
 
-   procedure Produce_Material
-     (Colony   : Athena.Handles.Colony.Colony_Handle'Class;
-      Quantity : Non_Negative_Real);
-
-   function Can_Provide
-     (Colony      : Athena.Handles.Colony.Colony_Handle;
-      Construct   : Non_Negative_Real := 0.0;
-      Material    : Non_Negative_Real := 0.0)
-      return Boolean;
-
-   procedure Use_Assets
-     (Colony      : Athena.Handles.Colony.Colony_Handle;
-      Construct   : Non_Negative_Real := 0.0;
-      Material    : Non_Negative_Real := 0.0;
-      Description : String);
-
    procedure For_All_Colonies
      (Owned_By : Athena.Handles.Empire.Empire_Handle;
       Process  : not null access
@@ -46,7 +30,7 @@ package Athena.Colonies is
       return Athena.Handles.Colony.Colony_Handle;
 
    function Get_Colony
-     (At_Star : Athena.Handles.Star.Star_Handle)
+     (On_World : Athena.Handles.World.World_Handle)
       return Athena.Handles.Colony.Colony_Handle;
 
    procedure Capture_Colony

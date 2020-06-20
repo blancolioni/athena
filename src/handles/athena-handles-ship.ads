@@ -1,6 +1,9 @@
 with Ada.Streams.Stream_IO;
 
 with Athena.Cargo;
+with Athena.Movers;
+with Athena.Real_Arrays;
+with Athena.Trigonometry;
 
 with Athena.Updates;
 
@@ -8,6 +11,7 @@ with Athena.Handles.Design;
 with Athena.Handles.Empire;
 with Athena.Handles.Module;
 with Athena.Handles.Star;
+with Athena.Handles.World;
 
 package Athena.Handles.Ship is
 
@@ -18,6 +22,7 @@ package Athena.Handles.Ship is
      and Has_Name_Interface
      and Has_Identifier_Interface
      and Athena.Cargo.Cargo_Holder_Interface
+     and Athena.Movers.Mover_Interface
      and Athena.Updates.Update_Interface
    with private;
 
@@ -45,35 +50,39 @@ package Athena.Handles.Ship is
      (Ship : Ship_Handle)
       return Boolean;
 
-   function Has_Star_Location
+   overriding function Location
+     (Ship : Ship_Handle)
+      return Athena.Movers.Mover_Location_Type;
+
+   overriding function Has_Destination
      (Ship : Ship_Handle)
       return Boolean;
 
-   function Has_Deep_Space_Location
-     (Ship : Ship_Handle)
-      return Boolean;
-
-   function Is_Jumping
-     (Ship : Ship_Handle)
-      return Boolean;
-
-   function Has_Destination
-     (Ship : Ship_Handle)
-      return Boolean;
-
-   function Star_Location
+   overriding function Location_Star
      (Ship : Ship_Handle)
       return Athena.Handles.Star.Star_Handle;
 
-   function Origin
+   overriding function Location_World
+     (Ship : Ship_Handle)
+      return Athena.Handles.World.World_Handle;
+
+   overriding function System_Position
+     (Ship : Ship_Handle)
+      return Athena.Real_Arrays.Real_Vector;
+
+   overriding function Origin_Star
      (Ship : Ship_Handle)
       return Athena.Handles.Star.Star_Handle;
 
-   function Destination
+   overriding function Destination_Star
      (Ship : Ship_Handle)
       return Athena.Handles.Star.Star_Handle;
 
-   function Progress
+   overriding function Destination_World
+     (Ship : Ship_Handle)
+      return Athena.Handles.World.World_Handle;
+
+   overriding function Progress
      (Ship : Ship_Handle)
       return Unit_Real;
 
@@ -167,12 +176,11 @@ package Athena.Handles.Ship is
 
    function Create
      (Name        : String;
-      Star        : Athena.Handles.Star.Star_Handle;
+      World       : Athena.Handles.World.World_Handle;
       Owner       : Athena.Handles.Empire.Empire_Handle;
       Design      : Athena.Handles.Design.Design_Handle;
       Fleet       : Fleet_Reference;
       Manager     : Athena.Handles.Manager_Class;
-      Destination : Athena.Handles.Star.Star_Handle;
       Script      : String)
       return Ship_Handle;
 
@@ -195,6 +203,7 @@ private
      new Root_Athena_Handle
      and Has_Identifier_Interface
      and Athena.Cargo.Cargo_Holder_Interface
+     and Athena.Movers.Mover_Interface
      and Athena.Updates.Update_Interface
      and Has_Name_Interface with
       record
@@ -213,9 +222,7 @@ private
       return String
    is (Ship.Owner.Adjective & " ship "
        & Ship.Identifier & " " & Ship.Name
-       & (if Ship.Has_Star_Location
-          then " at " & Ship.Star_Location.Name
-          else " in deep space"));
+       & " " & Ship.Location_Name);
 
    overriding function Cargo_Space
      (Ship     : Ship_Handle;
@@ -242,20 +249,37 @@ private
       Item      : Athena.Cargo.Cargo_Interface'Class;
       Quantity  : Non_Negative_Real);
 
-   procedure Set_Star_Location
-     (Ship : Ship_Handle;
-      Star : Athena.Handles.Star.Star_Handle);
-
-   procedure Set_Destination
-     (Ship        : Ship_Handle;
-      Destination : Athena.Handles.Star.Star_Handle);
+   procedure Move_To_System_Space
+     (Ship : Ship_Handle)
+     with Pre => Ship.Location in Athena.Movers.World_Orbit;
 
    procedure Clear_Destination
      (Ship        : Ship_Handle);
 
+   procedure Set_Destination
+     (Ship  : Ship_Handle;
+      World : Athena.Handles.World.World_Handle)
+     with Pre => Ship.Location in Athena.Movers.System_Space;
+
+   procedure Set_Destination
+     (Ship  : Ship_Handle;
+      Star  : Athena.Handles.Star.Star_Handle)
+     with Pre => Ship.Location in Athena.Movers.Deep_Space;
+
    procedure Set_Activity
      (Ship     : Ship_Handle;
       Activity : Ship_Activity);
+
+   procedure Set_World_Location
+     (Ship  : Ship_Handle;
+      World : Athena.Handles.World.World_Handle);
+
+   procedure Set_Star_Location
+     (Ship  : Ship_Handle;
+      Star  : Athena.Handles.Star.Star_Handle;
+      Rho   : Non_Negative_Real;
+      Theta : Athena.Trigonometry.Angle;
+      Error : Non_Negative_Real);
 
    function Reference (Ship : Ship_Handle) return Ship_Reference
    is (Ship.Reference);

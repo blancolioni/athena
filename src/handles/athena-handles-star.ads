@@ -75,7 +75,7 @@ package Athena.Handles.Star is
      (Star  : Star_Handle;
       World : World_Reference);
 
-   procedure Iterate_Orbiting_Ships
+   procedure Iterate_Ships
      (Star         : Star_Handle;
       Process      : not null access
         procedure (Reference : Ship_Reference));

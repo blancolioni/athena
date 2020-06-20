@@ -13,7 +13,7 @@ package body Athena.Handles.Fleet is
       record
          Identifier  : Object_Identifier;
          Name        : Ada.Strings.Unbounded.Unbounded_String;
-         Star        : Star_Reference;
+         World       : World_Reference;
          Owner       : Empire_Reference;
          Ships       : Ship_Reference_Lists.List;
       end record;
@@ -51,29 +51,48 @@ package body Athena.Handles.Fleet is
       return Athena.Handles.Empire.Empire_Handle
    is (Athena.Handles.Empire.Get (Vector (Fleet.Reference).Owner));
 
-   function Location
+   overriding function Location
      (Fleet : Fleet_Handle)
-      return Athena.Handles.Star.Star_Handle
-   is (if Fleet.Is_Empty
-       then Athena.Handles.Star.Get (Vector (Fleet.Reference).Star)
-       else Fleet.First_Ship.Origin);
+      return Athena.Movers.Mover_Location_Type
+   is (if Fleet.Is_Empty then Athena.Movers.Nowhere
+       else Fleet.First_Ship.Location);
 
-   function Is_Jumping
-     (Fleet : Fleet_Handle)
-      return Boolean
-   is (not Fleet.Is_Empty and then Fleet.First_Ship.Is_Jumping);
-
-   function Has_Destination
+   overriding function Has_Destination
      (Fleet : Fleet_Handle)
       return Boolean
    is (not Fleet.Is_Empty and then Fleet.First_Ship.Has_Destination);
 
-   function Destination
+   overriding function Location_Star
      (Fleet : Fleet_Handle)
       return Athena.Handles.Star.Star_Handle
-   is (Fleet.First_Ship.Destination);
+   is (Fleet.First_Ship.Location_Star);
 
-   function Progress
+   overriding function Location_World
+     (Fleet : Fleet_Handle)
+      return Athena.Handles.World.World_Handle
+   is (Fleet.First_Ship.Location_World);
+
+   overriding function System_Position
+     (Fleet : Fleet_Handle)
+      return Athena.Real_Arrays.Real_Vector
+   is (Fleet.First_Ship.System_Position);
+
+   overriding function Origin_Star
+     (Fleet : Fleet_Handle)
+      return Athena.Handles.Star.Star_Handle
+   is (Fleet.First_Ship.Origin_Star);
+
+   overriding function Destination_Star
+     (Fleet : Fleet_Handle)
+      return Athena.Handles.Star.Star_Handle
+   is (Fleet.First_Ship.Destination_Star);
+
+   overriding function Destination_World
+     (Fleet : Fleet_Handle)
+      return Athena.Handles.World.World_Handle
+   is (Fleet.First_Ship.Destination_World);
+
+   overriding function Progress
      (Fleet : Fleet_Handle)
       return Unit_Real
    is (Fleet.First_Ship.Progress);
@@ -97,7 +116,7 @@ package body Athena.Handles.Fleet is
 
    function Create
      (Name  : String;
-      Star  : Athena.Handles.Star.Star_Handle;
+      World : Athena.Handles.World.World_Handle;
       Owner : Athena.Handles.Empire.Empire_Handle)
       return Fleet_Handle
    is
@@ -105,7 +124,7 @@ package body Athena.Handles.Fleet is
       Vector.Append
         (Fleet_Record'
            (Identifier    => Next_Identifier,
-            Star          => Star.Reference,
+            World         => World.Reference,
             Owner         => Owner.Reference,
             Name          => +Name,
             Ships         => <>));
@@ -151,6 +170,42 @@ package body Athena.Handles.Fleet is
       Fleet_Vectors.Vector'Read (Stream, Vector);
    end Load;
 
+   -------------
+   -- Move_To --
+   -------------
+
+   procedure Move_To
+     (Fleet       : Fleet_Handle;
+      Destination : Athena.Handles.Star.Star_Handle)
+   is
+   begin
+      for Ship_Ref of Vector (Fleet.Reference).Ships loop
+         Athena.Handles.Ship.Actions.Move_To_Star
+           (Ship => Athena.Handles.Ship.Get (Ship_Ref),
+            Star => Destination);
+      end loop;
+   end Move_To;
+
+   -------------
+   -- Move_To --
+   -------------
+
+   procedure Move_To
+     (Fleet       : Fleet_Handle;
+      Destination : Athena.Handles.World.World_Handle)
+   is
+   begin
+      if Fleet.Is_Empty then
+         Vector (Fleet.Reference).World := Destination.Reference;
+      else
+         for Ship_Ref of Vector (Fleet.Reference).Ships loop
+            Athena.Handles.Ship.Actions.Move_To_World
+              (Ship  => Athena.Handles.Ship.Get (Ship_Ref),
+               World => Destination);
+         end loop;
+      end if;
+   end Move_To;
+
    -----------------
    -- Remove_Ship --
    -----------------
@@ -178,26 +233,6 @@ package body Athena.Handles.Fleet is
       Fleet_Vectors.Vector'Write (Stream, Vector);
    end Save;
 
-   ---------------------
-   -- Set_Destination --
-   ---------------------
-
-   procedure Set_Destination
-     (Fleet       : Fleet_Handle;
-      Destination : Athena.Handles.Star.Star_Handle)
-   is
-   begin
-      if Fleet.Is_Empty then
-         Vector (Fleet.Reference).Star := Destination.Reference;
-      else
-         for Ship_Ref of Vector (Fleet.Reference).Ships loop
-            Athena.Handles.Ship.Actions.Move_To
-              (Ship => Athena.Handles.Ship.Get (Ship_Ref),
-               Star => Destination);
-         end loop;
-      end if;
-   end Set_Destination;
-
    --------------
    -- Set_Name --
    --------------
@@ -223,8 +258,8 @@ package body Athena.Handles.Fleet is
       return Fleet.Name & Fleet.Ship_Count'Image
         & " ships "
         & (if Fleet.Has_Destination
-           then "travelling to " & Fleet.Destination.Name
-           else " stationed at " & Fleet.Location.Name);
+           then "travelling to " & Fleet.Destination_Name
+           else " stationed at " & Fleet.Location_Name);
    end Short_Name;
 
 end Athena.Handles.Fleet;

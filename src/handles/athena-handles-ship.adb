@@ -24,33 +24,46 @@ package body Athena.Handles.Ship is
      new Ada.Containers.Doubly_Linked_Lists
        (Module_Reference);
 
+   subtype Position_Type is Athena.Real_Arrays.Real_Vector (1 .. 3);
+
    type Ship_Record is
       record
-         Identifier      : Object_Identifier;
-         Name            : Ada.Strings.Unbounded.Unbounded_String;
-         Alive           : Boolean;
-         Executing       : Boolean;
-         Experience      : Non_Negative_Real;
-         Managed         : Boolean;
-         Star            : Star_Reference;
-         Owner           : Empire_Reference;
-         Design          : Design_Reference;
-         Modules         : Module_Lists.List;
-         Drives          : Module_Lists.List;
-         Jump_Drive      : Module_Reference;
-         Power           : Module_Lists.List;
-         Tank_Size       : Non_Negative_Real;
-         Cargo_Space     : Non_Negative_Real;
-         Fleet           : Fleet_Reference;
-         Manager         : Athena.Handles.Manager_Class;
-         Destination     : Star_Reference;
-         Cargo           : Athena.Cargo.Cargo_Container;
-         Activity        : Ship_Activity;
-         Actions         : Ship_Action_Lists.List;
-         Action_Started  : Athena.Calendar.Time;
-         Action_Finished : Athena.Calendar.Time;
-         Next_Update     : Athena.Calendar.Time;
-         Script          : Ada.Strings.Unbounded.Unbounded_String;
+         Identifier        : Object_Identifier;
+         Name              : Ada.Strings.Unbounded.Unbounded_String;
+         Alive             : Boolean;
+         Executing         : Boolean;
+         Moving            : Boolean;
+         Managed           : Boolean;
+         Experience        : Non_Negative_Real;
+         Location          : Athena.Movers.Mover_Location_Type;
+         Star              : Star_Reference;
+         World             : World_Reference;
+         Position          : Position_Type;
+         Owner             : Empire_Reference;
+         Design            : Design_Reference;
+         Modules           : Module_Lists.List;
+         Drives            : Module_Lists.List;
+         Jump_Drive        : Module_Reference;
+         Power             : Module_Lists.List;
+         Tank_Size         : Non_Negative_Real;
+         Cargo_Space       : Non_Negative_Real;
+         Fleet             : Fleet_Reference;
+         Manager           : Athena.Handles.Manager_Class;
+         Origin_Star       : Star_Reference;
+         Origin_World      : World_Reference;
+         Origin_X          : Real;
+         Origin_Y          : Real;
+         Destination_X     : Real;
+         Destination_Y     : Real;
+         Destination_Star  : Star_Reference;
+         Destination_World : World_Reference;
+         Cargo             : Athena.Cargo.Cargo_Container;
+         Activity          : Ship_Activity;
+         Actions           : Ship_Action_Lists.List;
+         Action_Started    : Athena.Calendar.Time;
+         Action_Finished   : Athena.Calendar.Time;
+         Next_Update       : Athena.Calendar.Time;
+         Script            : Ada.Strings.Unbounded.Unbounded_String;
       end record;
 
    package Ship_Vectors is
@@ -100,40 +113,45 @@ package body Athena.Handles.Ship is
       return Manager_Class
    is (Vector (Ship.Reference).Manager);
 
-   function Has_Star_Location
+   overriding function Location
+     (Ship : Ship_Handle)
+      return Athena.Movers.Mover_Location_Type
+   is (Vector (Ship.Reference).Location);
+
+   overriding function Has_Destination
      (Ship : Ship_Handle)
       return Boolean
-   is (Vector (Ship.Reference).Destination = 0);
+   is (Vector (Ship.Reference).Moving);
 
-   function Has_Deep_Space_Location
-     (Ship : Ship_Handle)
-      return Boolean
-   is (Vector (Ship.Reference).Destination /= 0);
-
-   function Is_Jumping
-     (Ship : Ship_Handle)
-      return Boolean
-   is (Vector (Ship.Reference).Activity = Jumping);
-
-   function Has_Destination
-     (Ship : Ship_Handle)
-      return Boolean
-   is (Vector (Ship.Reference).Destination /= 0);
-
-   function Origin
+   overriding function Location_Star
      (Ship : Ship_Handle)
       return Athena.Handles.Star.Star_Handle
    is (Athena.Handles.Star.Get (Vector (Ship.Reference).Star));
 
-   function Star_Location
+   overriding function Location_World
      (Ship : Ship_Handle)
-      return Athena.Handles.Star.Star_Handle
-   is (Athena.Handles.Star.Get (Vector (Ship.Reference).Star));
+      return Athena.Handles.World.World_Handle
+   is (Athena.Handles.World.Get (Vector (Ship.Reference).World));
 
-   function Destination
+   overriding function System_Position
+     (Ship : Ship_Handle)
+      return Athena.Real_Arrays.Real_Vector
+   is (Vector (Ship.Reference).Position);
+
+   overriding function Origin_Star
      (Ship : Ship_Handle)
       return Athena.Handles.Star.Star_Handle
-   is (Athena.Handles.Star.Get (Vector (Ship.Reference).Destination));
+   is (Athena.Handles.Star.Get (Vector (Ship.Reference).Origin_Star));
+
+   overriding function Destination_Star
+     (Ship : Ship_Handle)
+      return Athena.Handles.Star.Star_Handle
+   is (Athena.Handles.Star.Get (Vector (Ship.Reference).Destination_Star));
+
+   overriding function Destination_World
+     (Ship : Ship_Handle)
+      return Athena.Handles.World.World_Handle
+   is (Athena.Handles.World.Get (Vector (Ship.Reference).Destination_World));
 
    function Has_Fleet
      (Ship : Ship_Handle)
@@ -325,7 +343,8 @@ package body Athena.Handles.Ship is
    is
       Rec : Ship_Record renames Vector (Ship.Reference);
    begin
-      Rec.Destination := 0;
+      Rec.Destination_Star := 0;
+      Rec.Destination_World := Null_World_Reference;
    end Clear_Destination;
 
    ------------
@@ -334,44 +353,54 @@ package body Athena.Handles.Ship is
 
    function Create
      (Name        : String;
-      Star        : Athena.Handles.Star.Star_Handle;
+      World       : Athena.Handles.World.World_Handle;
       Owner       : Athena.Handles.Empire.Empire_Handle;
       Design      : Athena.Handles.Design.Design_Handle;
       Fleet       : Fleet_Reference;
       Manager     : Athena.Handles.Manager_Class;
-      Destination : Athena.Handles.Star.Star_Handle;
       Script      : String)
       return Ship_Handle
    is
       use Athena.Calendar;
       Rec : Ship_Record :=
               Ship_Record'
-                (Identifier    => Next_Identifier,
-                 Name          => +Name,
-                 Alive         => True,
-                 Executing     => False,
-                 Experience    => 0.0,
-                 Managed       => True,
-                 Star          => Star.Reference,
-                 Owner         => Owner.Reference,
-                 Design        => Design.Reference,
-                 Modules       => <>,
-                 Drives        => <>,
-                 Jump_Drive    => Null_Module_Reference,
-                 Power         => <>,
-                 Tank_Size     => Design.Tank_Size,
-                 Cargo_Space   => Design.Free_Space,
-                 Cargo         => <>,
-                 Fleet         => Fleet,
-                 Manager       => Manager,
-                 Destination   => Destination.Reference,
-                 Next_Update   =>
+                (Identifier        => Next_Identifier,
+                 Name              => +Name,
+                 Alive             => True,
+                 Executing         => False,
+                 Managed           => True,
+                 Moving            => False,
+                 Experience        => 0.0,
+                 Location          => Athena.Movers.World_Orbit,
+                 World             => World.Reference,
+                 Star              => World.Star.Reference,
+                 Origin_Star       => Null_Star_Reference,
+                 Origin_World      => Null_World_Reference,
+                 Position          => (0.0, 0.0, 0.0),
+                 Origin_X          => 0.0,
+                 Origin_Y          => 0.0,
+                 Destination_X     => 0.0,
+                 Destination_Y     => 0.0,
+                 Destination_Star  => Null_Star_Reference,
+                 Destination_World => Null_World_Reference,
+                 Owner             => Owner.Reference,
+                 Design            => Design.Reference,
+                 Modules           => <>,
+                 Drives            => <>,
+                 Jump_Drive        => Null_Module_Reference,
+                 Power             => <>,
+                 Tank_Size         => Design.Tank_Size,
+                 Cargo_Space       => Design.Free_Space,
+                 Cargo             => <>,
+                 Fleet             => Fleet,
+                 Manager           => Manager,
+                 Next_Update       =>
                    Clock + Days (Athena.Random.Unit_Random),
-                 Action_Started  => Clock,
-                 Action_Finished => Clock,
-                 Actions         => <>,
-                 Activity        => Idle,
-                 Script        => +Script);
+                 Action_Started    => Clock,
+                 Action_Finished   => Clock,
+                 Actions           => <>,
+                 Activity          => Idle,
+                 Script            => +Script);
 
       procedure Add_Design_Module
         (Design_Module : Athena.Handles.Design_Module.Design_Module_Handle);
@@ -503,11 +532,25 @@ package body Athena.Handles.Ship is
       end loop;
    end Load;
 
+   --------------------------
+   -- Move_To_System_Space --
+   --------------------------
+
+   procedure Move_To_System_Space
+     (Ship : Ship_Handle)
+   is
+      Rec : Ship_Record renames Vector (Ship.Reference);
+   begin
+      Rec.Location := Athena.Movers.System_Space;
+      Rec.Position :=
+        Athena.Handles.World.Get (Rec.World).Current_Global_Position;
+   end Move_To_System_Space;
+
    --------------
    -- Progress --
    --------------
 
-   function Progress
+   overriding function Progress
      (Ship : Ship_Handle)
       return Unit_Real
    is
@@ -574,12 +617,40 @@ package body Athena.Handles.Ship is
    ---------------------
 
    procedure Set_Destination
-     (Ship        : Ship_Handle;
-      Destination : Athena.Handles.Star.Star_Handle)
+     (Ship  : Ship_Handle;
+      World : Athena.Handles.World.World_Handle)
+   is
+      Position : constant Athena.Real_Arrays.Real_Vector :=
+                   Ship.System_Position;
+      Target   : constant Athena.Real_Arrays.Real_Vector :=
+                   World.Current_Global_Position;
+      Rec      : Ship_Record renames Vector (Ship.Reference);
+   begin
+      Rec.Origin_X := Position (1);
+      Rec.Origin_Y := Position (2);
+      Rec.Destination_X := Target (1);
+      Rec.Destination_Y := Target (2);
+      Rec.Destination_World := World.Reference;
+   end Set_Destination;
+
+   ---------------------
+   -- Set_Destination --
+   ---------------------
+
+   procedure Set_Destination
+     (Ship : Ship_Handle;
+      Star : Athena.Handles.Star.Star_Handle)
    is
       Rec : Ship_Record renames Vector (Ship.Reference);
+      Origin : constant Athena.Handles.Star.Star_Handle :=
+                 Athena.Handles.Star.Get (Rec.Star);
    begin
-      Rec.Destination := Destination.Reference;
+      Rec.Origin_Star := Rec.Star;
+      Rec.Origin_X := Origin.X;
+      Rec.Origin_Y := Origin.Y;
+      Rec.Destination_X := Star.X;
+      Rec.Destination_Y := Star.Y;
+      Rec.Destination_Star := Star.Reference;
    end Set_Destination;
 
    ---------------
@@ -612,13 +683,39 @@ package body Athena.Handles.Ship is
    -----------------------
 
    procedure Set_Star_Location
-     (Ship : Ship_Handle;
-      Star : Athena.Handles.Star.Star_Handle)
+     (Ship  : Ship_Handle;
+      Star  : Athena.Handles.Star.Star_Handle;
+      Rho   : Non_Negative_Real;
+      Theta : Athena.Trigonometry.Angle;
+      Error : Non_Negative_Real)
+   is
+      X : constant Real := Rho * Athena.Trigonometry.Cos (Theta)
+            + (if Error = 0.0 then 0.0
+               else Athena.Random.Normal_Random (Error));
+      Y : constant Real := Rho * Athena.Trigonometry.Sin (Theta)
+            + (if Error = 0.0 then 0.0
+               else Athena.Random.Normal_Random (Error));
+      Rec : Ship_Record renames Vector (Ship.Reference);
+   begin
+      Rec.Location := Athena.Movers.System_Space;
+      Rec.Star := Star.Reference;
+      Rec.Position := (X, Y, 0.0);
+   end Set_Star_Location;
+
+   ------------------------
+   -- Set_World_Location --
+   ------------------------
+
+   procedure Set_World_Location
+     (Ship  : Ship_Handle;
+      World : Athena.Handles.World.World_Handle)
    is
       Rec : Ship_Record renames Vector (Ship.Reference);
    begin
-      Rec.Star := Star.Reference;
-   end Set_Star_Location;
+      Rec.Location := Athena.Movers.World_Orbit;
+      Rec.World := World.Reference;
+      Rec.Star := World.Star.Reference;
+   end Set_World_Location;
 
    ---------------------------
    -- Ship_Activity_Changed --

@@ -1,8 +1,5 @@
-with Athena.Logging;
-with Athena.Money;
 with Athena.Real_Images;
 
-with Athena.Empires;
 with Athena.Stars;
 
 with Athena.Cargo.Commodities;
@@ -10,14 +7,8 @@ with Athena.Handles.Commodity;
 
 package body Athena.Colonies is
 
-   Log_Use_Assets : constant Boolean := False;
-
    function Image (X : Real) return String
                    renames Athena.Real_Images.Approximate_Image;
-
-   procedure Log
-     (Colony : Athena.Handles.Colony.Colony_Handle;
-      Message : String);
 
    -----------------
    -- Best_Colony --
@@ -58,36 +49,6 @@ package body Athena.Colonies is
       return Result;
    end Best_Colony;
 
-   -----------------
-   -- Can_Provide --
-   -----------------
-
-   function Can_Provide
-     (Colony    : Athena.Handles.Colony.Colony_Handle;
-      Construct : Non_Negative_Real := 0.0;
-      Material  : Non_Negative_Real := 0.0)
-      return Boolean
-   is
-   begin
-      if Colony.Construct >= Construct
-        and then Colony.Material >= Material
-      then
-         return True;
-      end if;
-
-      if Colony.Construct < Construct then
-         return False;
-      end if;
-
-      declare
-         Used_Construct : constant Non_Negative_Real :=
-                            Material / Colony.Star.Resource;
-      begin
-         return Used_Construct + Construct <= Colony.Construct;
-      end;
-
-   end Can_Provide;
-
    --------------------
    -- Capture_Colony --
    --------------------
@@ -101,7 +62,7 @@ package body Athena.Colonies is
    begin
       Colony.Owner.Remove_Colony (Colony.Reference);
       Colony.Set_Owner (Captured_By);
-      Colony.Star.Set_Owner (Captured_By.Reference);
+      Colony.World.Set_Owner (Captured_By.Reference);
       Colony.Owner.Add_Colony (Colony.Reference);
       Athena.Handles.Colony.Colony_Owner_Changed
         (Colony    => Colony,
@@ -158,13 +119,16 @@ package body Athena.Colonies is
    ----------------
 
    function Get_Colony
-     (At_Star : Athena.Handles.Star.Star_Handle)
+     (On_World : Athena.Handles.World.World_Handle)
       return Athena.Handles.Colony.Colony_Handle
    is
    begin
-      return Athena.Handles.Colony.Get
-        (At_Star.Colony);
+      return Athena.Handles.Colony.Get (On_World.Colony);
    end Get_Colony;
+
+   ----------------------------
+   -- Load_Cargo_From_Colony --
+   ----------------------------
 
    procedure Load_Cargo_From_Colony
      (From  : Athena.Handles.Colony.Colony_Handle;
@@ -212,23 +176,6 @@ package body Athena.Colonies is
       end case;
    end Load_Cargo_From_Colony;
 
-   ---------
-   -- Log --
-   ---------
-
-   procedure Log
-     (Colony  : Athena.Handles.Colony.Colony_Handle;
-      Message : String)
-   is
-   begin
-      Athena.Logging.Log
-        (Colony.Owner.Name
-         & ": colony on "
-         & Colony.Star.Name
-         & ": "
-         & Message);
-   end Log;
-
    --------------------
    -- Nearest_Colony --
    --------------------
@@ -248,7 +195,7 @@ package body Athena.Colonies is
          Colony     : constant Athena.Handles.Colony.Colony_Handle :=
                         Athena.Handles.Colony.Get (Reference);
          D          : constant Non_Negative_Real :=
-                        Athena.Stars.Distance (Colony.Star, To_Star);
+                        Athena.Stars.Distance (Colony.World.Star, To_Star);
       begin
          if D < Distance then
             Distance := D;
@@ -266,7 +213,7 @@ package body Athena.Colonies is
    ----------------
 
    function New_Colony
-     (At_Star  : Athena.Handles.Star.Star_Handle;
+     (World    : Athena.Handles.World.World_Handle;
       Owner    : Athena.Handles.Empire.Empire_Handle;
       Pop      : Non_Negative_Real;
       Industry : Non_Negative_Real;
@@ -275,15 +222,16 @@ package body Athena.Colonies is
    is
       Colony : constant Athena.Handles.Colony.Colony_Handle :=
                  Athena.Handles.Colony.Create
-                   (Star       => At_Star,
+                   (World     => World,
                     Owner     => Owner,
-                    Pop        => Pop,
-                    Industry   => Industry,
-                    Material   => Material);
+                    Pop       => Pop,
+                    Industry  => Industry,
+                    Material  => Material);
    begin
       Colony.Log ("new colony");
-      At_Star.Set_Colony (Colony.Reference);
-      At_Star.Set_Owner (Owner.Reference);
+      World.Set_Colony (Colony.Reference);
+      World.Set_Owner (Owner.Reference);
+      World.Star.Set_Owner (Owner.Reference);
       Owner.Add_Colony (Colony.Reference);
       Athena.Handles.Colony.Colony_Owner_Changed
         (Colony    => Colony,
@@ -291,65 +239,6 @@ package body Athena.Colonies is
          New_Owner => Owner);
       return Colony;
    end New_Colony;
-
-   ----------------------
-   -- Produce_Material --
-   ----------------------
-
-   procedure Produce_Material
-     (Colony   : Athena.Handles.Colony.Colony_Handle'Class;
-      Quantity : Non_Negative_Real)
-   is
-      use Athena.Money;
-      Max : Non_Negative_Real := Quantity;
-   begin
-      Max := Real'Min (Max, Colony.Construct * Colony.Star.Resource);
-      --  Max := Real'Min (Max, To_Real (Colony.Empire.Cash));
-
-      declare
-         Produced      : constant Non_Negative_Real := Max;
-         New_Construct : constant Non_Negative_Real :=
-                           Real'Max
-                             (Colony.Construct
-                              - Produced / Colony.Star.Resource,
-                              0.0);
-         New_Material  : constant Non_Negative_Real :=
-                           Colony.Material + Produced;
-      begin
-         Colony.Log
-           ("ordered "
-            & Image (Quantity)
-            & " material"
-            & "; available construct "
-            & Image (Colony.Construct)
-            & " resource "
-            & Image (Colony.Star.Resource * 100.0) & "%"
-            & " cash "
-            & Athena.Money.Show (Colony.Owner.Cash)
-            & "; produced "
-            & Image (Produced)
-            & "; new material stock "
-            & Image (New_Material));
-
-         Colony.Set_Material (New_Material);
-         Colony.Set_Construct (New_Construct);
-         Athena.Empires.Pay (Colony.Owner, To_Money (Produced),
-                             "material production");
-      end;
-   exception
-      when others =>
-         Colony.Log
-           ("exception while producing material: max = "
-            & Image (Max)
-            & "; construct = "
-            & Image (Colony.Construct)
-            & "; cash = "
-            & Athena.Money.Show (Colony.Owner.Cash)
-            & "; resource = "
-            & Image (Colony.Star.Resource));
-         raise;
-
-   end Produce_Material;
 
    ----------------------------
    -- Unload_Cargo_To_Colony --
@@ -384,47 +273,5 @@ package body Athena.Colonies is
 
       end case;
    end Unload_Cargo_To_Colony;
-
-   ----------------
-   -- Use_Assets --
-   ----------------
-
-   procedure Use_Assets
-     (Colony      : Athena.Handles.Colony.Colony_Handle;
-      Construct   : Non_Negative_Real := 0.0;
-      Material    : Non_Negative_Real := 0.0;
-      Description : String)
-   is
-   begin
-
-      if Log_Use_Assets then
-         if Construct = 0.0 and then Material = 0.0 then
-            Log (Colony, "uses no assets for " & Description);
-         elsif Construct = 0.0 then
-            Log (Colony,
-                 "uses " & Image (Material) & " material for "
-                 & Description);
-         elsif Material = 0.0 then
-            Log (Colony,
-                 "uses " & Image (Construct) & " construct for "
-                 & Description);
-         else
-            Log (Colony,
-                 "uses " & Image (Construct) & " construct"
-                 & " and " & Image (Material) & " material for "
-                 & Description);
-         end if;
-      end if;
-
-      declare
-         New_Construct : constant Non_Negative_Real :=
-                           Real'Max (Colony.Construct - Construct, 0.0);
-         New_Material  : constant Non_Negative_Real :=
-                           Real'Max (Colony.Material - Material, 0.0);
-      begin
-         Colony.Set_Construct (New_Construct);
-         Colony.Set_Material (New_Material);
-      end;
-   end Use_Assets;
 
 end Athena.Colonies;
