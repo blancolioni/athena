@@ -59,4 +59,8 @@ package Athena.Orbits is
      (Item  : Orbiting_Interface'Class)
       return Orbital_Point;
 
+   --  function Current_Angle
+   --    (Item  : Orbiting_Interface'Class)
+   --     return Athena.Trigonometry.Angle;
+
 end Athena.Orbits;

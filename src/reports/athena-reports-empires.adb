@@ -104,33 +104,25 @@ package body Athena.Reports.Empires is
       ----------------
 
       procedure Add_Ship (Ref : Athena.Handles.Ship_Reference) is
-         use all type Athena.Movers.Mover_Location_Type;
          Ship : constant Athena.Handles.Ship.Ship_Handle :=
                     Athena.Handles.Ship.Get (Ref);
       begin
          Add_Row (Table);
          Add_Cell (Table, Ship.Name);
          Add_Cell (Table, Ship.Design.Name);
-
-         case Ship.Location is
-            when Nowhere =>
-               Add_Cell (Table, "Nowhere");
-            when Deep_Space =>
-               Add_Cell (Table, Ship.Origin_Star.Name);
-            when System_Space =>
-               Add_Cell (Table, Ship.Location_Star.Name);
-            when World_Orbit =>
-               Add_Cell (Table, Ship.Location_World.Name);
-         end case;
-
+         Add_Cell (Table, Ship.Location_Name);
          if Ship.Has_Destination then
-            Add_Cell (Table, Ship.Destination_World.Name);
+            Add_Cell (Table, Ship.Destination_Name);
          else
             Add_Cell (Table, "");
          end if;
 
          Add_Cell (Table, Ship.Current_Activity);
-         Add_Cell (Table, Image (Ship.Progress * 100.0) & "%");
+         if Ship.Has_Destination then
+            Add_Cell (Table, Image (Ship.Progress * 100.0) & "%");
+         else
+            Add_Cell (Table, "");
+         end if;
          Add_Cell (Table, Image (Athena.Ships.Tonnage (Ship)));
          Add_Cell (Table, Image (Athena.Ships.Mass (Ship)));
          Add_Cell (Table, Athena.Money.Show

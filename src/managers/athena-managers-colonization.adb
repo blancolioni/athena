@@ -129,25 +129,27 @@ package body Athena.Managers.Colonization is
 
          Star.Iterate_Worlds (Check_World'Access);
 
-         declare
-            Distance : constant Non_Negative_Real :=
-                         Athena.Stars.Distance
-                           (Star, Athena.Empires.Capital (Empire));
-            Rec : constant Target_Record :=
-                    Target_Record'
-                      (World => Best_World,
-                       Score => Best_Score / Distance ** 2);
-         begin
-            Manager.Log
-              ("colonization target " & Best_World.Name
-               & ": resource " & Image (Best_World.Resource * 100.0) & "%"
-               & "; habitability "
-               & Image (Best_World.Habitability * 100.0) & "%"
-               & "; space" & Best_World.Space'Image
-               & "; distance " & Image (Distance)
-               & "; colonization score " & Image (Rec.Score));
-            Targets.Append (Rec);
-         end;
+         if Best_World.Has_Element then
+            declare
+               Distance : constant Non_Negative_Real :=
+                            Athena.Stars.Distance
+                              (Star, Athena.Empires.Capital (Empire));
+               Rec      : constant Target_Record :=
+                            Target_Record'
+                              (World => Best_World,
+                               Score => Best_Score / Distance ** 2);
+            begin
+               Manager.Log
+                 ("colonization target " & Best_World.Name
+                  & ": resource " & Image (Best_World.Resource * 100.0) & "%"
+                  & "; habitability "
+                  & Image (Best_World.Habitability * 100.0) & "%"
+                  & "; space" & Best_World.Space'Image
+                  & "; distance " & Image (Distance)
+                  & "; colonization score " & Image (Rec.Score));
+               Targets.Append (Rec);
+            end;
+         end if;
 
       end Check_Colonization_Target;
 

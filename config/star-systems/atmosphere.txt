@@ -1,0 +1,202 @@
+H2 = {
+  formula = "H₂"
+  name = "Hydrogen"
+  weight = 2.0158
+  mp = 14.06
+  bp = 20.30
+  density = 0.0000899
+  abunde = 0.00125893
+  abunds = 27925.4
+  react = 1
+  max_ipp = 0
+}
+
+He = {
+   name = "Helium"
+   weight = 4.0026
+   mp = 3.46
+   bp = 4.2
+   density = 0.0001787
+   abunde = 0.00000000794328
+   abunds = 2722.7
+   react = 0
+   max_ipp_hg = 61000
+}
+
+CH4 = {
+   name = "Methane"
+   weight = 16
+   mp = 90.16
+   bp = 109.16
+   density = 0.010
+   abunde = 0.005
+   abunds = 0.0001
+   react = 1
+   max_ipp_ppm = 50000
+}
+
+NH3 = {
+   formula = "NH₃"
+   name = "Ammonia"
+   weight = 17
+   mp = 195.46
+   bp = 239.66
+   density = 0.001
+   abunde = 0.002
+   abunds = 0.0001
+   react = 1
+   max_ipp_ppm = 100
+}
+
+H2O = {
+   formula = "H₂O"
+   name = "Water Vapour"
+   weight = 18
+   mp = 273.16
+   bp = 373.16
+   density = 1
+   abunde = 0.03
+   abunds = 0.001
+   react = 0
+   max_ipp_hg = 0
+}
+
+Ne = {
+   name = "Neon"
+   weight = 20.17
+   mp = 24.53
+   bp = 27.10
+   density = 0.0009
+   abunde = 0.00000000501187
+   abunds = 0.000034435
+   react = 0
+   max_ipp_hg = 3900
+}
+
+N2 = {
+   formula = "N₂"
+   name = "Nitrogen"
+   weight = 28.0134
+   mp = 63.34
+   bp = 77.40
+   density = 0.0012506
+   abunde = 0.000099526
+   abunds = 3.13329
+   react = 0
+   max_ipp_hg = 2330
+}
+
+O2 = {
+   formula = "O₂"
+   name = "Oxygen"
+   weight = 31.9988
+   mp = 54.8
+   bp = 90.2
+   density = 0.001429
+   abunde = 0.501187
+   abunds = 23.8232
+   react = 10
+   max_ipp_hg = 400
+}
+
+F2 = {
+   formula = "F₂"
+   name = "Chlorine"
+   weight = 37.996
+   mp = 53.48
+   bp = 85.03
+   density = 0.001696
+   abunde = 0.501187
+   abunds = 23.8232
+   react = 10
+   max_ipp_hg = 400
+}
+
+
+AR = {
+   name = "Argon"
+   weight = 39.9480
+   mp = 84.00
+   bp = 87.30
+   density = 0.0017824
+   abunde = 0.00000316228
+   abunds = 0.100925
+   react = 0
+   max_ipp_hg = 1220
+}
+
+CO2 = {
+   formula = "CO₂"
+   name = "Carbon Dioxide"
+   weight = 44
+   mp = 194.66
+   bp = 194.66
+   density = 0.001
+   abunde = 0.002
+   abunds = 0.0001
+   react = 0
+   max_ipp_hg = 7
+}
+
+O3 = {
+   formula = "O₃"
+   name = "Ozone"
+   weight = 48
+   mp = 80.16
+   bp = 161.16
+   density = 0.001
+   abunde = 0.001
+   abunds = 0.000001
+   react = 2
+   max_ipp_ppm = 0.1
+}
+
+SO2 = {
+   formula = "SO₂"
+   name = "Sulphur Dioxide"
+   weight = 64.066
+   mp = 201
+   bp = 263
+   density = 2.6288
+   abunde = 0.001
+   abunds = 0.000001
+   react = 2
+   max_ipp_ppm = 0.1
+}
+
+Cl2 = {
+   formula = "Cl₂"
+   name = "Chlorine"
+   weight = 70.90
+   mp = 171.6
+   bp = 239.11
+   density = 0.0015625
+   abunde = 0.501187
+   abunds = 23.8232
+   react = 10
+   max_ipp_hg = 400
+}
+
+Kr = {
+   name = "Krypton"
+   weight = 83.8
+   mp = 116.60
+   bp = 119.70
+   density = 0.003708
+   abunde = 0.0000000001
+   abunds = 0.000044978
+   react = 0
+   max_ipp_hg = 350
+}
+
+Xe = {
+   name = "Xenon"
+   weight = 131.3
+   mp = 161.30
+   bp = 165.00
+   density = 0.00588
+   abunde = 0.0000000000316228
+   abunds = 0.00000469894
+   react = 0
+   max_ipp_hg = 160
+}

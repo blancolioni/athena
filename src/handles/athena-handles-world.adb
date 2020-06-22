@@ -7,6 +7,8 @@ with WL.String_Maps;
 with Athena.Elementary_Functions;
 with Athena.Logging;
 
+with Athena.Solar_System;
+
 package body Athena.Handles.World is
 
    type Deposit_Record is
@@ -18,27 +20,55 @@ package body Athena.Handles.World is
    package Deposit_Lists is
      new Ada.Containers.Doubly_Linked_Lists (Deposit_Record);
 
+   type Atmosphere_Component is
+      record
+         Gas : Atmospheric_Gas;
+         Partial : Unit_Real;
+      end record;
+
+   package Atmosphere_Component_Lists is
+     new Ada.Containers.Doubly_Linked_Lists (Atmosphere_Component);
+
    package Ship_Lists is
      new Ada.Containers.Doubly_Linked_Lists (Ship_Reference);
 
    type World_Record is
       record
-         Identifier     : Object_Identifier;
-         World_Name     : Ada.Strings.Unbounded.Unbounded_String;
-         Star           : Star_Reference;
-         Mass           : Non_Negative_Real;
-         Semimajor_Axis : Non_Negative_Real;
-         Epoch          : Athena.Calendar.Time;
-         Eccentricity   : Unit_Real;
-         Inclination    : Athena.Trigonometry.Angle;
-         Space          : Positive;
-         Resource       : Unit_Real;
-         Habitability   : Unit_Real;
-         Deposits       : Deposit_Lists.List;
-         Owner          : Empire_Reference;
-         Occupier       : Empire_Reference;
-         Colony         : Colony_Reference;
-         Orbiting_Ships : Ship_Lists.List;
+         Identifier          : Object_Identifier;
+         World_Name          : Ada.Strings.Unbounded.Unbounded_String;
+         Star                : Star_Reference;
+         Radius              : Non_Negative_Real;
+         Density             : Non_Negative_Real;
+         Rotation_Period     : Non_Negative_Real;
+         Tilt                : Athena.Trigonometry.Angle;
+         Seed                : Integer;
+         Semimajor_Axis      : Non_Negative_Real;
+         Epoch               : Athena.Calendar.Time;
+         Eccentricity        : Non_Negative_Real;
+         Inclination         : Athena.Trigonometry.Angle;
+         Period              : Non_Negative_Real;
+         Mass                : Non_Negative_Real;
+         Composition         : World_Composition;
+         Climate             : World_Climate;
+         Orbit_Zone          : Stellar_Orbit_Zone;
+         Gas_Giant           : Boolean;
+         Age                 : Non_Negative_Real;
+         Habitability        : Non_Negative_Real;
+         Surface_Pressure    : Non_Negative_Real;
+         Atmosphere          : Atmosphere_Component_Lists.List;
+         Average_Temperature : Non_Negative_Real;
+         Hydrosphere         : Non_Negative_Real;
+         Life                : Life_Complexity_Type;
+         Smoothness          : Natural;
+         Elevation_Range     : Natural;
+         Sea_Level           : Natural;
+         Space               : Natural;
+         Resource            : Unit_Real;
+         Deposits            : Deposit_Lists.List;
+         Owner               : Empire_Reference;
+         Occupier            : Empire_Reference;
+         Colony              : Colony_Reference;
+         Orbiting_Ships      : Ship_Lists.List;
       end record;
 
    package World_Vectors is
@@ -131,13 +161,26 @@ package body Athena.Handles.World is
       return Colony_Reference
    is (Vector (World.Reference).Colony);
 
+   -------------
+   -- Add_Gas --
+   -------------
+
+   procedure Add_Gas
+     (Handle           : World_Handle;
+      Gas              : Atmospheric_Gas;
+      Partial_Pressure : Unit_Real)
+   is
+   begin
+      Vector (Handle.Reference).Atmosphere.Append ((Gas, Partial_Pressure));
+   end Add_Gas;
+
    --------------
    -- Add_Ship --
    --------------
 
    procedure Add_Ship
      (World : World_Handle;
-      Ship : Ship_Reference)
+      Ship  : Ship_Reference)
    is
    begin
       Vector (World.Reference).Orbiting_Ships.Append (Ship);
@@ -148,16 +191,33 @@ package body Athena.Handles.World is
    ------------
 
    function Create
-     (Star           : Athena.Handles.Star.Star_Handle;
-      Mass           : Non_Negative_Real;
-      Semimajor_Axis : Non_Negative_Real;
-      Epoch          : Athena.Calendar.Time;
-      Eccentricity   : Unit_Real;
-      Inclination    : Athena.Trigonometry.Angle;
-      Name           : String;
-      Space          : Positive;
-      Resource       : Unit_Real;
-      Habitability   : Unit_Real)
+     (Star                : Athena.Handles.Star.Star_Handle;
+      Name                : String;
+      Radius              : Non_Negative_Real;
+      Density             : Non_Negative_Real;
+      Rotation_Period     : Non_Negative_Real;
+      Tilt                : Athena.Trigonometry.Angle;
+      Seed                : Integer;
+      Semimajor_Axis      : Non_Negative_Real;
+      Epoch               : Athena.Calendar.Time;
+      Eccentricity        : Non_Negative_Real;
+      Inclination         : Athena.Trigonometry.Angle;
+      Period              : Non_Negative_Real;
+      Mass                : Non_Negative_Real;
+      Composition         : World_Composition;
+      Climate             : World_Climate;
+      Orbit_Zone          : Stellar_Orbit_Zone;
+      Gas_Giant           : Boolean;
+      Age                 : Non_Negative_Real;
+      Habitability        : Non_Negative_Real;
+      Resource            : Unit_Real;
+      Surface_Pressure    : Non_Negative_Real;
+      Average_Temperature : Non_Negative_Real;
+      Hydrosphere         : Non_Negative_Real;
+      Life                : Life_Complexity_Type;
+      Smoothness          : Natural;
+      Elevation_Range     : Natural;
+      Sea_Level           : Natural)
       return World_Handle
    is
       Deposits : Deposit_Lists.List;
@@ -176,7 +236,8 @@ package body Athena.Handles.World is
             then
                declare
                   Quality : constant Non_Negative_Real :=
-                    Resource * Execute (Commodity.Deposit_Constraint);
+                              Resource
+                                * Execute (Commodity.Deposit_Constraint);
                begin
                   Athena.Logging.Log
                     ("world " & Name
@@ -196,23 +257,44 @@ package body Athena.Handles.World is
 
       Vector.Append
         (World_Record'
-           (Identifier     => Next_Identifier,
-            World_Name     => +Name,
-            Star           => Star.Reference,
-            Mass           => Mass,
-            Semimajor_Axis => Semimajor_Axis,
-            Epoch          => Epoch,
-            Eccentricity   => Eccentricity,
-            Inclination    => Inclination,
-            Space          => Space,
-            Resource       => Resource,
-            Habitability   => Habitability,
-            Deposits       => <>,
-            Owner          => Null_Empire_Reference,
-            Occupier       => Null_Empire_Reference,
-            Colony         => Null_Colony_Reference,
-            Orbiting_Ships => <>));
+           (Identifier          => Next_Identifier,
+            World_Name          => +Name,
+            Star                => Star.Reference,
+            Mass                => Mass,
+            Semimajor_Axis      => Semimajor_Axis,
+            Epoch               => Epoch,
+            Eccentricity        => Eccentricity,
+            Inclination         => Inclination,
+            Radius              => Radius,
+            Density             => Density,
+            Rotation_Period     => Rotation_Period,
+            Tilt                => Tilt,
+            Seed                => Seed,
+            Period              => Period,
+            Composition         => Composition,
+            Climate             => Climate,
+            Orbit_Zone          => Orbit_Zone,
+            Gas_Giant           => Gas_Giant,
+            Age                 => Age,
+            Habitability        => Habitability,
+            Surface_Pressure    => Surface_Pressure,
+            Atmosphere          => <>,
+            Average_Temperature => Average_Temperature,
+            Hydrosphere         => Hydrosphere,
+            Life                => Life,
+            Smoothness          => Smoothness,
+            Elevation_Range     => Elevation_Range,
+            Sea_Level           => Sea_Level,
+            Space               =>
+              Natural (Radius / Athena.Solar_System.Earth_Radius * 10_000.0),
+            Resource            => Resource,
+            Deposits            => <>,
+            Owner               => Null_Empire_Reference,
+            Occupier            => Null_Empire_Reference,
+            Colony              => Null_Colony_Reference,
+            Orbiting_Ships      => <>));
       Map.Insert (Name, Vector.Last_Index);
+      Star.Add_World (Vector.Last_Index);
       return World_Handle'
         (Has_Element => True,
          Reference   => Vector.Last_Index);
@@ -235,10 +317,11 @@ package body Athena.Handles.World is
             declare
                Quality : constant Non_Negative_Real := Item.Quality;
                Change  : constant Real :=
-                 (if Size <= 1.0
-                  then 0.0
-                  else Quality
-                    * Athena.Elementary_Functions.Log (Size) / 100000.0);
+                           (if Size <= 1.0
+                            then 0.0
+                            else Quality
+                            * Athena.Elementary_Functions.Log (Size)
+                            / 100000.0);
             begin
                return Extracted : constant Non_Negative_Real :=
                  Size * Change * 10000.0
@@ -300,7 +383,7 @@ package body Athena.Handles.World is
 
    procedure Iterate_Orbiting_Ships
      (World         : World_Handle;
-      Process      : not null access
+      Process       : not null access
         procedure (Reference : Ship_Reference))
    is
    begin
@@ -343,10 +426,10 @@ package body Athena.Handles.World is
 
    procedure Remove_Ship
      (World : World_Handle;
-      Ship : Ship_Reference)
+      Ship  : Ship_Reference)
    is
       use Ship_Lists;
-      Rec : World_Record renames Vector (World.Reference);
+      Rec      : World_Record renames Vector (World.Reference);
       Position : Cursor := Rec.Orbiting_Ships.Find (Ship);
    begin
       pragma Assert (Has_Element (Position),
@@ -391,7 +474,7 @@ package body Athena.Handles.World is
 
    procedure Set_Colony
      (World   : World_Handle;
-      Colony : Colony_Reference)
+      Colony  : Colony_Reference)
    is
    begin
       Vector (World.Reference).Colony := Colony;
@@ -403,7 +486,7 @@ package body Athena.Handles.World is
 
    procedure Set_Name
      (World     : World_Handle;
-      New_Name : String)
+      New_Name  : String)
    is
    begin
       Vector (World.Reference).World_Name := +New_Name;
@@ -415,7 +498,7 @@ package body Athena.Handles.World is
 
    procedure Set_Owner
      (World      : World_Handle;
-      New_Owner : Empire_Reference)
+      New_Owner  : Empire_Reference)
    is
    begin
       Vector (World.Reference).Owner := New_Owner;

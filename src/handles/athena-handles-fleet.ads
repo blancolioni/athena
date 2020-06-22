@@ -1,7 +1,5 @@
 with Ada.Streams.Stream_IO;
 
-with Athena.Real_Arrays;
-
 with Athena.Movers;
 
 with Athena.Handles.Ship;
@@ -28,35 +26,15 @@ package Athena.Handles.Fleet is
 
    overriding function Location
      (Fleet : Fleet_Handle)
-      return Athena.Movers.Mover_Location_Type;
+      return Athena.Movers.Mover_Location;
 
    overriding function Has_Destination
      (Fleet : Fleet_Handle)
       return Boolean;
 
-   overriding function Location_Star
+   overriding function Destination
      (Fleet : Fleet_Handle)
-      return Athena.Handles.Star.Star_Handle;
-
-   overriding function Location_World
-     (Fleet : Fleet_Handle)
-      return Athena.Handles.World.World_Handle;
-
-   overriding function System_Position
-     (Fleet : Fleet_Handle)
-      return Athena.Real_Arrays.Real_Vector;
-
-   overriding function Origin_Star
-     (Fleet : Fleet_Handle)
-      return Athena.Handles.Star.Star_Handle;
-
-   overriding function Destination_Star
-     (Fleet : Fleet_Handle)
-      return Athena.Handles.Star.Star_Handle;
-
-   overriding function Destination_World
-     (Fleet : Fleet_Handle)
-      return Athena.Handles.World.World_Handle;
+      return Athena.Movers.Mover_Location;
 
    overriding function Progress
      (Fleet : Fleet_Handle)

@@ -1,0 +1,6 @@
+mountains = { char = M color = { 200 200 200 } }
+hills = { char = "(" color = { 0 255 0 } }
+plain = { char = "." color = { 0 120 0 } }
+ocean = { water = yes char = "~" color = { 0 17 102 } }
+sea = { water = yes char = "~" color = { 0 153 221 } }
+rocky = { char = "^" color = { 40 40 0 } }

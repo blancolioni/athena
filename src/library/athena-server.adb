@@ -128,11 +128,12 @@ package body Athena.Server is
                   return;
                end if;
 
-               if Candidate.Space >= 2500
-                 and then Candidate.Resource > 0.5
-                 and then Candidate.Habitability > 0.5
-               then
-                  World := Candidate;
+               if Candidate.Habitability > 0.7 then
+                  if not World.Has_Element
+                    or else World.Habitability < Candidate.Habitability
+                  then
+                     World := Candidate;
+                  end if;
                end if;
             end Check_World;
 

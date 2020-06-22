@@ -131,7 +131,7 @@ package body Athena.Managers.Attack is
          Can_Launch : Boolean := True;
       begin
 
-         if Fleet.Location in System_Space | World_Orbit
+         if Fleet.Location.Loc_Type in System_Space | World_Orbit
            and then Fleet.Location_Star = Star
          then
             Fleet.Log ("already engaged");

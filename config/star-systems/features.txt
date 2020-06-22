@@ -1,0 +1,5 @@
+ice = { ice = yes colour = { 255 255 255 } }
+forest = { colour = { 38 106 46 } }
+desert = { colour = { 168 101 30 } }
+jungle = { colour = { 49 185 110 } }
+barren = { colour = { 237 201 175 } }

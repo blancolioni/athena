@@ -53,8 +53,10 @@ package body Athena.Handles.Fleet is
 
    overriding function Location
      (Fleet : Fleet_Handle)
-      return Athena.Movers.Mover_Location_Type
-   is (if Fleet.Is_Empty then Athena.Movers.Nowhere
+      return Athena.Movers.Mover_Location
+   is (if Fleet.Is_Empty
+       then (Athena.Movers.World_Orbit,
+             Athena.Handles.World.Get (Vector (Fleet.Reference).World))
        else Fleet.First_Ship.Location);
 
    overriding function Has_Destination
@@ -62,35 +64,10 @@ package body Athena.Handles.Fleet is
       return Boolean
    is (not Fleet.Is_Empty and then Fleet.First_Ship.Has_Destination);
 
-   overriding function Location_Star
+   overriding function Destination
      (Fleet : Fleet_Handle)
-      return Athena.Handles.Star.Star_Handle
-   is (Fleet.First_Ship.Location_Star);
-
-   overriding function Location_World
-     (Fleet : Fleet_Handle)
-      return Athena.Handles.World.World_Handle
-   is (Fleet.First_Ship.Location_World);
-
-   overriding function System_Position
-     (Fleet : Fleet_Handle)
-      return Athena.Real_Arrays.Real_Vector
-   is (Fleet.First_Ship.System_Position);
-
-   overriding function Origin_Star
-     (Fleet : Fleet_Handle)
-      return Athena.Handles.Star.Star_Handle
-   is (Fleet.First_Ship.Origin_Star);
-
-   overriding function Destination_Star
-     (Fleet : Fleet_Handle)
-      return Athena.Handles.Star.Star_Handle
-   is (Fleet.First_Ship.Destination_Star);
-
-   overriding function Destination_World
-     (Fleet : Fleet_Handle)
-      return Athena.Handles.World.World_Handle
-   is (Fleet.First_Ship.Destination_World);
+      return Athena.Movers.Mover_Location
+   is (Fleet.First_Ship.Destination);
 
    overriding function Progress
      (Fleet : Fleet_Handle)
@@ -259,7 +236,7 @@ package body Athena.Handles.Fleet is
         & " ships "
         & (if Fleet.Has_Destination
            then "travelling to " & Fleet.Destination_Name
-           else " stationed at " & Fleet.Location_Name);
+           else Fleet.Current_Location_Name);
    end Short_Name;
 
 end Athena.Handles.Fleet;

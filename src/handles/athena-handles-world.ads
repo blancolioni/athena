@@ -9,6 +9,24 @@ with Athena.Handles.Star;
 
 package Athena.Handles.World is
 
+   type World_Composition is
+     (Hydrogen, Gaseous, Ice, Rock, Rock_Ice, Rock_Iron);
+
+   type World_Climate is
+     (Airless, Desert, Iceball, Martian, Temperate, Venusian, Water, Jovian);
+
+   type Stellar_Orbit_Zone is
+     (Red, Yellow, Green, Blue, Black);
+
+   type Atmosphere_Class is
+     (None, Trace, Thin, Average, Dense);
+
+   type Atmospheric_Gas is
+     (Ar, Cl2, CH4, CO2, F2, H2, He, N2, NH3, O2, SO2);
+
+   type Life_Complexity_Type is
+     (No_Life, Prebiotic, Single_Celled, Plants, Multicellular);
+
    type World_Handle is
      new Root_Athena_Handle
      and Has_Identifier_Interface
@@ -80,17 +98,39 @@ package Athena.Handles.World is
       return Unit_Real;
 
    function Create
-     (Star           : Athena.Handles.Star.Star_Handle;
-      Mass           : Non_Negative_Real;
-      Semimajor_Axis : Non_Negative_Real;
-      Epoch          : Athena.Calendar.Time;
-      Eccentricity   : Unit_Real;
-      Inclination    : Athena.Trigonometry.Angle;
-      Name           : String;
-      Space          : Positive;
-      Resource       : Unit_Real;
-      Habitability   : Unit_Real)
+     (Star                : Athena.Handles.Star.Star_Handle;
+      Name                : String;
+      Radius              : Non_Negative_Real;
+      Density             : Non_Negative_Real;
+      Rotation_Period     : Non_Negative_Real;
+      Tilt                : Athena.Trigonometry.Angle;
+      Seed                : Integer;
+      Semimajor_Axis      : Non_Negative_Real;
+      Epoch               : Athena.Calendar.Time;
+      Eccentricity        : Non_Negative_Real;
+      Inclination         : Athena.Trigonometry.Angle;
+      Period              : Non_Negative_Real;
+      Mass                : Non_Negative_Real;
+      Composition         : World_Composition;
+      Climate             : World_Climate;
+      Orbit_Zone          : Stellar_Orbit_Zone;
+      Gas_Giant           : Boolean;
+      Age                 : Non_Negative_Real;
+      Habitability        : Non_Negative_Real;
+      Resource            : Unit_Real;
+      Surface_Pressure    : Non_Negative_Real;
+      Average_Temperature : Non_Negative_Real;
+      Hydrosphere         : Non_Negative_Real;
+      Life                : Life_Complexity_Type;
+      Smoothness          : Natural;
+      Elevation_Range     : Natural;
+      Sea_Level           : Natural)
       return World_Handle;
+
+   procedure Add_Gas
+     (Handle           : World_Handle;
+      Gas              : Atmospheric_Gas;
+      Partial_Pressure : Unit_Real);
 
    function Get_By_Name
      (Name : String)

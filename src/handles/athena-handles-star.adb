@@ -4,22 +4,45 @@ with Ada.Strings.Unbounded;
 
 with WL.String_Maps;
 
+with Tropos.Reader;
+
+with Athena.Color;
 with Athena.Elementary_Functions;
 
 with Athena.Solar_System;
 
+with Athena.Configure.Worlds;
+
+with Athena.Paths;
+
 package body Athena.Handles.Star is
 
-   Stored_Nearest_Count : constant := 24;
-
-   type Deposit_Record is
+   type Star_Info_Record is
       record
-         Resource : Commodity_Reference;
-         Quality  : Non_Negative_Real;
+         Solar_Masses : Non_Negative_Real;
+         Class        : Star_Spectral_Class;
+         Subclass     : Natural;
+         Surface_Temp : Non_Negative_Real;
+         Color        : Athena.Color.Athena_Color;
+         Radius       : Non_Negative_Real;
+         Luminosity   : Non_Negative_Real;
       end record;
 
-   package Deposit_Lists is
-     new Ada.Containers.Doubly_Linked_Lists (Deposit_Record);
+   package Star_Info_Lists is
+     new Ada.Containers.Doubly_Linked_Lists (Star_Info_Record);
+
+   Main_Sequence_Table : Star_Info_Lists.List;
+
+   procedure Read_Tables;
+
+   procedure Check_Tables;
+
+   function Brighten
+     (Color       : Athena.Color.Athena_Color;
+      Temperature : Non_Negative_Real)
+      return Athena.Color.Athena_Color;
+
+   Stored_Nearest_Count : constant := 24;
 
    type Neighbour_Record is
       record
@@ -38,16 +61,23 @@ package body Athena.Handles.Star is
 
    type Star_Record is
       record
-         Identifier     : Object_Identifier;
-         Star_Name      : Ada.Strings.Unbounded.Unbounded_String;
-         X, Y           : Real;
-         Mass           : Non_Negative_Real;
-         Owner          : Empire_Reference;
-         Occupier       : Empire_Reference;
-         Core_Distance  : Non_Negative_Real;
-         Neighbours     : Neighbour_Lists.List;
-         Worlds         : World_Lists.List;
-         Ships          : Ship_Lists.List;
+         Identifier        : Object_Identifier;
+         Star_Name         : Ada.Strings.Unbounded.Unbounded_String;
+         X, Y              : Real;
+         Generated         : Boolean;
+         Mass              : Non_Negative_Real;
+         Spectral_Class    : Star_Spectral_Class;
+         Spectral_Subclass : Natural;
+         Luminosity        : Non_Negative_Real;
+         Temperature       : Non_Negative_Real;
+         Age               : Non_Negative_Real;
+         Color             : Athena.Color.Athena_Color;
+         Owner             : Empire_Reference;
+         Occupier          : Empire_Reference;
+         Core_Distance     : Non_Negative_Real;
+         Neighbours        : Neighbour_Lists.List;
+         Worlds            : World_Lists.List;
+         Ships             : Ship_Lists.List;
       end record;
 
    package Star_Vectors is
@@ -95,6 +125,29 @@ package body Athena.Handles.Star is
       return Empire_Reference
    is (Vector (Star.Reference).Owner);
 
+   function Age
+     (Star : Star_Handle)
+      return Non_Negative_Real
+   is (Vector (Star.Reference).Age);
+
+   function Luminosity
+     (Star : Star_Handle)
+      return Non_Negative_Real
+   is (Vector (Star.Reference).Luminosity);
+
+   function Temperature
+     (Star : Star_Handle)
+      return Non_Negative_Real
+   is (Vector (Star.Reference).Temperature);
+
+   procedure Get_Main_Sequence_Info
+     (Solar_Masses : Non_Negative_Real;
+      Class        : out Athena.Handles.Star.Star_Spectral_Class;
+      Subclass     : out Natural;
+      Radius       : out Non_Negative_Real;
+      Luminosity   : out Non_Negative_Real;
+      Color        : out Athena.Color.Athena_Color);
+
    --------------
    -- Add_Ship --
    --------------
@@ -118,6 +171,25 @@ package body Athena.Handles.Star is
    begin
       Vector (Star.Reference).Worlds.Append (World);
    end Add_World;
+
+   --------------
+   -- Brighten --
+   --------------
+
+   function Brighten
+     (Color       : Athena.Color.Athena_Color;
+      Temperature : Non_Negative_Real)
+      return Athena.Color.Athena_Color
+   is
+      R : constant Real :=
+            Color.Red * Temperature * (0.0534 / 255.0) - (43.0 / 255.0);
+      G : constant Real :=
+            Color.Green * Temperature * (0.0628 / 255.0) - (77.0 / 255.0);
+      B : constant Real :=
+            Color.Blue * Temperature * (0.0735 / 255.0) - (115.0 / 255.0);
+   begin
+      return (Unit_Clamp (R), Unit_Clamp (G), Unit_Clamp (B), Color.Alpha);
+   end Brighten;
 
    -------------------------
    -- Calculate_Distances --
@@ -174,6 +246,17 @@ package body Athena.Handles.Star is
       end loop;
    end Calculate_Distances;
 
+   ------------------
+   -- Check_Tables --
+   ------------------
+
+   procedure Check_Tables is
+   begin
+      if Main_Sequence_Table.Is_Empty then
+         Read_Tables;
+      end if;
+   end Check_Tables;
+
    ------------
    -- Create --
    ------------
@@ -185,54 +268,60 @@ package body Athena.Handles.Star is
       Core_Distance : Non_Negative_Real)
       return Star_Handle
    is
-      --  Deposits : Deposit_Lists.List;
+      Class        : Star_Spectral_Class;
+      Subclass     : Natural;
+      Radius       : Non_Negative_Real;
+      Luminosity   : Non_Negative_Real;
+      Color        : Athena.Color.Athena_Color;
    begin
+
       if Map.Contains (Name) then
          raise Constraint_Error with
            "multiple stars called '" & Name & "'";
       end if;
 
-      --  declare
-      --     use Athena.Handles.Commodity;
-      --  begin
-      --     for Commodity of All_Commodities loop
-      --        if Commodity.Class = Athena.Handles.Commodity.Resource
-      --          and then not Commodity.Is_Abstract
-      --        then
-      --           declare
-      --              Quality : constant Non_Negative_Real :=
-      --                Resource * Execute (Commodity.Deposit_Constraint);
-      --           begin
-      --              Athena.Logging.Log
-      --                ("star " & Name
-      --                 & ": resource " & Image (Resource)
-      --                 & "; deposit "
-      --                 & Commodity.Tag
-      --                 & "; quality "
-      --                 & Image (Quality));
-      --              Deposits.Append
-      --                (Deposit_Record'
-      --                   (Resource => Commodity.Reference,
-      --                    Quality  => Quality));
-      --           end;
-      --        end if;
-      --     end loop;
-      --  end;
+      Get_Main_Sequence_Info
+        (Solar_Masses => Solar_Masses,
+         Class        => Class,
+         Subclass     => Subclass,
+         Radius       => Radius,
+         Luminosity   => Luminosity,
+         Color        => Color);
 
-      Vector.Append
-        (Star_Record'
-           (Identifier     => Next_Identifier,
-            Star_Name      => Ada.Strings.Unbounded.To_Unbounded_String (Name),
-            X              => X,
-            Y              => Y,
-            Mass           => Athena.Solar_System.Solar_Mass * Solar_Masses,
-            Owner          => 0,
-            Occupier       => 0,
-            Core_Distance  => Core_Distance,
-            Neighbours     => <>,
-            Ships          => <>,
-            Worlds         => <>));
-      Map.Insert (Name, Vector.Last_Index);
+      declare
+         use Athena.Elementary_Functions;
+         Temperature : constant Non_Negative_Real :=
+                         (Luminosity ** 0.25)
+                         * Athena.Solar_System.Solar_Surface_Temperature;
+         Age         : constant Non_Negative_Real :=
+                         1.0e10
+                           * Solar_Masses
+                         / Luminosity;
+      begin
+         Vector.Append
+           (Star_Record'
+              (Identifier        => Next_Identifier,
+               Star_Name         => +Name,
+               X                 => X,
+               Y                 => Y,
+               Generated         => False,
+               Mass              =>
+                 Athena.Solar_System.Solar_Mass * Solar_Masses,
+               Spectral_Class    => Class,
+               Spectral_Subclass => Subclass,
+               Luminosity        => Luminosity,
+               Temperature       => Temperature,
+               Age               => Age,
+               Color             => Color,
+               Owner             => 0,
+               Occupier          => 0,
+               Core_Distance     => Core_Distance,
+               Neighbours        => <>,
+               Ships             => <>,
+               Worlds            => <>));
+         Map.Insert (Name, Vector.Last_Index);
+      end;
+
       return Star_Handle'
         (Has_Element => True,
          Reference   => Vector.Last_Index);
@@ -314,6 +403,51 @@ package body Athena.Handles.Star is
       end return;
    end Get_By_Name;
 
+   ----------------------------
+   -- Get_Main_Sequence_Info --
+   ----------------------------
+
+   procedure Get_Main_Sequence_Info
+     (Solar_Masses : Non_Negative_Real;
+      Class        : out Athena.Handles.Star.Star_Spectral_Class;
+      Subclass     : out Natural;
+      Radius       : out Non_Negative_Real;
+      Luminosity   : out Non_Negative_Real;
+      Color        : out Athena.Color.Athena_Color)
+   is
+      use Star_Info_Lists;
+      Position : Cursor;
+   begin
+
+      Check_Tables;
+
+      Position := Main_Sequence_Table.First;
+
+      while Has_Element (Position) loop
+         declare
+            Info : constant Star_Info_Record := Element (Position);
+         begin
+            exit when Solar_Masses >= Info.Solar_Masses;
+         end;
+         Next (Position);
+      end loop;
+
+      if not Has_Element (Position) then
+         Position := Main_Sequence_Table.Last;
+      end if;
+
+      declare
+         Info : Star_Info_Record renames Element (Position);
+      begin
+         Class := Info.Class;
+         Subclass := Info.Subclass;
+         Radius := Info.Radius;
+         Luminosity := Info.Luminosity;
+         Color := Info.Color;
+      end;
+
+   end Get_Main_Sequence_Info;
+
    ---------------------------
    -- Iterate_Nearest_Stars --
    ---------------------------
@@ -370,6 +504,11 @@ package body Athena.Handles.Star is
         procedure (Reference : World_Reference))
    is
    begin
+      if not Vector (Star.Reference).Generated then
+         Athena.Configure.Worlds.Generate_Worlds (Star);
+         Vector (Star.Reference).Generated := True;
+      end if;
+
       for World of Vector (Star.Reference).Worlds loop
          Process (World);
       end loop;
@@ -388,6 +527,58 @@ package body Athena.Handles.Star is
          Map.Insert (-(Vector (I).Star_Name), I);
       end loop;
    end Load;
+
+   -----------------
+   -- Read_Tables --
+   -----------------
+
+   procedure Read_Tables is
+      Config : constant Tropos.Configuration :=
+                 Tropos.Reader.Read_CSV_Config
+                   (Athena.Paths.Config_File
+                      ("star-systems/star-classification.txt"),
+                    Header_Line   => True,
+                    Separator     => ';',
+                    Extend_Header => False);
+   begin
+      for Info_Config of Config loop
+         declare
+
+            function Get (Name : String) return Real
+            is (Real (Float'(Info_Config.Get (Name))));
+
+            Class        : constant String := Info_Config.Get ("type");
+            Surface_Temp : constant Real := Get ("surface-temp");
+            Radius       : constant Real := Get ("radius");
+            Mass         : constant Real := Get ("mass");
+            Luminosity   : constant Real := Get ("luminosity");
+            Red          : constant Natural := Info_Config.Get ("r");
+            Green        : constant Natural := Info_Config.Get ("g");
+            Blue         : constant Natural := Info_Config.Get ("b");
+            Color       : constant Athena.Color.Athena_Color :=
+                             Athena.Color.Athena_Color'
+                               (Red   => Real (Red) / 255.0,
+                                Green => Real (Green) / 255.0,
+                                Blue  => Real (Blue) / 255.0,
+                                Alpha => 1.0);
+            Info         : constant Star_Info_Record :=
+                             (Solar_Masses => Mass,
+                              Class        =>
+                                Star_Spectral_Class'Value
+                                  ((1 => Class (Class'First))),
+                              Subclass     =>
+                                Natural'Value
+                                  ((1 => Class (Class'First + 1))),
+                              Surface_Temp => Surface_Temp,
+                              Color       =>
+                                Brighten (Color, Surface_Temp),
+                              Radius       => Radius,
+                              Luminosity   => Luminosity);
+         begin
+            Main_Sequence_Table.Append (Info);
+         end;
+      end loop;
+   end Read_Tables;
 
    -----------------
    -- Remove_Ship --
@@ -460,5 +651,19 @@ package body Athena.Handles.Star is
    begin
       Vector (Star.Reference).Owner := New_Owner;
    end Set_Owner;
+
+   --------------------
+   -- Spectral_Class --
+   --------------------
+
+   function Spectral_Class
+     (Star : Star_Handle)
+      return String
+   is
+      Rec : Star_Record renames Vector (Star.Reference);
+   begin
+      return Star_Spectral_Class'Image (Rec.Spectral_Class)
+        & Character'Val (Character'Pos ('0') + Rec.Spectral_Subclass);
+   end Spectral_Class;
 
 end Athena.Handles.Star;

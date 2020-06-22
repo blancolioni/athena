@@ -7,7 +7,6 @@ with Athena.Handles.Colony;
 
 with Athena.Colonies;
 with Athena.Ships;
-with Athena.Stars;
 
 package body Athena.Handles.Ship.Actions is
 
@@ -29,8 +28,7 @@ package body Athena.Handles.Ship.Actions is
 
    overriding procedure On_Finished
      (Action : System_Departure_Action;
-      Ship   : Ship_Handle'Class)
-   is null;
+      Ship   : Ship_Handle'Class);
 
    type System_Arrival_Action is
      new Root_Ship_Action with
@@ -138,6 +136,10 @@ package body Athena.Handles.Ship.Actions is
                         Star.X - Ship.Location_Star.X);
    begin
 
+      Ship.Log
+        ("moving to star: rho = "
+         & Image (Rho / Athena.Solar_System.Earth_Orbit));
+
       Athena.Ships.Add_Refuel_Action (Ship);
 
       Ship.Add_Action
@@ -181,6 +183,19 @@ package body Athena.Handles.Ship.Actions is
    -----------------
 
    overriding procedure On_Finished
+     (Action : System_Departure_Action;
+      Ship   : Ship_Handle'Class)
+   is
+   begin
+      Ship.Log ("reached jump point");
+      Ship.Clear_Destination;
+   end On_Finished;
+
+   -----------------
+   -- On_Finished --
+   -----------------
+
+   overriding procedure On_Finished
      (Action : System_Arrival_Action;
       Ship   : Ship_Handle'Class)
    is
@@ -202,6 +217,28 @@ package body Athena.Handles.Ship.Actions is
       Ship   : Ship_Handle'Class)
    is
    begin
+
+      Ship.Log
+        ("exiting jump at " & Action.Destination.Name);
+
+      declare
+         use Athena.Trigonometry;
+         Rho   : constant Non_Negative_Real :=
+                   Athena.Solar_System.Earth_Orbit
+                     * Action.Destination.Mass
+                   / Athena.Solar_System.Solar_Mass
+                   * 10.0;
+         Theta : constant Angle :=
+                   Arctan
+                     (Action.Destination.Y - Ship.Deep_Space_Position (2),
+                      Action.Destination.X - Ship.Deep_Space_Position (1));
+      begin
+         Ship.Clear_Destination;
+         Ship.Set_Star_Location (Action.Destination, Rho, Theta, 0.0);
+      end;
+
+      Ship.Log
+        ("entering system " & Action.Destination.Name);
       Action.Destination.Add_Ship (Ship.Reference);
       Ship.Owner.Knowledge.Visit (Action.Destination);
    end On_Finished;
@@ -215,13 +252,12 @@ package body Athena.Handles.Ship.Actions is
       Ship   : Ship_Handle'Class)
       return Duration
    is
-      use type Athena.Movers.Mover_Location_Type;
    begin
 
       Ship.Log
         ("loading " & Action.Cargo.Content_Summary);
 
-      if Ship.Location /= Athena.Movers.World_Orbit
+      if not Ship.Orbiting_World
         or else not Ship.Location_World.Has_Owner
         or else Ship.Owner.Reference /= Ship.Location_World.Owner
       then
@@ -282,16 +318,16 @@ package body Athena.Handles.Ship.Actions is
          return 0.0;
       end if;
 
-      if not Ship.Travelling_To (Action.Destination) then
-         Ship.Log
-           ("departure: set destination to "
-            & Action.Destination.Name);
-         Ship.Set_Destination (Action.Destination);
+      Ship.Set_Activity (Departing);
+      if Ship.Orbiting_World then
+         Ship.Move_To_System_Space;
       end if;
 
-      Ship.Set_Activity (Departing);
+      Ship.Set_System_Space_Destination (Action.Rho, Action.Theta);
+
       return Athena.Calendar.Days
-        (10.0 / Athena.Ships.Get_Impulse_Speed (Ship));
+        (Ship.Current_Journey_Length / Athena.Solar_System.Earth_Orbit
+         / Athena.Ships.Get_Impulse_Speed (Ship));
    end Start;
 
    -----------
@@ -308,16 +344,14 @@ package body Athena.Handles.Ship.Actions is
          return 0.0;
       end if;
 
-      if not Ship.Has_Destination
-        or else not Ship.Travelling_To (Action.Destination)
-      then
-         return 0.0;
-      end if;
+      Ship.Location_Star.Remove_Ship (Ship.Reference);
+
+      Ship.Move_To_Deep_Space;
+      Ship.Set_Destination (Action.Destination);
 
       declare
          Total_Distance : constant Non_Negative_Real :=
-                            Athena.Stars.Distance
-                              (Ship.Origin_Star, Ship.Destination_Star);
+                            Ship.Current_Journey_Length;
          Speed          : constant Non_Negative_Real :=
                             Athena.Ships.Get_Jump_Speed (Ship);
          Journey_Time   : constant Duration :=
@@ -326,15 +360,14 @@ package body Athena.Handles.Ship.Actions is
                             Total_Distance / 1000.0;
       begin
 
-         Log (Ship,
-              "moving to "
-              & Ship.Destination_Star.Name
-              & ": distance " & Image (Total_Distance)
-              & "; jump speed " & Image (Speed)
-              & "; travel time " & Image (Total_Distance / Speed)
-              & " days");
+         Ship.Log
+           ("moving to "
+            & Action.Destination.Name
+            & ": distance " & Image (Total_Distance)
+            & "; jump speed " & Image (Speed)
+            & "; travel time " & Image (Total_Distance / Speed)
+            & " days");
 
-         Ship.Location_Star.Remove_Ship (Ship.Reference);
          Ship.Add_Experience (XP);
          Ship.Set_Activity (Jumping);
          return Journey_Time;

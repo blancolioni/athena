@@ -8,6 +8,7 @@ with Nazar.Colors;
 with Nazar.Main;
 
 with Athena.Color;
+with Athena.Real_Arrays;
 with Athena.Voronoi_Diagrams;
 
 with Athena.Server;
@@ -642,7 +643,7 @@ package body Athena.UI.Models.Galaxy is
         (Fleet : Athena.Handles.Fleet.Fleet_Handle);
 
       procedure Add_Journey
-        (From, To : Athena.Handles.Star.Star_Handle;
+        (From, To : Athena.Real_Arrays.Real_Vector;
          Empire   : Athena.Handles.Empire.Empire_Handle;
          Progress : Unit_Real;
          Size     : Non_Negative_Real);
@@ -654,12 +655,11 @@ package body Athena.UI.Models.Galaxy is
       procedure Add_Fleet
         (Fleet : Athena.Handles.Fleet.Fleet_Handle)
       is
-         use all type Athena.Movers.Mover_Location_Type;
       begin
-         if Fleet.Location = Deep_Space then
+         if Fleet.In_Deep_Space then
             Add_Journey
-              (From     => Fleet.Origin_Star,
-               To       => Fleet.Destination_Star,
+              (From     => Fleet.Deep_Space_Position,
+               To       => Fleet.Destination.Position,
                Empire   => Fleet.Owner,
                Progress => Fleet.Progress,
                Size     => Non_Negative_Real (Fleet.Ship_Count));
@@ -671,16 +671,16 @@ package body Athena.UI.Models.Galaxy is
       -----------------
 
       procedure Add_Journey
-        (From, To : Athena.Handles.Star.Star_Handle;
+        (From, To : Athena.Real_Arrays.Real_Vector;
          Empire   : Athena.Handles.Empire.Empire_Handle;
          Progress : Unit_Real;
          Size     : Non_Negative_Real)
       is
          use Nazar;
-         X1       : constant Real := From.X;
-         Y1       : constant Real := From.Y;
-         X2       : constant Real := To.X;
-         Y2       : constant Real := To.Y;
+         X1       : constant Real := From (1);
+         Y1       : constant Real := From (2);
+         X2       : constant Real := To (1);
+         Y2       : constant Real := To (2);
          Rec      : constant Journey_Record :=
                       Journey_Record'
                         (Empire   => Empire,
@@ -702,12 +702,11 @@ package body Athena.UI.Models.Galaxy is
       procedure Add_Ship
         (Ship : Athena.Handles.Ship.Ship_Handle)
       is
-         use all type Athena.Movers.Mover_Location_Type;
       begin
-         if not Ship.Has_Fleet and then Ship.Location = Deep_Space then
+         if not Ship.Has_Fleet and then Ship.In_Deep_Space then
             Add_Journey
-              (From     => Ship.Origin_Star,
-               To       => Ship.Destination_Star,
+              (From     => Ship.Deep_Space_Position,
+               To       => Ship.Destination.Position,
                Empire   => Ship.Owner,
                Progress => Ship.Progress,
                Size     => 3.0); --  Ship.Design.Tonnage / 100.0);

@@ -6,6 +6,8 @@ with Athena.Handles.Commodity;
 
 package Athena.Handles.Star is
 
+   type Star_Spectral_Class is (O, B, A, F, G, K, M);
+
    type Star_Handle is
      new Root_Athena_Handle
      and Has_Identifier_Interface
@@ -24,6 +26,22 @@ package Athena.Handles.Star is
    procedure Set_Name
      (Star     : Star_Handle;
       New_Name : String);
+
+   function Spectral_Class
+     (Star : Star_Handle)
+      return String;
+
+   function Age
+     (Star : Star_Handle)
+      return Non_Negative_Real;
+
+   function Luminosity
+     (Star : Star_Handle)
+      return Non_Negative_Real;
+
+   function Temperature
+     (Star : Star_Handle)
+      return Non_Negative_Real;
 
    function Has_Owner
      (Star : Star_Handle)

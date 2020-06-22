@@ -2,7 +2,6 @@ with Ada.Streams.Stream_IO;
 
 with Athena.Cargo;
 with Athena.Movers;
-with Athena.Real_Arrays;
 with Athena.Trigonometry;
 
 with Athena.Updates;
@@ -52,35 +51,15 @@ package Athena.Handles.Ship is
 
    overriding function Location
      (Ship : Ship_Handle)
-      return Athena.Movers.Mover_Location_Type;
+      return Athena.Movers.Mover_Location;
 
    overriding function Has_Destination
      (Ship : Ship_Handle)
       return Boolean;
 
-   overriding function Location_Star
+   overriding function Destination
      (Ship : Ship_Handle)
-      return Athena.Handles.Star.Star_Handle;
-
-   overriding function Location_World
-     (Ship : Ship_Handle)
-      return Athena.Handles.World.World_Handle;
-
-   overriding function System_Position
-     (Ship : Ship_Handle)
-      return Athena.Real_Arrays.Real_Vector;
-
-   overriding function Origin_Star
-     (Ship : Ship_Handle)
-      return Athena.Handles.Star.Star_Handle;
-
-   overriding function Destination_Star
-     (Ship : Ship_Handle)
-      return Athena.Handles.Star.Star_Handle;
-
-   overriding function Destination_World
-     (Ship : Ship_Handle)
-      return Athena.Handles.World.World_Handle;
+      return Athena.Movers.Mover_Location;
 
    overriding function Progress
      (Ship : Ship_Handle)
@@ -222,7 +201,7 @@ private
       return String
    is (Ship.Owner.Adjective & " ship "
        & Ship.Identifier & " " & Ship.Name
-       & " " & Ship.Location_Name);
+       & " " & Ship.Current_Location_Name);
 
    overriding function Cargo_Space
      (Ship     : Ship_Handle;
@@ -251,7 +230,20 @@ private
 
    procedure Move_To_System_Space
      (Ship : Ship_Handle)
-     with Pre => Ship.Location in Athena.Movers.World_Orbit;
+     with Pre => Ship.Orbiting_World;
+
+   procedure Move_To_Deep_Space
+     (Ship : Ship_Handle)
+     with Pre => Ship.In_System_Space;
+
+   procedure Set_System_Space_Destination
+     (Ship  : Ship_Handle;
+      Rho   : Non_Negative_Real;
+      Theta : Athena.Trigonometry.Angle);
+
+   --  procedure Set_Deep_Space_Destination
+   --    (Ship  : Ship_Handle;
+   --     X, Y  : Real);
 
    procedure Clear_Destination
      (Ship        : Ship_Handle);
@@ -259,12 +251,12 @@ private
    procedure Set_Destination
      (Ship  : Ship_Handle;
       World : Athena.Handles.World.World_Handle)
-     with Pre => Ship.Location in Athena.Movers.System_Space;
+     with Pre => Ship.In_System_Space;
 
    procedure Set_Destination
      (Ship  : Ship_Handle;
       Star  : Athena.Handles.Star.Star_Handle)
-     with Pre => Ship.Location in Athena.Movers.Deep_Space;
+     with Pre => Ship.In_Deep_Space;
 
    procedure Set_Activity
      (Ship     : Ship_Handle;
