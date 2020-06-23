@@ -1,5 +1,6 @@
 with Ada.Streams.Stream_IO;
 
+with Athena.Color;
 with Athena.Orbits;
 
 with Athena.Handles.Commodity;
@@ -30,6 +31,10 @@ package Athena.Handles.Star is
    function Spectral_Class
      (Star : Star_Handle)
       return String;
+
+   function Color
+     (Star : Star_Handle)
+      return Athena.Color.Athena_Color;
 
    function Age
      (Star : Star_Handle)

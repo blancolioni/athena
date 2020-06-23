@@ -1,6 +1,5 @@
 with Ada.Streams.Stream_IO;
 
-with Athena.Calendar;
 with Athena.Orbits;
 with Athena.Trigonometry;
 
@@ -37,6 +36,10 @@ package Athena.Handles.World is
    function Get (Reference : World_Reference) return World_Handle;
 
    function Empty_Handle return World_Handle;
+
+   function Radius
+     (Handle   : World_Handle)
+      return Non_Negative_Real;
 
    function Resource_Quality
      (Handle   : World_Handle;
@@ -106,7 +109,7 @@ package Athena.Handles.World is
       Tilt                : Athena.Trigonometry.Angle;
       Seed                : Integer;
       Semimajor_Axis      : Non_Negative_Real;
-      Epoch               : Athena.Calendar.Time;
+      Zero_Time_Angle     : Athena.Trigonometry.Angle;
       Eccentricity        : Non_Negative_Real;
       Inclination         : Athena.Trigonometry.Angle;
       Period              : Non_Negative_Real;
@@ -190,9 +193,9 @@ private
      (World : World_Handle)
       return Non_Negative_Real;
 
-   overriding function Epoch
+   overriding function Zero_Time_Angle
      (World : World_Handle)
-      return Athena.Calendar.Time;
+      return Athena.Trigonometry.Angle;
 
    overriding function Primary
      (World : World_Handle)

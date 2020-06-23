@@ -43,7 +43,7 @@ package body Athena.Handles.World is
          Tilt                : Athena.Trigonometry.Angle;
          Seed                : Integer;
          Semimajor_Axis      : Non_Negative_Real;
-         Epoch               : Athena.Calendar.Time;
+         Zero_Time_Angle     : Athena.Trigonometry.Angle;
          Eccentricity        : Non_Negative_Real;
          Inclination         : Athena.Trigonometry.Angle;
          Period              : Non_Negative_Real;
@@ -106,10 +106,10 @@ package body Athena.Handles.World is
       return Non_Negative_Real
    is (Vector (World.Reference).Semimajor_Axis);
 
-   overriding function Epoch
+   overriding function Zero_Time_Angle
      (World : World_Handle)
-      return Athena.Calendar.Time
-   is (Vector (World.Reference).Epoch);
+      return Athena.Trigonometry.Angle
+   is (Vector (World.Reference).Zero_Time_Angle);
 
    overriding function Primary
      (World : World_Handle)
@@ -125,6 +125,11 @@ package body Athena.Handles.World is
      (World : World_Handle)
       return Athena.Trigonometry.Angle
    is (Vector (World.Reference).Inclination);
+
+   function Radius
+     (Handle   : World_Handle)
+      return Non_Negative_Real
+   is (Vector (Handle.Reference).Radius);
 
    function Has_Owner
      (World : World_Handle)
@@ -199,7 +204,7 @@ package body Athena.Handles.World is
       Tilt                : Athena.Trigonometry.Angle;
       Seed                : Integer;
       Semimajor_Axis      : Non_Negative_Real;
-      Epoch               : Athena.Calendar.Time;
+      Zero_Time_Angle     : Athena.Trigonometry.Angle;
       Eccentricity        : Non_Negative_Real;
       Inclination         : Athena.Trigonometry.Angle;
       Period              : Non_Negative_Real;
@@ -262,7 +267,7 @@ package body Athena.Handles.World is
             Star                => Star.Reference,
             Mass                => Mass,
             Semimajor_Axis      => Semimajor_Axis,
-            Epoch               => Epoch,
+            Zero_Time_Angle     => Zero_Time_Angle,
             Eccentricity        => Eccentricity,
             Inclination         => Inclination,
             Radius              => Radius,

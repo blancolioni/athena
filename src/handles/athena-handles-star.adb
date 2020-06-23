@@ -6,7 +6,6 @@ with WL.String_Maps;
 
 with Tropos.Reader;
 
-with Athena.Color;
 with Athena.Elementary_Functions;
 
 with Athena.Solar_System;
@@ -114,6 +113,11 @@ package body Athena.Handles.Star is
      (Star : Star_Handle)
       return Real
    is (Vector (Star.Reference).Y);
+
+   function Color
+     (Star : Star_Handle)
+      return Athena.Color.Athena_Color
+   is (Vector (Star.Reference).Color);
 
    function Has_Owner
      (Star : Star_Handle)
@@ -304,7 +308,7 @@ package body Athena.Handles.Star is
                Star_Name         => +Name,
                X                 => X,
                Y                 => Y,
-               Generated         => False,
+               Generated         => True,
                Mass              =>
                  Athena.Solar_System.Solar_Mass * Solar_Masses,
                Spectral_Class    => Class,
@@ -322,9 +326,12 @@ package body Athena.Handles.Star is
          Map.Insert (Name, Vector.Last_Index);
       end;
 
-      return Star_Handle'
+      return Star : constant Star_Handle := Star_Handle'
         (Has_Element => True,
-         Reference   => Vector.Last_Index);
+         Reference   => Vector.Last_Index)
+      do
+         Athena.Configure.Worlds.Generate_Worlds (Star);
+      end return;
 
    end Create;
 

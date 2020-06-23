@@ -230,8 +230,8 @@ package body Athena.Handles.Ship.Actions is
                    * 10.0;
          Theta : constant Angle :=
                    Arctan
-                     (Action.Destination.Y - Ship.Deep_Space_Position (2),
-                      Action.Destination.X - Ship.Deep_Space_Position (1));
+                     (Ship.Deep_Space_Position (2) - Action.Destination.Y,
+                      Ship.Deep_Space_Position (1) - Action.Destination.X);
       begin
          Ship.Clear_Destination;
          Ship.Set_Star_Location (Action.Destination, Rho, Theta, 0.0);
@@ -448,8 +448,10 @@ package body Athena.Handles.Ship.Actions is
    is
    begin
       Ship.Set_Activity (Arriving);
+      Ship.Set_Destination (Athena.Handles.World.Get (Action.World));
       return Athena.Calendar.Days
-        (10.0 / Athena.Ships.Get_Impulse_Speed (Ship));
+        (Ship.Current_Journey_Length / Athena.Solar_System.Earth_Orbit
+         / Athena.Ships.Get_Impulse_Speed (Ship));
    end Start;
 
    ------------------

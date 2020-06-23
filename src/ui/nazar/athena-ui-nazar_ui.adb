@@ -11,7 +11,10 @@ with Nazar.Views.Draw;
 with Nazar.Main;
 with Nazar.Signals;
 
+with Athena.Handles.Colony;
+
 with Athena.UI.Models.Galaxy;
+with Athena.UI.Models.Stars;
 
 with Athena.Paths;
 
@@ -43,9 +46,10 @@ package body Athena.UI.Nazar_UI is
      new Athena_User_Interface
      and Nazar.Signals.User_Data_Interface with
       record
-         Top            : Nazar.Views.Nazar_View;
-         Models         : Model_Lists.List;
-         Galaxy_View    : Nazar.Views.Draw.Nazar_Draw_View;
+         Top              : Nazar.Views.Nazar_View;
+         Models           : Model_Lists.List;
+         Galaxy_View      : Nazar.Views.Draw.Nazar_Draw_View;
+         Home_System_View : Nazar.Views.Draw.Nazar_Draw_View;
       end record;
 
    overriding procedure Start
@@ -123,6 +127,24 @@ package body Athena.UI.Nazar_UI is
                Result.Models.Append (Nazar.Models.Nazar_Model (Model));
             end loop;
             Result.Galaxy_View.Show;
+         end;
+
+         declare
+            Layers : constant Athena.UI.Models.Draw_Model_Layers :=
+                       Athena.UI.Models.Stars.Star_System_Model
+                         (Empire,
+                          Athena.Handles.Colony.Get (Empire.Capital)
+                          .World.Star);
+         begin
+            Result.Home_System_View :=
+              Nazar.Views.Draw.Nazar_Draw_View
+                (Builder.Get_View ("home-system"));
+
+            for Model of Layers loop
+               Result.Home_System_View.Append (Model);
+               Result.Models.Append (Nazar.Models.Nazar_Model (Model));
+            end loop;
+            Result.Home_System_View.Show;
          end;
 
          Builder.Get_View ("empire-label").Set_Property ("text", Empire.Name);

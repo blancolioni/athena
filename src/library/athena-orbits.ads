@@ -22,9 +22,9 @@ package Athena.Orbits is
       return Non_Negative_Real
       is abstract;
 
-   function Epoch
+   function Zero_Time_Angle
      (Item : Orbiting_Interface)
-      return Athena.Calendar.Time
+      return Athena.Trigonometry.Angle
       is abstract;
 
    function Eccentricity
@@ -39,7 +39,7 @@ package Athena.Orbits is
 
    function Period
      (Item : Orbiting_Interface'Class)
-      return Duration;
+      return Non_Negative_Real;
 
    function Local_Position
      (Item : Orbiting_Interface'Class;

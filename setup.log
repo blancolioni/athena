@@ -1,0 +1,485 @@
+Galaxy size: (100,100)
+Area (ly**2): 31.4K per star: 78.5
+Average star distance: 5.00
+Minimum star distance: 2.50
+calculating distances ... done
+Acheosk         K0     20.0     7      YYGBBBB
+  World        Zone    Type        Orbit   Mass    Density Radius  Gravity Year    Day     Ocean%  Temp    Life            Atm     Hab     Pressure
+  Acheosk I    Yellow  Rock-Iron   0.326   3.54    1.73    1.26    2.19    0.203   495      -      171     none            Dense   0.00    111      N2 46 CO2 35 SO2 19  1 100  4 18
+  Acheosk II   Yellow  Rock-Iron   0.475   0.772   0.557   1.11    0.621   0.357   97.4     -      99.0    none            Ave     0.00    1.42     N2 54 CO2 25 SO2 21  1 100  4 4
+  Acheosk III  Green   Rock-Iron   0.718   0.192   0.578   0.692   0.400   0.664   24.8     -      107     none            Trace   0.00    0.0321   CO2 57 N2 43  1 100  4 1
+  Acheosk IV   Blue    Gas         1.29    10.7    0.211   3.70    0.783   1.60    14.8     -      -94.9   none             -      0.00    48.1    
+  Acheosk V    Blue    Rock-Iron   1.86    0.460   0.508   0.967   0.491   2.78    21.3     -      -59.5   none            Thin    0.00    0.0880   CH4 43 N2 31 CO2 27  1 100  2 100  4 2
+  Acheosk VI   Blue    Rock        3.36    0.185   0.668   0.652   0.436   6.72    22.0     -      -112    none            Trace   0.00    0.0222   N2 35 CO2 19 CH4 18 SO2 7 CL2 7 F2 6 AR 5 NH3 4  1 100  2 100  4 1
+  Acheosk VII  Blue    Gas         5.43    18.8    0.215   4.43    0.956   13.8    16.2     -      -196    none             -      0.00    84.6    
+
+Lliiclaj        M8     1.41K    12     BBxxxxxxxxxx
+  World        Zone    Type        Orbit   Mass    Density Radius  Gravity Year    Day     Ocean%  Temp    Life            Atm     Hab     Pressure
+  Lliiclaj I   Blue    Gas         0.382   6.51    0.282   2.84    0.803   0.630   488      -      -212    none             -      0.00    59.3    
+  Lliiclaj II  Blue    Gas         0.588   26.4    0.295   4.47    1.32    1.19    12.3     -      -228    none             -      0.00    156     
+  Lliiclaj III Black   Gas         0.993   22.1    0.258   4.40    1.13    2.63    9.14     -      -243    none             -      0.00    71.4    
+  Lliiclaj IV  Black   Hydrogen    1.42    130     0.203   8.62    1.75    4.50    9.50     -      -251    none             -      0.00    151     
+  Lliiclaj V   Black   Rock-Ice    2.11    0.369   0.436   0.946   0.413   8.16    21.2     -      -243    none            Thin    0.00    0.223    H2 93 HE 7  1 100  2 100  4 2
+  Lliiclaj VI  Black   Rock-Ice    3.56    0.191   0.403   0.779   0.314   17.9    28.9     -      -246    none            Trace   0.00    0.0266   H2 97 HE 3  1 100  2 100  4 1
+  Lliiclaj VII Black   Gas         5.57    17.6    0.206   4.40    0.907   34.9    13.0     -      -271    none             -      0.00    47.6    
+  Lliiclaj VIIIBlack   Rock-Ice    10.6    0.357   0.359   0.998   0.358   92.9    22.2     -      -262    none            Thin    0.00    0.181    H2 93 HE 7  1 100  2 100  4 2
+  Lliiclaj IX  Black   Rock-Ice    17.7    0.456   0.416   1.03    0.429   198     20.7     -      -266    none            Thin    0.00    0.225    H2 95 HE 5  1 100  2 100  4 2
+  Lliiclaj X   Black   Hydrogen    29.8    54.3    0.200   6.47    1.29    432     11.3     -      -272    none             -      0.00    99.2    
+  Lliiclaj XI  Black   Hydrogen    43.9    251     0.202   10.7    2.18    774     13.0     -      -272    none             -      0.00    234     
+  Lliiclaj XII Black   Gas         56.2    19.5    0.274   4.14    1.13    1.12K   22.0     -      -272    none             -      0.00    78.7    
+
+Huxif           M5     416      11     GBBBBxxxxxx
+  World        Zone    Type        Orbit   Mass    Density Radius  Gravity Year    Day     Ocean%  Temp    Life            Atm     Hab     Pressure
+  Huxif I      Green   Rock-Iron   0.105   1.14    1.21    0.979   1.19    0.0509  18.6    27.7    48.7    multi-cellular  Ave     17.8    1.65     N2 73 O2 26 CO2 1  0 28  1 52  4 6
+  Huxif II     Blue    Gas         0.174   6.13    0.288   2.77    0.799   0.107   39.3     -      -75.9   none             -      0.00    62.8    
+  Huxif III    Blue    Gas         0.307   26.7    0.214   4.99    1.07    0.251   13.2     -      -129    none             -      0.00    84.9    
+  Huxif IV     Blue    Hydrogen    0.621   3.47K   0.194   26.1    5.07    0.723   5.55     -      -162    none             -      0.00    12.6    
+  Huxif V      Blue    Rock-Iron   1.10    0.739   0.538   1.11    0.598   1.71    23.8     -      -105    none            Ave     0.00    1.04     N2 45 CO2 43 CH4 12  1 100  2 100  4 4
+  Huxif VI     Black   Ice         2.12    0.0969  0.193   0.794   0.153   4.57    23.2     -      -210    none            Trace   0.00    0.0154   H2 94 HE 6  1 100  2 100  4 0
+  Huxif VII    Black   Rock-Ice    4.02    0.381   0.366   1.01    0.371   11.9    21.3     -      -232    none            Thin    0.00    0.211    H2 93 HE 7  1 100  2 100  4 2
+  Huxif VIII   Black   Ice         6.37    0.0887  0.158   0.824   0.130   23.7    18.9     -      -237    none            Trace   0.00    0.0117   H2 92 HE 8  1 100  2 100  4 0
+  Huxif IX     Black   Ice         10.2    0.00    0.137   0.00    0.00    48.6    18.4     -      -244    none            Trace   0.00    0.00     H2 97 HE 3  1 100  2 100
+  Huxif X      Black   Ice         14.1    0.0905  0.163   0.820   0.134   78.5    17.7     -      -248    none            Trace   0.00    0.0122   H2 93 HE 7  1 100  2 100  4 0
+  Huxif XI     Black   Rock-Ice    23.9    0.182   0.484   0.722   0.350   173     13.5     -      -259    none            Thin    0.00    0.0841   H2 94 HE 6  1 100  2 100  4 1
+
+Oja             K5     46.1     17     YYGBBBBBxxxxxxxxx
+  World        Zone    Type        Orbit   Mass    Density Radius  Gravity Year    Day     Ocean%  Temp    Life            Atm     Hab     Pressure
+  Oja I        Yellow  Rock-Iron   0.146   2.24    1.64    1.10    1.82    0.0674  24.6     -      271     none            Dense   0.00    145      CO2 55 SO2 24 N2 21  1 100  4 11
+  Oja II       Yellow  Rock-Iron   0.260   0.00    0.526   0.00    0.00    0.159   58.2    33.8    68.6    none            None    0.00    0.00      0 34  1 44
+  Oja III      Green   Rock-Iron   0.456   1.13    1.23    0.972   1.19    0.371   83.8    58.3    14.5    multi-cellular  Ave     0.00    1.62     N2 48 O2 25 AR 19 NH3 8 CO2 1  0 58  1 17  2 11  3 6  4 6
+  Oja IV       Blue    Gas         0.726   26.0    0.205   5.02    1.03    0.744   15.9     -      -88.5   none             -      0.00    60.0    
+  Oja V        Blue    Gas         1.19    24.8    0.235   4.72    1.11    1.57    14.0     -      -133    none             -      0.00    104     
+  Oja VI       Blue    Gas         1.97    12.8    0.228   3.83    0.874   3.34    10.5     -      -169    none             -      0.00    47.8    
+  Oja VII      Blue    Hydrogen    3.85    472     0.205   13.1    2.71    9.09    15.0     -      -189    none             -      0.00    4.90    
+  Oja VIII     Blue    Rock-Iron   6.32    0.754   0.582   1.09    0.634   19.1    13.3     -      -128    none            Ave     0.00    1.03     CO2 40 N2 37 CH4 23  1 100  2 100  4 4
+  Oja IX       Black   Gas         10.0    42.9    0.256   5.51    1.41    38.2    12.2     -      -238    none             -      0.00    96.7    
+  Oja X        Black   Gas         16.5    4.71    0.264   2.61    0.690   80.6    16.5     -      -235    none             -      0.00    1.03    
+  Oja XI       Black   Gas         27.6    23.5    0.291   4.32    1.25    175     14.4     -      -259    none             -      0.00    73.9    
+  Oja XII      Black   Gas         41.0    25.7    0.280   4.51    1.26    316     13.2     -      -265    none             -      0.00    61.9    
+  Oja XIII     Black   Rock-Ice    53.4    0.188   0.349   0.813   0.284   470     26.7     -      -249    none            Trace   0.00    0.0141   H2 94 HE 6  1 100  2 100  4 1
+  Oja XIV      Black   Rock-Ice    79.2    0.181   0.354   0.800   0.284   847     22.4     -      -253    none            Trace   0.00    0.0281   H2 93 HE 7  1 100  2 100  4 1
+  Oja XV       Black   Ice         150     0.0932  0.143   0.865   0.124   2.21K   17.7     -      -258    none            Trace   0.00    0.00559  H2 95 HE 5  1 100  2 100  4 0
+  Oja XVI      Black   Rock-Ice    265     0.372   0.406   0.971   0.394   5.20K   30.7     -      -267    none            Thin    0.00    0.120    H2 91 HE 9  1 100  2 100  4 2
+  Oja XVII     Black   Ice         431     0.00    0.161   0.00    0.00    10.7K   23.1     -      -264    none            Trace   0.00    0.00     H2 94 HE 6  1 100  2 100
+
+Boebad          K5     49.1     11     GBBBBBxxxxx
+  World        Zone    Type        Orbit   Mass    Density Radius  Gravity Year    Day     Ocean%  Temp    Life            Atm     Hab     Pressure
+  Boebad I     Green   Rock-Iron   0.516   1.09    1.06    1.00    1.07    0.432   21.8    64.5    3.82    multi-cellular  Ave     76.6    0.879    N2 91 O2 8 CO2 1  0 65  1 13  2 14  3 9  4 5
+  Boebad II    Blue    Rock-Iron   0.783   0.721   0.565   1.08    0.613   0.808   14.3    50.0    -7.06   none            Ave     0.00    1.50     CO2 37 N2 25 CH4 11 SO2 9 CL2 7 AR 5 NH3 4 F2 1  0 50  1 25  2 18  3 11  4 4
+  Boebad III   Blue    Gas         1.38    42.7    0.288   5.29    1.52    1.90    8.74     -      -145    none             -      0.00    114     
+  Boebad IV    Blue    Gas         2.27    26.0    0.274   4.56    1.25    3.99    9.13     -      -177    none             -      0.00    122     
+  Boebad V     Blue    Rock-Iron   3.85    0.464   0.556   0.941   0.524   8.80    26.9     -      -72.4   none            Thin    0.00    0.107    CO2 58 N2 38 CH4 3  1 100  2 100  4 2
+  Boebad VI    Blue    Gas         6.50    5.54    0.224   2.91    0.654   19.3    14.4     -      -224    none             -      0.00    64.7    
+  Boebad VII   Black   Hydrogen    11.7    50.3    0.199   6.32    1.26    47.1    9.36     -      -242    none             -      0.00    39.6    
+  Boebad VIII  Black   Rock-Ice    23.5    0.185   0.313   0.840   0.263   132     27.0     -      -237    none            Trace   0.00    0.0202   H2 94 HE 6  1 100  2 100  4 1
+  Boebad IX    Black   Ice         39.3    0.0932  0.147   0.859   0.126   287     25.3     -      -245    none            Trace   0.00    0.0108   H2 92 HE 8  1 100  2 100  4 0
+  Boebad X     Black   Ice         73.8    0.0925  0.147   0.855   0.126   739     22.3     -      -252    none            Trace   0.00    0.00807  H2 91 HE 9  1 100  2 100  4 0
+  Boebad XI    Black   Rock-Ice    152     0.469   0.489   0.985   0.482   2.18K   20.8     -      -263    none            Thin    0.00    0.0887   H2 94 HE 6  1 100  2 100  4 2
+
+Liam founded at Boebad/Nijmegen
+Igrucla         K5     50.1     7      GGBBBBB
+  World        Zone    Type        Orbit   Mass    Density Radius  Gravity Year    Day     Ocean%  Temp    Life            Atm     Hab     Pressure
+  Igrucla I    Green   Hydrogen    0.326   177     0.199   9.60    1.91    0.215   15.1     -      11.7    none             -      0.00    76.3    
+  Igrucla II   Green   Rock-Iron   0.475   1.12    1.35    0.941   1.27    0.378   54.9    35.3    -10.8   multi-cellular  Ave     0.00    1.67     N2 43 NH3 33 AR 16 O2 8 CO2 0  0 35  1 42  2 19  3 12  4 6
+  Igrucla III  Blue    Rock        0.718   0.181   0.611   0.666   0.407   0.702   26.1    36.7    37.4    none            Trace   0.00    0.0317   CO2 52 N2 28 CH4 20  0 37  1 40  2 3  3 2  4 1
+  Igrucla IV   Blue    Gas         1.29    9.82    0.233   3.47    0.812   1.69    14.8     -      -139    none             -      0.00    49.9    
+  Igrucla V    Blue    Rock-Iron   1.86    0.460   0.508   0.967   0.491   2.94    21.3     -      -96.9   none            Thin    0.00    0.0880   CH4 43 N2 31 CO2 27  1 100  2 100  4 2
+  Igrucla VI   Blue    Rock        3.36    0.185   0.668   0.652   0.436   7.11    22.0     -      -140    none            Trace   0.00    0.0222   N2 35 CO2 19 CH4 18 SO2 7 CL2 7 F2 6 AR 5 NH3 4  1 100  2 100  4 1
+  Igrucla VII  Blue    Gas         5.43    18.8    0.215   4.43    0.956   14.6    16.2     -      -218    none             -      0.00    84.6    
+
+Icru            K0     20.1     12     YGBBBBBBxxxx
+  World        Zone    Type        Orbit   Mass    Density Radius  Gravity Year    Day     Ocean%  Temp    Life            Atm     Hab     Pressure
+  Icru I       Yellow  Rock-Iron   0.382   0.747   0.582   1.08    0.633   0.257   716      -      174     none            Ave     0.00    1.32     CO2 44 SO2 37 N2 18  1 100  4 4
+  Icru II      Green   Rock-Iron   0.588   0.956   0.560   1.19    0.669   0.490   11.3    21.5    94.4    none            Ave     0.00    1.11     N2 41 CO2 39 CH4 20  0 22  1 62  4 5
+  Icru III     Blue    Gas         0.993   13.0    0.265   3.66    0.973   1.07    13.0     -      -66.8   none             -      0.00    74.8    
+  Icru IV      Blue    Hydrogen    1.42    187     0.202   9.73    1.97    1.84    9.68     -      -103    none             -      0.00    183     
+  Icru V       Blue    Gas         2.11    5.08    0.242   2.75    0.669   3.33    13.8     -      -137    none             -      0.00    36.9    
+  Icru VI      Blue    Rock-Iron   3.56    0.459   0.507   0.967   0.491   7.32    27.0     -      -63.6   none            Thin    0.00    0.263    CO2 48 N2 43 CH4 9  1 100  2 100  4 2
+  Icru VII     Blue    Gas         5.57    42.6    0.245   5.57    1.37    14.3    15.5     -      -197    none             -      0.00    119     
+  Icru VIII    Blue    Gas         10.6    26.7    0.233   4.85    1.13    38.0    15.6     -      -224    none             -      0.00    110     
+  Icru IX      Black   Rock-Ice    17.7    0.469   0.412   1.04    0.431   81.1    18.8     -      -224    none            Thin    0.00    0.151    H2 91 HE 9  1 100  2 100  4 2
+  Icru X       Black   Gas         29.8    38.3    0.217   5.61    1.21    176     16.0     -      -251    none             -      0.00    113     
+  Icru XI      Black   Hydrogen    43.9    166     0.203   9.35    1.90    316     11.3     -      -259    none             -      0.00    207     
+  Icru XII     Black   Gas         56.2    5.94    0.266   2.81    0.750   458     18.9     -      -262    none             -      0.00    58.8    
+
+Cliukuh         K5     49.8     11     YGBBBBBxxxx
+  World        Zone    Type        Orbit   Mass    Density Radius  Gravity Year    Day     Ocean%  Temp    Life            Atm     Hab     Pressure
+  Cliukuh I    Yellow  Rock-Iron   0.261   0.739   0.580   1.08    0.628   0.154   56.3     -      148     none            Ave     0.00    1.45     N2 55 CO2 43 SO2 3  1 100  4 4
+  Cliukuh II   Green   Rock-Iron   0.389   0.928   0.550   1.18    0.655   0.280   823     65.5    18.1    multi-cellular  Dense   0.00    33.7     N2 43 AR 30 O2 26 CO2 1  0 66  1 12  2 10  3 6  4 5
+  Cliukuh III  Blue    Gas         0.588   19.7    0.208   4.55    0.948   0.522   18.1     -      -65.8   none             -      0.00    85.7    
+  Cliukuh IV   Blue    Hydrogen    1.08    3.09K   0.203   24.7    5.03    1.30    9.59     -      -125    none             -      0.00    417     
+  Cliukuh V    Blue    Rock-Iron   1.89    0.743   0.583   1.08    0.632   3.02    17.7     -      -68.1   none            Ave     0.00    1.47     CH4 43 CO2 42 N2 15  1 100  2 100  4 4
+  Cliukuh VI   Blue    Rock-Iron   2.80    0.728   0.573   1.08    0.620   5.44    15.9     -      -93.2   none            Thin    0.00    0.0928   CO2 40 N2 38 CH4 22  1 100  2 100  4 4
+  Cliukuh VII  Blue    Gas         5.88    15.7    0.287   3.80    1.09    16.5    15.6     -      -221    none             -      0.00    70.2    
+  Cliukuh VIII Black   Ice         9.80    0.0906  0.184   0.788   0.145   35.5    13.6     -      -217    none            Trace   0.00    0.00763  H2 94 HE 6  1 100  2 100  4 0
+  Cliukuh IX   Black   Ice         19.4    0.00    0.112   0.00    0.00    99.2    26.3     -      -233    none            Trace   0.00    0.00     H2 91 HE 9  1 100  2 100
+  Cliukuh X    Black   Ice         30.6    0.0900  0.128   0.889   0.113   196     19.5     -      -241    none            Trace   0.00    0.00736  H2 89 HE 11  1 100  2 100  4 0
+  Cliukuh XI   Black   Rock-Ice    43.9    0.188   0.471   0.736   0.347   336     19.9     -      -246    none            Trace   0.00    0.0211   H2 93 HE 7  1 100  2 100  4 1
+
+Luleau          K0     18.8     17     YGGBBBBBBxxxxxxxx
+  World        Zone    Type        Orbit   Mass    Density Radius  Gravity Year    Day     Ocean%  Temp    Life            Atm     Hab     Pressure
+  Luleau I     Yellow  Rock-Iron   0.403   4.02    1.79    1.30    2.34    0.288   38.3     -      154     none            Dense   0.00    148      N2 53 CO2 47  1 100  4 20
+  Luleau II    Green   Rock        0.595   0.00    0.621   0.00    0.00    0.516   20.4    84.6    19.1    none            None    0.00    0.00      0 85  1 2  2 9  3 6
+  Luleau III   Green   Rock-Iron   0.796   1.11    1.15    0.988   1.14    0.799   11.8    82.6    4.39    multi-cellular  Ave     0.00    1.38     N2 77 O2 8 NH3 7 AR 6 SO2 1 CO2 0  0 83  1 3  2 14  3 3  4 6
+  Luleau IV    Blue    Gas         1.49    18.2    0.244   4.20    1.02    2.06    16.3     -      -108    none             -      0.00    84.3    
+  Luleau V     Blue    Gas         2.12    7.66    0.262   3.07    0.808   3.48    16.0     -      -138    none             -      0.00    75.6    
+  Luleau VI    Blue    Gas         2.72    7.18    0.239   3.10    0.745   5.06    10.8     -      -156    none             -      0.00    77.6    
+  Luleau VII   Blue    Hydrogen    4.80    425     0.208   12.6    2.64    11.8    7.95     -      -190    none             -      0.00    112     
+  Luleau VIII  Blue    Rock-Iron   7.95    0.731   0.544   1.10    0.601   25.2    19.2     -      -90.2   none            Ave     0.00    0.600    CO2 54 N2 46  1 100  2 100  4 4
+  Luleau IX    Blue    Hydrogen    12.9    79.0    0.205   7.26    1.49    52.4    5.05     -      -230    none             -      0.00    82.3    
+  Luleau X     Black   Gas         21.8    15.9    0.240   4.05    0.974   114     10.9     -      -244    none             -      0.00    51.3    
+  Luleau XI    Black   Gas         40.5    14.3    0.232   3.95    0.918   290     12.7     -      -257    none             -      0.00    76.1    
+  Luleau XII   Black   Gas         62.3    23.1    0.212   4.77    1.01    553     12.2     -      -249    none             -      0.00    1.99    
+  Luleau XIII  Black   Rock-Ice    112     0.182   0.470   0.729   0.343   1.34K   24.1     -      -251    none            Trace   0.00    0.0339   H2 93 HE 7  1 100  2 100  4 1
+  Luleau XIV   Black   Rock-Ice    213     0.186   0.387   0.783   0.303   3.50K   17.7     -      -257    none            Trace   0.00    0.0132   H2 95 HE 5  1 100  2 100  4 1
+  Luleau XV    Black   Ice         302     0.0913  0.149   0.847   0.127   5.91K   24.5     -      -265    none            Thin    0.00    0.0516   H2 92 HE 8  1 100  2 100  4 0
+  Luleau XVI   Black   Rock-Ice    543     0.378   0.306   1.07    0.328   14.2K   29.8     -      -268    none            Thin    0.00    0.167    H2 93 HE 7  1 100  2 100  4 2
+  Luleau XVII  Black   Ice         844     0.00    0.101   0.00    0.00    27.6K   20.4     -      -265    none            Trace   0.00    0.00     H2 92 HE 8  1 100  2 100
+
+Ilece           K5     46.2     11     YYGBBBBBxxx
+  World        Zone    Type        Orbit   Mass    Density Radius  Gravity Year    Day     Ocean%  Temp    Life            Atm     Hab     Pressure
+  Ilece I      Yellow  Rock-Iron   0.159   0.751   0.548   1.11    0.609   0.0763  27.8     -      269     none            Ave     0.00    1.45     CO2 55 N2 31 SO2 14  1 100  4 4
+  Ilece II     Yellow  Rock-Iron   0.263   0.275   0.585   0.778   0.455   0.162   59.2    12.1    66.6    none            None    0.00    0.00      0 12  1 77  4 1
+  Ilece III    Green   Rock-Iron   0.407   1.33    1.55    0.952   1.47    0.312   45.6    65.9    -2.56   multi-cellular  Dense   0.00    40.8     N2 74 AR 11 NH3 9 O2 6 CO2 0  0 66  1 12  2 17  3 10  4 7
+  Ilece IV     Blue    Gas         0.711   8.38    0.241   3.26    0.787   0.720   16.7     -      -86.4   none             -      0.00    85.7    
+  Ilece V      Blue    Rock-Iron   1.25    0.461   0.564   0.935   0.528   1.68    27.6     -      -101    none            Thin    0.00    0.232    N2 54 CH4 17 CO2 10 SO2 7 NH3 6 AR 6  1 100  2 100  4 2
+  Ilece VI     Blue    Gas         2.26    13.5    0.238   3.84    0.915   4.08    8.00     -      -162    none             -      0.00    2.26    
+  Ilece VII    Blue    Hydrogen    3.51    260     0.203   10.8    2.20    7.89    7.82     -      -200    none             -      0.00    198     
+  Ilece VIII   Blue    Rock-Iron   6.26    0.477   0.565   0.945   0.534   18.8    21.4     -      -170    none            Thin    0.00    0.0985   CH4 43 N2 24 CO2 19 NH3 8 AR 5 SO2 1  1 100  2 100  4 2
+  Ilece IX     Black   Ice         8.10    0.0933  0.111   0.943   0.104   27.6    30.2     -      -211    none            Trace   0.00    0.00913  H2 93 HE 7  1 100  2 100  4 0
+  Ilece X      Black   Ice         12.9    0.0946  0.173   0.816   0.141   55.8    23.5     -      -224    none            Trace   0.00    0.00890  H2 95 HE 5  1 100  2 100  4 0
+  Ilece XI     Black   Rock-Ice    23.1    0.471   0.413   1.04    0.431   133     16.7     -      -241    none            Thin    0.00    0.144    H2 94 HE 6  1 100  2 100  4 2
+
+Acad            K5     45.7     13     YYGBBBBBxxxxx
+  World        Zone    Type        Orbit   Mass    Density Radius  Gravity Year    Day     Ocean%  Temp    Life            Atm     Hab     Pressure
+  Acad I       Yellow  Rock-Iron   0.122   0.280   0.500   0.823   0.412   0.0515  18.8     -      225     none            None    0.00    0.00      1 100  4 1
+  Acad II      Yellow  Rock-Iron   0.213   0.714   0.578   1.07    0.620   0.119   43.5     -      154     none            Ave     0.00    1.26     N2 53 CO2 28 SO2 19  1 100  4 4
+  Acad III     Green   Rock-Iron   0.391   0.760   0.513   1.13    0.585   0.295   457     79.5    16.4    multi-cellular  Ave     91.7    0.578    N2 78 O2 22 CO2 0  0 80  1 4  2 10  3 6  4 4
+  Acad IV      Blue    Hydrogen    0.673   50.0    0.205   6.23    1.28    0.667   9.74     -      -80.7   none             -      0.00    85.8    
+  Acad V       Blue    Gas         1.09    11.3    0.202   3.82    0.773   1.38    13.6     -      -126    none             -      0.00    41.5    
+  Acad VI      Blue    Rock-Iron   1.83    0.752   0.533   1.12    0.598   3.00    11.7     -      -54.4   none            Ave     0.00    1.24     CO2 48 N2 47 CH4 6  1 100  2 100  4 4
+  Acad VII     Blue    Rock        3.69    0.183   0.627   0.663   0.416   8.56    16.3     -      -138    none            Trace   0.00    0.0286   CH4 43 N2 35 CO2 22  1 100  2 100  4 1
+  Acad VIII    Blue    Hydrogen    5.80    53.4    0.203   6.40    1.30    16.8    6.67     -      -220    none             -      0.00    93.8    
+  Acad IX      Black   Ice         11.6    0.0907  0.127   0.893   0.113   47.9    18.0     -      -221    none            Trace   0.00    0.00714  H2 92 HE 8  1 100  2 100  4 0
+  Acad X       Black   Gas         21.4    9.30    0.212   3.52    0.748   119     17.1     -      -255    none             -      0.00    57.9    
+  Acad XI      Black   Rock-Ice    40.1    0.469   0.427   1.03    0.441   307     21.9     -      -250    none            Thin    0.00    0.210    H2 88 HE 12  1 100  2 100  4 2
+  Acad XII     Black   Ice         66.5    0.0963  0.125   0.914   0.115   654     22.6     -      -251    none            None    0.00    0.00      1 100  2 100  4 0
+  Acad XIII    Black   Hydrogen    103     3.33K   0.190   25.9    4.93    1.27K   9.08     -      -272    none             -      0.00    470     
+
+Musitello founded at Acad/Aramael
+Asice           F0     2.77     7      RRYYYGB
+  World        Zone    Type        Orbit   Mass    Density Radius  Gravity Year    Day     Ocean%  Temp    Life            Atm     Hab     Pressure
+  Asice I      Yellow  Rock-Iron   0.718   3.54    1.73    1.26    2.19    0.453   29.2     -      311     none            Dense   0.00    60.8     CO2 39 N2 35 SO2 26  1 100  4 18
+  Asice II     Yellow  Rock-Iron   1.29    0.743   0.525   1.12    0.590   1.09    19.7     -      137     none            Ave     0.00    1.01     SO2 52 N2 36 CO2 11 AR 1  1 100  4 4
+  Asice III    Yellow  Rock-Iron   1.86    0.0910  0.572   0.541   0.310   1.89    23.3    18.4    54.1    none            None    0.00    0.00      0 18  1 67  4 0
+  Asice IV     Green   Rock-Iron   3.36    1.09    1.39    0.922   1.29    4.58    20.4    28.1    -12.7   plants          Ave     0.00    1.68     N2 78 AR 7 NH3 6 O2 6 SO2 3 CO2 0  0 28  1 52  2 20  3 12  4 5
+  Asice V      Blue    Rock-Iron   5.43    0.462   0.525   0.958   0.503   9.43    15.7    73.7    13.8    none            Thin    0.00    0.191    CO2 50 N2 47 CH4 3  0 74  1 7  2 11  3 7  4 2
+
+Criusret        K5     51.2     10     YGBBBBBxxx
+  World        Zone    Type        Orbit   Mass    Density Radius  Gravity Year    Day     Ocean%  Temp    Life            Atm     Hab     Pressure
+  Criusret I   Yellow  Rock-Iron   0.223   1.44    1.29    1.03    1.34    0.120   44.1     -      172     none            Dense   0.00    99.3     CO2 48 SO2 20 N2 11 AR 10 CL2 7 F2 4  1 100  4 7
+  Criusret II  Green   Rock-Iron   0.382   0.885   0.504   1.20    0.608   0.269   460     63.1    23.3    multi-cellular  Ave     0.00    0.545    N2 53 O2 28 AR 10 NH3 7 SO2 2 CO2 0  0 63  1 14  2 8  3 5  4 4
+  Criusret III Blue    Gas         0.652   8.22    0.289   3.05    0.882   0.601   16.4     -      -77.2   none             -      0.00    66.4    
+  Criusret IV  Blue    Gas         1.30    17.0    0.261   4.02    1.05    1.69    12.4     -      -140    none             -      0.00    77.0    
+  Criusret V   Blue    Gas         2.26    42.1    0.236   5.62    1.32    3.87    16.6     -      -177    none             -      0.00    117     
+  Criusret VI  Blue    Hydrogen    3.62    370     0.197   12.3    2.43    7.88    9.57     -      -201    none             -      0.00    179     
+  Criusret VII Blue    Gas         5.51    25.4    0.201   5.01    1.01    14.7    8.04     -      -218    none             -      0.00    56.0    
+  Criusret VIIIBlack   Rock-Ice    9.78    0.188   0.485   0.729   0.354   34.9    22.5     -      -217    none            Trace   0.00    0.0344   H2 90 HE 10  1 100  2 100  4 1
+  Criusret IX  Black   Gas         17.1    18.5    0.271   4.08    1.10    81.1    12.7     -      -250    none             -      0.00    79.0    
+  Criusret X   Black   Rock-Ice    31.1    0.359   0.316   1.04    0.330   198     19.2     -      -246    none            Thin    0.00    0.0946   H2 92 HE 8  1 100  2 100  4 2
+
+Euvuw           K5     48.1     11     YGGBBBBBxxx
+  World        Zone    Type        Orbit   Mass    Density Radius  Gravity Year    Day     Ocean%  Temp    Life            Atm     Hab     Pressure
+  Euvuw I      Yellow  Rock-Iron   0.181   0.932   0.594   1.16    0.690   0.0908  33.1     -      217     none            Thin    0.00    0.118    CO2 43 N2 33 SO2 18 AR 6  1 100  4 5
+  Euvuw II     Green   Rock-Iron   0.354   1.85    1.59    1.05    1.68    0.247   1.29K    -      113     none            Dense   0.00    82.4     CO2 57 CH4 29 N2 14  1 100  4 9
+  Euvuw III    Green   Rock-Iron   0.542   1.41    1.39    1.00    1.40    0.470   21.3    40.2    -35.2   none            Dense   0.00    91.9     N2 54 CH4 11 CO2 11 NH3 10 AR 8 SO2 7  0 40  1 36  2 27  3 16  4 7
+  Euvuw IV     Blue    Gas         0.977   19.4    0.262   4.19    1.10    1.13    10.7     -      -116    none             -      0.00    82.7    
+  Euvuw V      Blue    Gas         1.53    9.19    0.273   3.22    0.881   2.23    17.7     -      -152    none             -      0.00    69.3    
+  Euvuw VI     Blue    Gas         2.85    26.7    0.214   4.99    1.07    5.68    13.2     -      -189    none             -      0.00    112     
+  Euvuw VII    Blue    Gas         4.06    10.8    0.272   3.41    0.931   9.63    7.78     -      -206    none             -      0.00    21.7    
+  Euvuw VIII   Blue    Hydrogen    7.35    286     0.207   11.1    2.30    23.4    8.78     -      -228    none             -      0.00    187     
+  Euvuw IX     Black   Ice         14.1    0.0918  0.196   0.775   0.152   62.4    23.2     -      -226    none            Trace   0.00    0.0111   H2 92 HE 8  1 100  2 100  4 0
+  Euvuw X      Black   Ice         23.8    0.0928  0.155   0.841   0.131   137     25.1     -      -242    none            Thin    0.00    0.0410   H2 92 HE 8  1 100  2 100  4 0
+  Euvuw XI     Black   Rock-Ice    35.4    0.368   0.400   0.972   0.389   247     22.9     -      -248    none            Thin    0.00    0.120    H2 92 HE 8  1 100  2 100  4 2
+
+Upreau          G0     7.04     7      YYGBBBB
+  World        Zone    Type        Orbit   Mass    Density Radius  Gravity Year    Day     Ocean%  Temp    Life            Atm     Hab     Pressure
+  Upreau I     Yellow  Rock-Iron   0.537   0.0920  0.583   0.540   0.315   0.383   14.0     -      149     none            None    0.00    0.00      1 100  4 0
+  Upreau II    Yellow  Rock-Iron   0.899   0.284   0.536   0.809   0.434   0.829   23.4    17.8    53.7    none            None    0.00    0.00      0 18  1 68  4 1
+  Upreau III   Green   Rock-Iron   1.71    1.40    1.28    1.02    1.32    2.18    15.6    90.7    1.34    multi-cellular  Dense   0.00    57.8     N2 87 O2 12 CO2 1  0 91  1 1  2 9  4 7
+  Upreau IV    Blue    Gas         2.58    12.3    0.218   3.84    0.838   4.05    15.0     -      -100    none             -      0.00    54.6    
+  Upreau V     Blue    Hydrogen    5.09    184     0.207   9.61    1.99    11.1    13.7     -      -155    none             -      0.00    159     
+  Upreau VI    Blue    Rock-Ice    9.76    0.00    0.406   0.00    0.00    29.6    19.4     -      -132    none            Trace   0.00    0.00     CH4 57 CO2 21 NH3 8 N2 8 AR 6  1 100  2 100
+  Upreau VII   Blue    Gas         16.0    20.8    0.258   4.31    1.11    62.5    11.9     -      -215    none             -      0.00    58.3    
+
+Vugup           K0     19.3     9      YYGBBBBBx
+  World        Zone    Type        Orbit   Mass    Density Radius  Gravity Year    Day     Ocean%  Temp    Life            Atm     Hab     Pressure
+  Vugup I      Yellow  Hydrogen    0.233   156     0.201   9.20    1.85    0.125   5.83     -      173     none             -      0.00    102     
+  Vugup II     Yellow  Rock-Iron   0.423   0.279   0.533   0.806   0.430   0.304   125     30.8    73.5    none            None    0.00    0.00      0 31  1 48  4 1
+  Vugup III    Green   Rock-Iron   0.726   1.16    1.22    0.982   1.20    0.685   14.0    72.0    18.2    multi-cellular  Ave     66.5    1.33     N2 71 O2 28 CO2 1  0 72  1 8  2 10  3 6  4 6
+  Vugup IV     Blue    Gas         1.25    27.9    0.213   5.07    1.08    1.55    8.71     -      -91.7   none             -      0.00    112     
+  Vugup V      Blue    Gas         1.60    21.2    0.254   4.37    1.11    2.25    12.3     -      -115    none             -      0.00    47.3    
+  Vugup VI     Blue    Hydrogen    2.88    220     0.198   10.3    2.05    5.42    12.2     -      -160    none             -      0.00    94.2    
+  Vugup VII    Blue    Gas         5.55    14.1    0.218   4.01    0.877   14.5    12.0     -      -197    none             -      0.00    54.3    
+  Vugup VIII   Blue    Hydrogen    8.32    83.2    0.199   7.47    1.48    26.6    18.4     -      -214    none             -      0.00    74.8    
+  Vugup IX     Black   Gas         16.0    9.29    0.217   3.49    0.759   71.5    13.4     -      -236    none             -      0.00    33.7    
+
+Utoh            K0     19.9     10     YGGBBBBBxx
+  World        Zone    Type        Orbit   Mass    Density Radius  Gravity Year    Day     Ocean%  Temp    Life            Atm     Hab     Pressure
+  Utoh I       Yellow  Rock-Iron   0.278   0.00    0.558   0.00    0.00    0.160   58.6     -      153     none            None    0.00    0.00      1 100
+  Utoh II      Green   Rock-Iron   0.513   1.38    1.43    0.986   1.41    0.401   21.2     -      106     none            Dense   0.00    131      N2 45 CO2 42 CH4 13  1 100  4 7
+  Utoh III     Green   Rock-Iron   0.884   1.09    1.23    0.959   1.18    0.908   23.4    63.7    14.1    multi-cellular  Ave     85.2    0.630    N2 85 O2 14 CO2 1  0 64  1 13  2 11  3 7  4 5
+  Utoh IV      Blue    Rock        1.40    0.187   0.635   0.665   0.423   1.82    18.8    65.2    31.1    none            Trace   0.00    0.0289   CO2 57 N2 43  0 65  1 12  2 5  3 3  4 1
+  Utoh V       Blue    Gas         1.98    13.7    0.201   4.09    0.823   3.04    15.8     -      -132    none             -      0.00    57.2    
+  Utoh VI      Blue    Gas         3.80    22.5    0.249   4.49    1.11    8.10    12.4     -      -177    none             -      0.00    83.0    
+  Utoh VII     Blue    Hydrogen    7.95    189     0.208   9.68    2.01    24.4    11.7     -      -213    none             -      0.00    137     
+  Utoh VIII    Blue    Hydrogen    10.4    151     0.190   9.26    1.76    36.6    7.83     -      -223    none             -      0.00    200     
+  Utoh IX      Black   Gas         20.8    18.7    0.290   4.01    1.16    104     11.8     -      -243    none             -      0.00    90.5    
+  Utoh X       Black   Ice         32.4    0.00    0.137   0.00    0.00    201     9.31     -      -238    none            Thin    0.00    0.00     H2 95 HE 5  1 100  2 100
+
+Atreides founded at Utoh/Caladan
+Rofiogh         K0     19.1     7      YYGBBBB
+  World        Zone    Type        Orbit   Mass    Density Radius  Gravity Year    Day     Ocean%  Temp    Life            Atm     Hab     Pressure
+  Rofiogh I    Yellow  Rock-Iron   0.326   3.54    1.73    1.26    2.19    0.208   495      -      171     none            Dense   0.00    111      N2 46 CO2 35 SO2 19  1 100  4 18
+  Rofiogh II   Yellow  Rock-Iron   0.475   0.772   0.557   1.11    0.621   0.365   97.4     -      99.0    none            Ave     0.00    1.42     N2 54 CO2 25 SO2 21  1 100  4 4
+  Rofiogh III  Green   Rock-Iron   0.718   0.192   0.578   0.692   0.400   0.678   24.8     -      107     none            Trace   0.00    0.0321   CO2 57 N2 43  1 100  4 1
+  Rofiogh IV   Blue    Gas         1.29    10.7    0.211   3.70    0.783   1.64    14.8     -      -94.9   none             -      0.00    48.1    
+  Rofiogh V    Blue    Rock-Iron   1.86    0.460   0.508   0.967   0.491   2.84    21.3     -      -59.5   none            Thin    0.00    0.0880   CH4 43 N2 31 CO2 27  1 100  2 100  4 2
+  Rofiogh VI   Blue    Rock        3.36    0.185   0.668   0.652   0.436   6.87    22.0     -      -112    none            Trace   0.00    0.0222   N2 35 CO2 19 CH4 18 SO2 7 CL2 7 F2 6 AR 5 NH3 4  1 100  2 100  4 1
+  Rofiogh VII  Blue    Gas         5.43    18.8    0.215   4.43    0.956   14.1    16.2     -      -196    none             -      0.00    84.6    
+
+Igrovia         K0     19.2     12     YGBBBBBBxxxx
+  World        Zone    Type        Orbit   Mass    Density Radius  Gravity Year    Day     Ocean%  Temp    Life            Atm     Hab     Pressure
+  Igrovia I    Yellow  Rock-Iron   0.382   0.747   0.582   1.08    0.633   0.263   716      -      174     none            Ave     0.00    1.32     CO2 44 SO2 37 N2 18  1 100  4 4
+  Igrovia II   Green   Rock-Iron   0.588   0.956   0.560   1.19    0.669   0.501   11.3    21.5    94.4    none            Ave     0.00    1.11     N2 41 CO2 39 CH4 20  0 22  1 62  4 5
+  Igrovia III  Blue    Gas         0.993   13.0    0.265   3.66    0.973   1.10    13.0     -      -66.8   none             -      0.00    74.8    
+  Igrovia IV   Blue    Hydrogen    1.42    187     0.202   9.73    1.97    1.88    9.68     -      -103    none             -      0.00    183     
+  Igrovia V    Blue    Gas         2.11    5.08    0.242   2.75    0.669   3.41    13.8     -      -137    none             -      0.00    36.9    
+  Igrovia VI   Blue    Rock-Iron   3.56    0.459   0.507   0.967   0.491   7.49    27.0     -      -63.6   none            Thin    0.00    0.263    CO2 48 N2 43 CH4 9  1 100  2 100  4 2
+  Igrovia VII  Blue    Gas         5.57    42.6    0.245   5.57    1.37    14.6    15.5     -      -197    none             -      0.00    119     
+  Igrovia VIII Blue    Gas         10.6    26.7    0.233   4.85    1.13    38.8    15.6     -      -224    none             -      0.00    110     
+  Igrovia IX   Black   Rock-Ice    17.7    0.469   0.412   1.04    0.431   82.9    18.8     -      -224    none            Thin    0.00    0.151    H2 91 HE 9  1 100  2 100  4 2
+  Igrovia X    Black   Gas         29.8    38.3    0.217   5.61    1.21    180     16.0     -      -251    none             -      0.00    113     
+  Igrovia XI   Black   Hydrogen    43.9    166     0.203   9.35    1.90    324     11.3     -      -259    none             -      0.00    207     
+  Igrovia XII  Black   Gas         56.2    5.94    0.266   2.81    0.750   469     18.9     -      -262    none             -      0.00    58.8    
+
+Easko           G0     7.90     11     RYYGBBBBBxx
+  World        Zone    Type        Orbit   Mass    Density Radius  Gravity Year    Day     Ocean%  Temp    Life            Atm     Hab     Pressure
+  Easko I      Yellow  Rock-Iron   0.389   0.739   0.580   1.08    0.628   0.222   168      -      328     none            Ave     0.00    1.30     CO2 55 N2 25 SO2 20  1 100  4 4
+  Easko II     Yellow  Rock-Iron   0.588   0.474   0.514   0.973   0.501   0.414   19.6     -      152     none            Trace   0.00    0.0441   N2 51 SO2 38 CO2 11  1 100  4 2
+  Easko III    Green   Rock-Iron   1.08    0.955   0.550   1.20    0.661   1.03    14.8     -      107     none            Ave     0.00    1.68     CO2 44 N2 43 CH4 13  1 100  4 5
+  Easko IV     Blue    Hydrogen    1.89    2.76K   0.198   24.0    4.77    2.39    13.1     -      -68.0   none             -      0.00    449     
+  Easko V      Blue    Rock-Iron   2.80    0.754   0.543   1.11    0.606   4.32    18.8    27.9    -51.9   none            Ave     0.00    1.01     N2 57 CH4 23 CO2 21  0 28  1 52  2 33  3 20  4 4
+  Easko VI     Blue    Rock-Iron   5.88    0.754   0.543   1.11    0.606   13.1    24.1     -      -68.9   none            Ave     0.00    1.37     N2 54 CO2 41 CH4 5  1 100  2 100  4 4
+  Easko VII    Blue    Gas         9.80    17.4    0.229   4.23    0.972   28.2    16.1     -      -194    none             -      0.00    30.0    
+  Easko VIII   Blue    Rock-Iron   19.4    0.726   0.536   1.10    0.593   78.8    17.5     -      -172    none            Ave     0.00    1.30     N2 56 CH4 26 CO2 18  1 100  2 100  4 4
+  Easko IX     Black   Ice         30.6    0.00    0.130   0.00    0.00    155     19.9     -      -217    none            Trace   0.00    0.00     H2 90 HE 10  1 100  2 100
+  Easko X      Black   Ice         43.9    0.0936  0.199   0.777   0.155   267     18.6     -      -226    none            Trace   0.00    0.0144   H2 94 HE 6  1 100  2 100  4 0
+
+Usenk           K5     51.0     11     YGGBBBBxxxx
+  World        Zone    Type        Orbit   Mass    Density Radius  Gravity Year    Day     Ocean%  Temp    Life            Atm     Hab     Pressure
+  Usenk I      Yellow  Rock-Iron   0.187   0.739   0.503   1.13    0.572   0.0925  33.8     -      222     none            Ave     0.00    1.24     CO2 49 N2 37 SO2 14  1 100  4 4
+  Usenk II     Green   Hydrogen    0.371   114     0.195   8.36    1.63    0.258   9.64     -      -7.05   none             -      0.00    61.7    
+  Usenk III    Green   Rock        0.482   0.00    0.660   0.00    0.00    0.382   29.8    60.5    -22.0   none            None    0.00    0.00      0 61  1 16  2 23  3 14
+  Usenk IV     Blue    Gas         0.977   6.63    0.275   2.88    0.795   1.10    6.60     -      -116    none             -      0.00    91.6    
+  Usenk V      Blue    Gas         1.78    8.94    0.262   3.24    0.850   2.71    13.9     -      -162    none             -      0.00    37.5    
+  Usenk VI     Blue    Gas         3.21    10.1    0.253   3.41    0.867   6.57    16.1     -      -195    none             -      0.00    68.4    
+  Usenk VII    Blue    Gas         5.77    27.6    0.213   5.05    1.08    15.8    10.9     -      -220    none             -      0.00    77.2    
+  Usenk VIII   Black   Hydrogen    10.1    182     0.196   9.75    1.92    36.8    4.44     -      -223    none             -      0.00    5.11    
+  Usenk IX     Black   Ice         16.2    0.0932  0.104   0.961   0.100   75.0    21.1     -      -229    none            Trace   0.00    0.00784  H2 93 HE 7  1 100  2 100  4 0
+  Usenk X      Black   Gas         28.9    10.2    0.243   3.47    0.845   178     13.3     -      -260    none             -      0.00    51.6    
+  Usenk XI     Black   Gas         49.3    16.0    0.253   3.98    1.01    395     21.0     -      -268    none             -      0.00    50.8    
+
+Quagi           G5     12.6     13     RYYGBBBBBxxxx
+  World        Zone    Type        Orbit   Mass    Density Radius  Gravity Year    Day     Ocean%  Temp    Life            Atm     Hab     Pressure
+  Quagi I      Yellow  Rock-Iron   0.331   2.40    2.22    1.02    2.28    0.190   748      -      198     none            Dense   0.00    222      SO2 42 N2 17 CO2 17 F2 11 CL2 9 AR 4  1 100  4 12
+  Quagi II     Yellow  Rock-Iron   0.585   0.964   0.583   1.18    0.689   0.448   20.8     -      161     none            Ave     0.00    1.35     CO2 47 N2 31 SO2 22  1 100  4 5
+  Quagi III    Green   Rock-Iron   0.904   1.36    1.28    1.02    1.31    0.861   14.2    68.2    28.0    multi-cellular  Ave     0.00    1.90     N2 27 O2 26 SO2 15 NH3 13 CL2 11 AR 9 CO2 0  0 68  1 10  2 6  3 4  4 7
+  Quagi IV     Blue    Rock        1.49    0.181   0.681   0.643   0.438   1.82    27.2    44.7    20.2    none            Trace   0.00    0.0349   CO2 39 N2 19 CH4 11 NH3 8 AR 8 SO2 7 CL2 5 F2 4  0 45  1 31  2 9  3 5  4 1
+  Quagi V      Blue    Gas         2.74    12.1    0.286   3.49    0.998   4.54    9.95     -      -133    none             -      0.00    115     
+  Quagi VI     Blue    Rock-Iron   4.81    0.744   0.549   1.10    0.608   10.5    24.6     -      -126    none            Ave     0.00    1.37     CH4 42 N2 35 CO2 16 AR 7  1 100  2 100  4 4
+  Quagi VII    Blue    Gas         9.35    32.6    0.269   4.94    1.33    28.6    11.2     -      -206    none             -      0.00    115     
+  Quagi VIII   Blue    Gas         13.5    13.1    0.294   3.54    1.04    49.6    16.7     -      -221    none             -      0.00    92.9    
+  Quagi IX     Black   Ice         21.4    0.0926  0.163   0.827   0.135   99.4    24.0     -      -216    none            Trace   0.00    0.0105   H2 94 HE 6  1 100  2 100  4 0
+  Quagi X      Black   Gas         39.4    20.4    0.203   4.64    0.944   248     9.23     -      -250    none             -      0.00    34.2    
+  Quagi XI     Black   Rock-Ice    58.7    0.460   0.413   1.03    0.428   450     23.4     -      -243    none            Thin    0.00    0.141    H2 95 HE 5  1 100  2 100  4 2
+  Quagi XII    Black   Rock-Ice    104     0.185   0.329   0.825   0.271   1.06K   22.8     -      -247    none            Trace   0.00    0.0269   H2 89 HE 11  1 100  2 100  4 1
+
+Akrocko         G5     12.5     10     YYYGBBBBBx
+  World        Zone    Type        Orbit   Mass    Density Radius  Gravity Year    Day     Ocean%  Temp    Life            Atm     Hab     Pressure
+  Akrocko I    Yellow  Rock-Iron   0.279   0.754   0.548   1.11    0.610   0.148   54.2     -      274     none            Ave     0.00    1.42     N2 33 CO2 26 SO2 24 AR 7 CL2 6 F2 4  1 100  4 4
+  Akrocko II   Yellow  Rock-Iron   0.488   0.272   0.569   0.782   0.445   0.342   60.5     -      104     none            None    0.00    0.00      1 100  4 1
+  Akrocko III  Yellow  Rock-Iron   0.642   0.931   0.506   1.22    0.620   0.516   16.1     -      108     none            Ave     0.00    2.01     SO2 47 CO2 29 N2 24  1 100  4 5
+  Akrocko IV   Green   Rock-Iron   1.10    0.927   0.541   1.19    0.647   1.16    19.4    47.4    -4.19   multi-cellular  Ave     75.7    0.559    N2 77 O2 23 CO2 1  0 47  1 28  2 17  3 10  4 5
+  Akrocko V    Blue    Hydrogen    1.58    55.7    0.198   6.54    1.30    1.99    13.5     -      -83.0   none             -      0.00    82.2    
+  Akrocko VI   Blue    Gas         2.69    14.6    0.292   3.68    1.07    4.45    17.6     -      -132    none             -      0.00    93.1    
+  Akrocko VII  Blue    Rock-Iron   3.99    0.738   0.507   1.13    0.575   8.00    16.2     -      -84.4   none            Ave     0.00    0.672    N2 46 CO2 31 CH4 23  1 100  2 100  4 4
+  Akrocko VIII Blue    Gas         8.05    14.0    0.271   3.73    1.01    22.9    16.8     -      -199    none             -      0.00    67.2    
+  Akrocko IX   Blue    Rock-Iron   11.8    0.749   0.560   1.10    0.617   40.7    16.3     -      -116    none            Ave     0.00    1.08     CO2 42 N2 29 CH4 15 AR 8 NH3 5  1 100  2 100  4 4
+  Akrocko X    Black   Gas         20.8    19.4    0.221   4.44    0.985   95.3    11.5     -      -235    none             -      0.00    52.9    
+
+Harkonnen founded at Akrocko/Geidi Prime
+Frobi           F0     2.57     7      RRYYYGB
+  World        Zone    Type        Orbit   Mass    Density Radius  Gravity Year    Day     Ocean%  Temp    Life            Atm     Hab     Pressure
+  Frobi I      Yellow  Rock-Iron   0.718   3.54    1.73    1.26    2.19    0.471   29.2     -      311     none            Dense   0.00    60.8     CO2 39 N2 35 SO2 26  1 100  4 18
+  Frobi II     Yellow  Rock-Iron   1.29    0.743   0.525   1.12    0.590   1.13    19.7     -      137     none            Ave     0.00    1.01     SO2 52 N2 36 CO2 11 AR 1  1 100  4 4
+  Frobi III    Yellow  Rock-Iron   1.86    0.0910  0.572   0.541   0.310   1.97    23.3    18.4    54.1    none            None    0.00    0.00      0 18  1 67  4 0
+  Frobi IV     Green   Rock-Iron   3.36    1.09    1.39    0.922   1.29    4.77    20.4    28.1    -12.7   plants          Ave     0.00    1.68     N2 78 AR 7 NH3 6 O2 6 SO2 3 CO2 0  0 28  1 52  2 20  3 12  4 5
+  Frobi V      Blue    Rock-Iron   5.43    0.462   0.525   0.958   0.503   9.80    15.7    73.7    13.8    none            Thin    0.00    0.191    CO2 50 N2 47 CH4 3  0 74  1 7  2 11  3 7  4 2
+
+Eeboi           K0     20.1     10     YYGBBBBBxx
+  World        Zone    Type        Orbit   Mass    Density Radius  Gravity Year    Day     Ocean%  Temp    Life            Atm     Hab     Pressure
+  Eeboi I      Yellow  Rock-Iron   0.223   1.44    1.29    1.03    1.34    0.115   42.0     -      280     none            Dense   0.00    99.3     CO2 48 SO2 20 N2 11 AR 10 CL2 7 F2 4  1 100  4 7
+  Eeboi II     Yellow  Rock-Iron   0.382   0.442   0.504   0.957   0.482   0.257   877     28.7    91.4    none            None    0.00    0.00      0 29  1 51  4 2
+  Eeboi III    Green   Rock-Iron   0.652   1.13    1.04    1.02    1.07    0.573   14.1    94.7    46.4    multi-cellular  Ave     35.7    0.978    N2 76 O2 24 CO2 1  0 95  1 0  2 0  3 0  4 5
+  Eeboi IV     Blue    Gas         1.30    13.7    0.209   4.03    0.843   1.61    13.0     -      -80.4   none             -      0.00    2.04    
+  Eeboi V      Blue    Gas         2.26    36.1    0.207   5.57    1.16    3.69    15.1     -      -143    none             -      0.00    92.7    
+  Eeboi VI     Blue    Hydrogen    3.62    532     0.205   13.7    2.81    7.51    6.56     -      -174    none             -      0.00    212     
+  Eeboi VII    Blue    Gas         5.51    17.1    0.261   4.02    1.05    14.0    8.08     -      -196    none             -      0.00    57.5    
+  Eeboi VIII   Blue    Rock-Iron   9.78    0.457   0.580   0.923   0.536   33.3    23.2     -      -153    none            Thin    0.00    0.253    N2 39 CH4 34 CO2 26  1 100  2 100  4 2
+  Eeboi IX     Black   Gas         17.1    28.0    0.241   4.88    1.17    77.3    13.3     -      -238    none             -      0.00    39.9    
+  Eeboi X      Black   Rock-Ice    31.1    0.363   0.429   0.945   0.406   189     18.0     -      -237    none            Thin    0.00    0.238    H2 91 HE 9  1 100  2 100  4 2
+
+Floawos         K5     47.0     11     YYGBBBBBxxx
+  World        Zone    Type        Orbit   Mass    Density Radius  Gravity Year    Day     Ocean%  Temp    Life            Atm     Hab     Pressure
+  Floawos I    Yellow  Rock-Iron   0.152   0.933   0.559   1.18    0.663   0.0705  25.7     -      247     none            Ave     0.00    1.50     N2 40 CO2 39 SO2 20 AR 1  1 100  4 5
+  Floawos II   Yellow  Rock-Iron   0.274   1.35    1.10    1.07    1.18    0.170   62.3     -      148     none            Dense   0.00    75.6     CO2 54 N2 43 SO2 3  1 100  4 7
+  Floawos III  Green   Rock-Iron   0.429   1.36    1.45    0.979   1.42    0.335   16.4    55.1    28.2    multi-cellular  Dense   0.00    52.5     N2 76 O2 24 CO2 1  0 55  1 20  2 6  3 4  4 7
+  Floawos IV   Blue    Gas         0.800   19.6    0.295   4.05    1.19    0.852   8.63     -      -98.2   none             -      0.00    44.0    
+  Floawos V    Blue    Gas         1.13    5.09    0.274   2.64    0.726   1.44    17.0     -      -129    none             -      0.00    33.9    
+  Floawos VI   Blue    Gas         2.06    24.9    0.299   4.37    1.30    3.52    14.6     -      -171    none             -      0.00    67.5    
+  Floawos VII  Blue    Gas         3.95    5.83    0.250   2.85    0.715   9.37    9.14     -      -205    none             -      0.00    53.4    
+  Floawos VIII Blue    Hydrogen    6.69    238     0.198   10.6    2.11    20.6    14.6     -      -225    none             -      0.00    148     
+  Floawos IX   Black   Ice         9.92    0.0934  0.192   0.786   0.151   37.2    21.3     -      -217    none            Trace   0.00    0.0134   H2 92 HE 8  1 100  2 100  4 0
+  Floawos X    Black   Ice         16.4    0.0906  0.121   0.908   0.109   79.6    23.6     -      -230    none            Trace   0.00    0.00564  H2 92 HE 8  1 100  2 100  4 0
+  Floawos XI   Black   Rock-Ice    32.1    0.366   0.366   0.999   0.366   217     27.5     -      -247    none            Thin    0.00    0.127    H2 92 HE 8  1 100  2 100  4 2
+
+Til             M5     215      7      BBBxxxx
+  World        Zone    Type        Orbit   Mass    Density Radius  Gravity Year    Day     Ocean%  Temp    Life            Atm     Hab     Pressure
+  Til I        Blue    Rock-Ice    0.483   0.0946  0.328   0.660   0.217   0.690   119     18.6    -30.5   none            Trace   0.00    0.00650  CO2 56 CH4 24 NH3 8 AR 6 N2 6  0 19  1 66  2 26  3 16  4 0
+  Til II       Blue    Rock-Iron   0.927   0.778   0.579   1.10    0.639   1.83    22.7     -      -123    none            Ave     0.00    1.44     N2 50 CO2 30 CH4 20  1 100  2 100  4 4
+  Til III      Blue    Gas         1.52    21.6    0.221   4.60    1.02    3.86    17.9     -      -219    none             -      0.00    68.8    
+  Til IV       Black   Rock-Ice    2.48    0.467   0.439   1.02    0.449   8.05    19.9     -      -220    none            Thin    0.00    0.0991   H2 95 HE 5  1 100  2 100  4 2
+  Til V        Black   Hydrogen    4.81    172     0.190   9.67    1.84    21.6    4.66     -      -251    none             -      0.00    68.6    
+  Til VI       Black   Ice         8.42    0.00    0.127   0.00    0.00    50.2    15.5     -      -241    none            Trace   0.00    0.00     H2 92 HE 8  1 100  2 100
+  Til VII      Black   Rock-Ice    14.1    0.473   0.410   1.04    0.430   109     13.3     -      -253    none            Thin    0.00    0.113    H2 94 HE 6  1 100  2 100  4 2
+
+Noaveush        K5     51.4     9      GBBBBBxxx
+  World        Zone    Type        Orbit   Mass    Density Radius  Gravity Year    Day     Ocean%  Temp    Life            Atm     Hab     Pressure
+  Noaveush I   Green   Hydrogen    0.426   171     0.192   9.62    1.84    0.317   4.38     -      -26.2   none             -      0.00    213     
+  Noaveush II  Blue    Rock-Iron   0.770   0.732   0.562   1.09    0.614   0.769   19.2    33.7    7.42    none            Ave     0.00    1.17     CO2 43 N2 41 CH4 15  0 34  1 44  2 13  3 8  4 4
+  Noaveush III Blue    Gas         1.31    25.1    0.218   4.87    1.06    1.72    13.4     -      -141    none             -      0.00    113     
+  Noaveush IV  Blue    Gas         2.40    38.7    0.227   5.54    1.25    4.24    16.1     -      -180    none             -      0.00    118     
+  Noaveush V   Blue    Gas         4.72    11.1    0.289   3.37    0.977   11.6    12.8     -      -212    none             -      0.00    44.3    
+  Noaveush VI  Blue    Hydrogen    6.66    152     0.192   9.26    1.77    19.6    10.0     -      -210    none             -      0.00    3.87    
+  Noaveush VII Black   Rock-Ice    9.76    0.372   0.327   1.04    0.341   34.7    16.4     -      -222    none            Thin    0.00    0.127    H2 92 HE 8  1 100  2 100  4 2
+  Noaveush VIIIBlack   Hydrogen    16.5    91.3    0.199   7.70    1.53    76.4    6.12     -      -250    none             -      0.00    62.0    
+  Noaveush IX  Black   Gas         24.8    13.6    0.282   3.64    1.02    140     15.0     -      -258    none             -      0.00    89.5    
+
+Rubren          K5     51.7     10     GBBBBBxxxx
+  World        Zone    Type        Orbit   Mass    Density Radius  Gravity Year    Day     Ocean%  Temp    Life            Atm     Hab     Pressure
+  Rubren I     Green   Rock        0.453   0.00    0.658   0.00    0.00    0.346   124     24.6    -14.1   none            None    0.00    0.00      0 25  1 57  2 20  3 12
+  Rubren II    Blue    Gas         0.743   43.6    0.262   5.49    1.44    0.728   10.3     -      -90.9   none             -      0.00    95.3    
+  Rubren III   Blue    Gas         1.11    24.3    0.288   4.38    1.26    1.33    10.9     -      -127    none             -      0.00    135     
+  Rubren IV    Blue    Rock        2.14    0.181   0.661   0.649   0.429   3.57    19.5     -      -124    none            Trace   0.00    0.0357   N2 53 CH4 28 CO2 15 AR 4  1 100  2 100  4 1
+  Rubren V     Blue    Gas         3.07    25.0    0.270   4.52    1.22    6.11    7.89     -      -193    none             -      0.00    109     
+  Rubren VI    Blue    Gas         5.12    16.1    0.282   3.85    1.08    13.1    17.5     -      -216    none             -      0.00    83.8    
+  Rubren VII   Black   Gas         8.37    34.0    0.235   5.24    1.23    27.5    11.5     -      -232    none             -      0.00    98.0    
+  Rubren VIII  Black   Gas         10.9    44.0    0.271   5.45    1.48    40.9    13.3     -      -225    none             -      0.00    3.53    
+  Rubren IX    Black   Gas         18.3    10.2    0.248   3.45    0.857   89.4    8.01     -      -252    none             -      0.00    86.7    
+  Rubren X     Black   Ice         24.9    0.00    0.141   0.00    0.00    141     13.4     -      -238    none            Trace   0.00    0.00     H2 95 HE 5  1 100  2 100
+
+Slodoud         M5     402      14     BBBxxxxxxxxxxx
+  World        Zone    Type        Orbit   Mass    Density Radius  Gravity Year    Day     Ocean%  Temp    Life            Atm     Hab     Pressure
+  Slodoud I    Blue    Rock-Iron   0.491   0.738   0.564   1.09    0.617   0.518   93.8     -      -114    none            Ave     0.00    1.33     CH4 38 N2 19 CO2 17 NH3 8 AR 6 SO2 6 CL2 5 F2 2  1 100  2 100  4 4
+  Slodoud II   Blue    Hydrogen    0.907   236     0.203   10.5    2.13    1.29    5.38     -      -197    none             -      0.00    151     
+  Slodoud III  Blue    Gas         1.75    26.0    0.267   4.59    1.23    3.47    8.85     -      -224    none             -      0.00    125     
+  Slodoud IV   Black   Gas         2.99    20.5    0.256   4.31    1.10    7.79    11.6     -      -240    none             -      0.00    47.3    
+  Slodoud V    Black   Gas         6.26    47.9    0.294   5.45    1.60    23.5    13.3     -      -256    none             -      0.00    75.8    
+  Slodoud VI   Black   Rock-Ice    11.4    0.381   0.315   1.06    0.336   58.1    24.1     -      -251    none            Thin    0.00    0.103    H2 91 HE 9  1 100  2 100  4 2
+  Slodoud VII  Black   Ice         21.1    0.00    0.109   0.00    0.00    145     20.4     -      -253    none            Trace   0.00    0.00     H2 94 HE 6  1 100  2 100
+  Slodoud VIII Black   Rock-Ice    29.3    0.369   0.354   1.01    0.359   238     21.6     -      -261    none            Thin    0.00    0.121    H2 93 HE 7  1 100  2 100  4 2
+  Slodoud IX   Black   Rock-Ice    57.6    0.377   0.365   1.01    0.369   658     26.9     -      -266    none            Thin    0.00    0.206    H2 89 HE 11  1 100  2 100  4 2
+  Slodoud X    Black   Ice         103     0.0923  0.107   0.949   0.102   1.58K   20.0     -      -264    none            None    0.00    0.00      1 100  2 100  4 0
+  Slodoud XI   Black   Ice         203     0.0946  0.176   0.811   0.143   4.35K   19.0     -      -266    none            Trace   0.00    0.0134   H2 93 HE 7  1 100  2 100  4 0
+  Slodoud XII  Black   Rock-Ice    346     0.481   0.347   1.11    0.387   9.67K   20.5     -      -272    none            Thin    0.00    0.155    H2 94 HE 6  1 100  2 100  4 2
+  Slodoud XIII Black   Rock-Ice    632     0.374   0.323   1.05    0.339   23.9K   18.4     -      -272    none            Thin    0.00    0.0386   H2 92 HE 8  1 100  2 100  4 2
+  Slodoud XIV  Black   Rock-Ice    1.15K   0.377   0.312   1.06    0.332   58.6K   19.6     -      -272    none            Thin    0.00    0.134    H2 89 HE 11  1 100  2 100  4 2
+
+Glihu           G0     7.75     14     YYGGBBBBBxxxxx
+  World        Zone    Type        Orbit   Mass    Density Radius  Gravity Year    Day     Ocean%  Temp    Life            Atm     Hab     Pressure
+  Glihu I      Yellow  Rock-Iron   0.504   0.751   0.531   1.12    0.596   0.332   18.8     -      267     none            Ave     0.00    1.40     CO2 54 N2 39 SO2 6  1 100  4 4
+  Glihu II     Yellow  Rock-Iron   0.770   0.0926  0.511   0.565   0.289   0.627   22.4    24.4    80.0    none            None    0.00    0.00      0 24  1 57  4 0
+  Glihu III    Green   Rock        1.28    0.00    0.685   0.00    0.00    1.34    13.2    37.9    0.680   none            None    0.00    0.00      0 38  1 39  2 15  3 9
+  Glihu IV     Green   Rock-Iron   1.76    0.455   0.542   0.942   0.511   2.16    17.4    62.5    5.67    none            Trace   0.00    0.0445   CH4 31 N2 30 CO2 23 AR 9 NH3 7  0 63  1 14  2 14  3 8  4 2
+  Glihu V      Blue    Rock-Ice    2.57    0.0904  0.444   0.588   0.261   3.83    16.8    40.9    -5.78   none            Trace   0.00    0.0240   CH4 43 CO2 37 NH3 8 N2 6 AR 6  0 41  1 35  2 18  3 11  4 0
+  Glihu VI     Blue    Hydrogen    4.49    168     0.202   9.41    1.90    8.82    8.17     -      -146    none             -      0.00    159     
+  Glihu VII    Blue    Gas         6.53    9.41    0.276   3.24    0.896   15.4    11.6     -      -171    none             -      0.00    66.7    
+  Glihu VIII   Blue    Hydrogen    10.0    288     0.196   11.3    2.23    29.3    12.8     -      -195    none             -      0.00    140     
+  Glihu IX     Blue    Rock        16.5    0.190   0.678   0.654   0.444   62.4    21.9     -      -140    none            Trace   0.00    0.0455   CH4 50 CO2 28 N2 12 AR 10 NH3 1  1 100  2 100  4 1
+  Glihu X      Black   Gas         24.7    17.8    0.285   3.96    1.13    113     12.4     -      -230    none             -      0.00    82.0    
+  Glihu XI     Black   Ice         45.8    0.0948  0.184   0.801   0.147   288     25.2     -      -227    none            Trace   0.00    0.0128   H2 97 HE 3  1 100  2 100  4 0
+  Glihu XII    Black   Rock-Ice    76.8    0.482   0.314   1.15    0.362   624     20.7     -      -242    none            Thin    0.00    0.139    H2 96 HE 4  1 100  2 100  4 2
+  Glihu XIII   Black   Rock-Ice    129     0.475   0.497   0.985   0.490   1.37K   13.7     -      -250    none            Thin    0.00    0.0671   H2 90 HE 10  1 100  2 100  4 2
+  Glihu XIV    Black   Ice         203     0.0961  0.195   0.789   0.154   2.68K   15.8     -      -251    none            Trace   0.00    0.0122   H2 94 HE 6  1 100  2 100  4 0
+
+Oeyih           M0     75.0     12     GBBBBBxxxxxx
+  World        Zone    Type        Orbit   Mass    Density Radius  Gravity Year    Day     Ocean%  Temp    Life            Atm     Hab     Pressure
+  Oeyih I      Green   Rock-Iron   0.296   1.34    1.33    1.00    1.34    0.208   76.1    49.4    -1.43   multi-cellular  Dense   0.00    45.1     N2 47 O2 17 AR 13 SO2 11 NH3 7 CL2 4 CO2 0  0 49  1 26  2 16  3 10  4 7
+  Oeyih II     Blue    Gas         0.545   43.4    0.222   5.80    1.29    0.520   9.02     -      -91.4   none             -      0.00    134     
+  Oeyih III    Blue    Rock-Iron   1.05    0.749   0.596   1.07    0.643   1.40    15.1     -      -70.1   none            Ave     0.00    1.63     CH4 44 CO2 32 N2 17 AR 4 NH3 3  1 100  2 100  4 4
+  Oeyih IV     Blue    Gas         1.59    5.80    0.267   2.78    0.745   2.59    19.4     -      -175    none             -      0.00    63.4    
+  Oeyih V      Blue    Gas         2.64    40.1    0.200   5.84    1.17    5.54    14.3     -      -201    none             -      0.00    61.1    
+  Oeyih VI     Blue    Gas         5.10    23.9    0.254   4.54    1.15    14.9    13.6     -      -227    none             -      0.00    74.5    
+  Oeyih VII    Black   Rock-Ice    9.85    0.377   0.446   0.945   0.422   39.9    25.8     -      -230    none            Thin    0.00    0.238    H2 93 HE 7  1 100  2 100  4 2
+  Oeyih VIII   Black   Rock-Ice    15.0    0.458   0.491   0.976   0.480   75.0    24.8     -      -239    none            Thin    0.00    0.260    H2 95 HE 5  1 100  2 100  4 2
+  Oeyih IX     Black   Ice         26.6    0.0934  0.157   0.839   0.132   177     23.9     -      -244    none            Trace   0.00    0.00781  H2 96 HE 4  1 100  2 100  4 0
+  Oeyih X      Black   Hydrogen    38.6    193     0.202   9.86    1.99    309     10.6     -      -269    none             -      0.00    168     
+  Oeyih XI     Black   Rock-Ice    75.0    0.190   0.328   0.833   0.274   839     25.0     -      -255    none            Trace   0.00    0.0185   H2 91 HE 9  1 100  2 100  4 1
+  Oeyih XII    Black   Rock-Ice    123     0.477   0.404   1.05    0.427   1.76K   17.9     -      -264    none            Thin    0.00    0.200    H2 96 HE 4  1 100  2 100  4 2
+
+Fozuw           K5     52.0     7      GBBBBxx
+  World        Zone    Type        Orbit   Mass    Density Radius  Gravity Year    Day     Ocean%  Temp    Life            Atm     Hab     Pressure
+  Fozuw I      Green   Rock-Iron   0.530   0.953   0.587   1.17    0.690   0.437   18.0    67.8    11.9    multi-cellular  Ave     92.0    0.853    N2 80 O2 19 CO2 1  0 68  1 10  2 12  3 7  4 5
+  Fozuw II     Blue    Rock-Iron   1.02    0.747   0.577   1.08    0.629   1.18    18.2     -      -76.3   none            Dense   0.00    65.8     N2 46 CH4 32 CO2 22  1 100  2 100  4 4
+  Fozuw III    Blue    Rock-Iron   1.71    0.754   0.537   1.11    0.601   2.53    23.3    53.7    -38.8   none            Ave     0.00    1.88     CO2 53 CH4 29 N2 12 AR 6  0 54  1 21  2 29  3 17  4 4
+  Fozuw IV     Blue    Gas         2.86    16.3    0.276   3.89    1.07    5.49    10.6     -      -175    none             -      0.00    1.54    
+  Fozuw V      Blue    Gas         5.78    9.61    0.246   3.38    0.836   15.7    15.6     -      -220    none             -      0.00    67.4    
+  Fozuw VI     Black   Hydrogen    8.21    417     0.204   12.6    2.59    26.6    8.10     -      -232    none             -      0.00    217     
+  Fozuw VII    Black   Rock-Ice    16.6    0.466   0.484   0.987   0.478   76.8    18.5     -      -235    none            Thin    0.00    0.242    H2 95 HE 5  1 100  2 100  4 2
+
+Corrino founded at Fozuw/Kaitan
+Tecloo          F0     2.48     7      RRYYYGB
+  World        Zone    Type        Orbit   Mass    Density Radius  Gravity Year    Day     Ocean%  Temp    Life            Atm     Hab     Pressure
+  Tecloo I     Yellow  Rock-Iron   0.718   3.54    1.73    1.26    2.19    0.479   29.2     -      311     none            Dense   0.00    60.8     CO2 39 N2 35 SO2 26  1 100  4 18
+  Tecloo II    Yellow  Rock-Iron   1.29    0.743   0.525   1.12    0.590   1.15    19.7     -      137     none            Ave     0.00    1.01     SO2 52 N2 36 CO2 11 AR 1  1 100  4 4
+  Tecloo III   Yellow  Rock-Iron   1.86    0.0910  0.572   0.541   0.310   2.00    23.3    18.4    54.1    none            None    0.00    0.00      0 18  1 67  4 0
+  Tecloo IV    Green   Rock-Iron   3.36    1.09    1.39    0.922   1.29    4.85    20.4    28.1    -12.7   plants          Ave     0.00    1.68     N2 78 AR 7 NH3 6 O2 6 SO2 3 CO2 0  0 28  1 52  2 20  3 12  4 5
+  Tecloo V     Blue    Rock-Iron   5.43    0.462   0.525   0.958   0.503   9.97    15.7    73.7    13.8    none            Thin    0.00    0.191    CO2 50 N2 47 CH4 3  0 74  1 7  2 11  3 7  4 2
+
+Isi             F0     3.03     10     RRYYGGBBBB
+  World        Zone    Type        Orbit   Mass    Density Radius  Gravity Year    Day     Ocean%  Temp    Life            Atm     Hab     Pressure
+  Isi I        Yellow  Rock-Iron   0.652   1.44    1.29    1.03    1.34    0.375   11.7     -      357     none            Dense   0.00    99.3     CO2 48 SO2 20 N2 11 AR 10 CL2 7 F2 4  1 100  4 7
+  Isi II       Yellow  Rock-Iron   1.30    0.442   0.504   0.957   0.482   1.05    20.9     -      195     none            Trace   0.00    0.0248   CO2 38 SO2 34 N2 19 AR 7 CL2 1  1 100  4 2
+  Isi III      Green   Rock-Iron   2.26    1.11    1.08    1.00    1.09    2.42    23.4     -      134     none            Ave     0.00    2.67     CO2 58 N2 42  1 100  4 6
+  Isi IV       Green   Rock-Iron   3.62    0.937   0.529   1.20    0.640   4.91    15.4    61.8    -11.6   multi-cellular  Ave     46.2    0.442    N2 90 O2 9 CO2 1  0 62  1 15  2 20  3 12  4 5
+  Isi V        Blue    Gas         5.51    12.5    0.263   3.62    0.953   9.21    16.0     -      -87.5   none             -      0.00    1.65    
+  Isi VI       Blue    Hydrogen    9.78    279     0.199   11.1    2.23    21.8    12.7     -      -150    none             -      0.00    204     
+  Isi VII      Blue    Gas         17.1    4.90    0.242   2.72    0.661   50.6    16.6     -      -185    none             -      0.00    67.9    
+  Isi VIII     Blue    Rock-Iron   31.1    0.463   0.558   0.939   0.524   124     25.1     -      -176    none            Thin    0.00    0.0678   CH4 48 N2 13 CO2 11 AR 9 SO2 7 CL2 6 NH3 6  1 100  2 100  4 2
+
+Askaej          K5     45.0     11     GBBBBxxxxxx
+  World        Zone    Type        Orbit   Mass    Density Radius  Gravity Year    Day     Ocean%  Temp    Life            Atm     Hab     Pressure
+  Askaej I     Green   Rock-Iron   0.449   0.950   0.574   1.18    0.679   0.366   106     87.7    22.5    multi-cellular  Ave     75.6    0.843    N2 90 O2 9 CO2 1  0 88  1 2  2 8  3 4  4 5
+  Askaej II    Blue    Rock-Iron   0.742   0.757   0.539   1.12    0.603   0.777   18.1    40.2    11.0    none            Ave     0.00    0.515    CO2 43 N2 33 CH4 18 AR 6  0 40  1 36  2 12  3 7  4 4
+  Askaej III   Blue    Hydrogen    1.49    52.9    0.207   6.34    1.31    2.22    12.5     -      -150    none             -      0.00    91.6    
+  Askaej IV    Blue    Hydrogen    3.07    267     0.198   11.0    2.19    6.56    10.7     -      -193    none             -      0.00    125     
+  Askaej V     Blue    Gas         5.00    41.4    0.213   5.79    1.23    13.6    9.77     -      -215    none             -      0.00    81.0    
+  Askaej VI    Black   Rock-Ice    8.82    0.356   0.302   1.05    0.319   31.8    18.1     -      -219    none            Thin    0.00    0.0701   H2 95 HE 5  1 100  2 100  4 2
+  Askaej VII   Black   Rock-Ice    17.5    0.462   0.360   1.08    0.392   89.1    21.3     -      -236    none            Thin    0.00    0.133    H2 90 HE 10  1 100  2 100  4 2
+  Askaej VIII  Black   Rock-Ice    30.4    0.380   0.402   0.981   0.395   204     26.2     -      -241    none            Trace   0.00    0.0298   H2 95 HE 5  1 100  2 100  4 2
+  Askaej IX    Black   Rock-Ice    48.6    0.370   0.382   0.989   0.378   413     20.2     -      -253    none            Thin    0.00    0.119    H2 93 HE 7  1 100  2 100  4 2
+  Askaej X     Black   Hydrogen    72.5    5.22K   0.199   29.6    5.93    751     10.9     -      -272    none             -      0.00    377     
+  Askaej XI    Black   Ice         146     0.0942  0.195   0.783   0.153   2.15K   22.0     -      -258    none            Trace   0.00    0.0121   H2 91 HE 9  1 100  2 100  4 0
+
+Byzantium founded at Askaej/Constantinople

@@ -59,9 +59,10 @@ package body Athena.Orbits is
    is
       use Athena.Trigonometry;
       use type Athena.Calendar.Time;
-      D : constant Duration := Clock - Item.Epoch;
+      D : constant Duration := Clock - Athena.Calendar.Start;
       A : constant Angle :=
-            From_Degrees (360.0 * Real (D) / Real (Item.Period));
+            Item.Zero_Time_Angle
+              + From_Degrees (360.0 * Real (D) / Item.Period);
       R : constant Non_Negative_Real := Item.Semimajor_Axis;
    begin
       return (1 => R * Cos (A),
@@ -75,14 +76,13 @@ package body Athena.Orbits is
 
    function Period
      (Item : Orbiting_Interface'Class)
-      return Duration
+      return Non_Negative_Real
    is
       use Athena.Elementary_Functions;
       Mu : constant Non_Negative_Real :=
              Athena.Constants.Gravitational_Constant * Item.Primary.Mass;
    begin
-      return Duration
-        (2.0 * Ada.Numerics.Pi * Sqrt (Item.Semimajor_Axis ** 3 / Mu));
+      return 2.0 * Ada.Numerics.Pi * Sqrt (Item.Semimajor_Axis ** 3 / Mu);
    end Period;
 
 end Athena.Orbits;

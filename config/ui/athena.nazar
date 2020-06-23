@@ -9,11 +9,9 @@ application (name = Athena theme = Adwaita-dark) = {
 		}
 	 horizontal-box = {
 		grid = {
-           draw (attach-left = 0 attach-right = 12 attach-top = 0 attach-bottom = 12 name = galaxy)
+           draw (attach-left = 0 attach-right = 8 attach-top = 0 attach-bottom = 12 name = galaxy)
+           draw (attach-left = 8 attach-right = 12 attach-top = 0 attach-bottom = 6 name = home-system)
 		}
 	 }
-     horizontal-box (no-expand) = {
-        button (name = update text = Update pack-end)
-		}
   }
 }

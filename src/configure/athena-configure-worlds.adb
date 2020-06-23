@@ -4,7 +4,6 @@ with Ada.Text_IO;
 with WL.Numerics.Roman;
 with WL.Random;
 
-with Athena.Calendar;
 with Athena.Elementary_Functions;
 with Athena.Random;
 with Athena.Real_Images;
@@ -822,7 +821,6 @@ package body Athena.Configure.Worlds is
       end if;
 
       declare
-         use type Athena.Calendar.Time;
          use Athena.Solar_System;
          World : constant Athena.Handles.World.World_Handle :=
            Athena.Handles.World.Create
@@ -836,9 +834,9 @@ package body Athena.Configure.Worlds is
               Name                => Name,
               Seed                => WL.Random.Random_Number (1, Integer'Last),
               Semimajor_Axis      => Orbit * Earth_Orbit,
-              Epoch               => Athena.Calendar.Clock
-              - Duration (Athena.Random.Unit_Random
-                * Year * Earth_Sidereal_Year),
+              Zero_Time_Angle     =>
+                Athena.Trigonometry.From_Degrees
+                  (Athena.Random.Unit_Random * 360.0),
               Eccentricity        => 0.0,
               Inclination         => Athena.Trigonometry.From_Radians (0.0),
               Period              => Year * Earth_Sidereal_Year,
