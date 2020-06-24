@@ -65,6 +65,11 @@ package Athena.Handles.Ship is
      (Ship : Ship_Handle)
       return Unit_Real;
 
+   function Moving_To_Star
+     (Ship : Ship_Handle;
+      Star : Athena.Handles.Star.Star_Handle)
+      return Boolean;
+
    function Has_Fleet
      (Ship : Ship_Handle)
       return Boolean;
@@ -119,6 +124,11 @@ package Athena.Handles.Ship is
 
    function Complete
      (Action : Root_Ship_Action'Class)
+      return Boolean;
+
+   function Is_Moving_To
+     (Action : Root_Ship_Action;
+      Star   : Athena.Handles.Star.Star_Handle)
       return Boolean;
 
    function Start
@@ -299,5 +309,11 @@ private
      (Action : Root_Ship_Action'Class)
       return Boolean
    is (Action.Complete);
+
+   function Is_Moving_To
+     (Action : Root_Ship_Action;
+      Star   : Athena.Handles.Star.Star_Handle)
+      return Boolean
+   is (False);
 
 end Athena.Handles.Ship;

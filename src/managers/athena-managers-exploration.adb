@@ -146,7 +146,7 @@ package body Athena.Managers.Exploration is
          end if;
 
          for Ship of Scout_Ships loop
-            if Ship.Travelling_To (Star) then
+            if Ship.Moving_To_Star (Star) then
                return;
             elsif Ship.Is_Idle then
                if Ship.At_Star (Nearest.World.Star) then

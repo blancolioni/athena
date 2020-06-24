@@ -66,6 +66,12 @@ package body Athena.Handles.Ship.Actions is
      (Action : Jump_To_Action;
       Ship   : Ship_Handle'Class);
 
+   overriding function Is_Moving_To
+     (Action : Jump_To_Action;
+      Star   : Athena.Handles.Star.Star_Handle)
+      return Boolean
+   is (Action.Destination.Reference = Star.Reference);
+
    type Load_Cargo_Action is
      new Root_Ship_Action with
       record

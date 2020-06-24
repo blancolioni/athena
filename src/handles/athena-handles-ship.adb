@@ -159,6 +159,13 @@ package body Athena.Handles.Ship is
    function Tank_Size (Ship : Ship_Handle) return Non_Negative_Real
    is (Vector (Ship.Reference).Tank_Size);
 
+   function Moving_To_Star
+     (Ship : Ship_Handle;
+      Star : Athena.Handles.Star.Star_Handle)
+      return Boolean
+   is (for some Action of Vector (Ship.Reference).Actions =>
+          Action.Is_Moving_To (Star));
+
    --------------
    -- Activate --
    --------------
