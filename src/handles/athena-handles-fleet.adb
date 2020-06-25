@@ -1,8 +1,9 @@
 with Ada.Containers.Doubly_Linked_Lists;
-with Ada.Containers.Vectors;
 with Ada.Strings.Unbounded;
 
 with Athena.Handles.Ship.Actions;
+
+with Athena.Handles.Vectors;
 
 package body Athena.Handles.Fleet is
 
@@ -19,7 +20,7 @@ package body Athena.Handles.Fleet is
       end record;
 
    package Fleet_Vectors is
-     new Ada.Containers.Vectors
+     new Athena.Handles.Vectors
        (Real_Fleet_Reference, Fleet_Record);
 
    Vector : Fleet_Vectors.Vector;
@@ -97,6 +98,7 @@ package body Athena.Handles.Fleet is
       Owner : Athena.Handles.Empire.Empire_Handle)
       return Fleet_Handle
    is
+      Reference : Fleet_Reference;
    begin
       Vector.Append
         (Fleet_Record'
@@ -104,9 +106,10 @@ package body Athena.Handles.Fleet is
             World         => World.Reference,
             Owner         => Owner.Reference,
             Name          => +Name,
-            Ships         => <>));
-      Owner.Add_Fleet (Vector.Last_Index);
-      return Get (Vector.Last_Index);
+            Ships         => <>),
+         Index => Reference);
+      Owner.Add_Fleet (Reference);
+      return Get (Reference);
    end Create;
 
    -----------------
@@ -144,7 +147,7 @@ package body Athena.Handles.Fleet is
 
    procedure Load (Stream : Ada.Streams.Stream_IO.Stream_Access) is
    begin
-      Fleet_Vectors.Vector'Read (Stream, Vector);
+      Vector.Read (Stream);
    end Load;
 
    -------------
@@ -207,7 +210,7 @@ package body Athena.Handles.Fleet is
 
    procedure Save (Stream : Ada.Streams.Stream_IO.Stream_Access) is
    begin
-      Fleet_Vectors.Vector'Write (Stream, Vector);
+      Vector.Write (Stream);
    end Save;
 
    --------------
@@ -218,9 +221,19 @@ package body Athena.Handles.Fleet is
      (Fleet    : Fleet_Handle;
       New_Name : String)
    is
-      Rec : Fleet_Record renames Vector (Fleet.Reference);
+      procedure Update (Rec : in out Fleet_Record);
+
+      ------------
+      -- Update --
+      ------------
+
+      procedure Update (Rec : in out Fleet_Record) is
+      begin
+         Rec.Name := +New_Name;
+      end Update;
+
    begin
-      Rec.Name := +New_Name;
+      Vector.Update (Fleet.Reference, Update'Access);
    end Set_Name;
 
    ----------------
