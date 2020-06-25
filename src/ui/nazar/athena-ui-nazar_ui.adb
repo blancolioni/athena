@@ -8,6 +8,7 @@ with Nazar.Models.Text;
 
 with Nazar.Views.Draw;
 
+with Nazar.Gtk_Main;
 with Nazar.Main;
 with Nazar.Signals;
 
@@ -58,6 +59,10 @@ package body Athena.UI.Nazar_UI is
    procedure Next_Encounter_Tick
      (User_Data : Nazar.Signals.User_Data_Interface'Class)
      with Unreferenced;
+
+   procedure Image
+     (Category : String;
+      Name     : String);
 
    ----------------------
    -- Get_Encounter_UI --
@@ -111,6 +116,15 @@ package body Athena.UI.Nazar_UI is
            Config_Path => Athena.Paths.Config_File ("ui/athena.nazar"));
    begin
       Nazar.Main.Init;
+
+      Image ("worlds", "airless");
+      Image ("worlds", "desert");
+      Image ("worlds", "ice");
+      Image ("worlds", "jovian");
+      Image ("worlds", "martian");
+      Image ("worlds", "neptunian");
+      Image ("worlds", "temperate");
+
       return Result : Athena_Nazar_UI do
          Result.Top := Builder.Get_View ("Athena");
 
@@ -175,6 +189,22 @@ package body Athena.UI.Nazar_UI is
 
       end return;
    end Get_UI;
+
+   -----------
+   -- Image --
+   -----------
+
+   procedure Image
+     (Category : String;
+      Name     : String)
+   is
+   begin
+      Nazar.Gtk_Main.Add_Image
+        (Resource_Name => Name,
+         File_Path     =>
+           Athena.Paths.Config_File
+             ("ui/images/" & Category & "/" & Name & ".png"));
+   end Image;
 
    -------------------------
    -- Next_Encounter_Tick --

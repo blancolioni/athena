@@ -41,6 +41,14 @@ package Athena.Handles.World is
      (Handle   : World_Handle)
       return Non_Negative_Real;
 
+   function Composition
+     (Handle : World_Handle)
+      return World_Composition;
+
+   function Climate
+     (Handle : World_Handle)
+      return World_Climate;
+
    function Resource_Quality
      (Handle   : World_Handle;
       Resource : Athena.Handles.Commodity.Commodity_Handle)

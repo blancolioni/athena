@@ -36,12 +36,14 @@ package body Athena.UI.Models.Stars is
 
    type World_Record is
       record
-         Handle    : Athena.Handles.World.World_Handle;
-         Color     : Nazar.Colors.Nazar_Color;
-         X, Y      : Nazar.Nazar_Float;
-         Radius    : Non_Negative_Real;
-         Ships     : Empire_Ships_Lists.List;
-         Encounter : Natural;
+         Handle      : Athena.Handles.World.World_Handle;
+         Color       : Nazar.Colors.Nazar_Color;
+         X, Y        : Nazar.Nazar_Float;
+         Composition : Athena.Handles.World.World_Composition;
+         Climate     : Athena.Handles.World.World_Climate;
+         Radius      : Non_Negative_Real;
+         Ships       : Empire_Ships_Lists.List;
+         Encounter   : Natural;
       end record;
 
    package World_Record_Vectors is
@@ -167,6 +169,11 @@ package body Athena.UI.Models.Stars is
       User_Data   : Athena.Signals.User_Data_Interface'Class)
       return Boolean;
 
+   function Image_Resource
+     (Composition : Athena.Handles.World.World_Composition;
+      Climate     : Athena.Handles.World.World_Climate)
+      return String;
+
    ---------------------
    -- Connect_Signals --
    ---------------------
@@ -259,7 +266,9 @@ package body Athena.UI.Models.Stars is
                Model.Set_Fill (True);
                Model.Move_To (0.0, 0.0);
                Model.Set_Color (To_Nazar_Color (Model.Data.Star.Color));
-               Model.Circle (0.1);
+               Model.Circle (20.0);
+               Model.Render;
+               Model.Restore_State;
 
             when Worlds =>
 
@@ -278,11 +287,21 @@ package body Athena.UI.Models.Stars is
 
                   Model.Save_State;
                   Model.Set_Fill (True);
-                  Model.Move_To (Rec.X, Rec.Y);
-                  Model.Set_Color (Rec.Color);
-                  Model.Circle (Nazar.Nazar_Float (8.0 * Rec.Radius));
+
+                  declare
+                     use Nazar;
+                  begin
+                     Model.Move_To (Rec.X, Rec.Y);
+                     Model.Image
+                       (Resource_Name =>
+                          Image_Resource (Rec.Composition, Rec.Climate),
+                        Width         => Nazar_Float (Rec.Radius) * 16.0,
+                        Height        => Nazar_Float (Rec.Radius) * 16.0);
+                  end;
+
                   Model.Render;
                   Model.Restore_State;
+
                end loop;
 
             when Owner =>
@@ -436,6 +455,46 @@ package body Athena.UI.Models.Stars is
       return False;
    end Handle;
 
+   --------------------
+   -- Image_Resource --
+   --------------------
+
+   function Image_Resource
+     (Composition : Athena.Handles.World.World_Composition;
+      Climate     : Athena.Handles.World.World_Climate)
+      return String
+   is
+      use Athena.Handles.World;
+   begin
+      case Composition is
+         when Hydrogen =>
+            return "jovian";
+         when Gaseous =>
+            return "neptunian";
+         when Ice | Rock_Ice =>
+            return "ice";
+         when Rock | Rock_Iron =>
+            case Climate is
+               when Airless =>
+                  return "airless";
+               when Desert =>
+                  return "desert";
+               when Iceball =>
+                  return "ice";
+               when Martian =>
+                  return "martian";
+               when Temperate =>
+                  return "temperate";
+               when Venusian =>
+                  return "venusian";
+               when Water =>
+                  return "water";
+               when Jovian =>
+                  return "jovian";
+            end case;
+      end case;
+   end Image_Resource;
+
    -------------------
    -- Load_Journeys --
    -------------------
@@ -540,22 +599,24 @@ package body Athena.UI.Models.Stars is
             procedure Load_World
               (Reference : Athena.Handles.World_Reference)
             is
-               World : constant Athena.Handles.World.World_Handle :=
-                         Athena.Handles.World.Get (Reference);
-               Color : constant Nazar.Colors.Nazar_Color :=
-                         (1.0, 1.0, 1.0, 1.0);
+               World    : constant Athena.Handles.World.World_Handle :=
+                            Athena.Handles.World.Get (Reference);
+               Color    : constant Nazar.Colors.Nazar_Color :=
+                            (1.0, 1.0, 1.0, 1.0);
                Position : constant Athena.Real_Arrays.Real_Vector :=
                             World.Current_Global_Position;
-               Rec   : constant World_Record := World_Record'
-                 (Handle    => World,
-                  Color     => Color,
-                  X         => Nazar.Nazar_Float (Position (1)),
-                  Y         => Nazar.Nazar_Float (Position (2)),
-                  Radius    =>
+               Rec      : constant World_Record := World_Record'
+                 (Handle      => World,
+                  Color       => Color,
+                  X           => Nazar.Nazar_Float (Position (1)),
+                  Y           => Nazar.Nazar_Float (Position (2)),
+                  Radius      =>
                     Athena.Elementary_Functions.Sqrt
                       (World.Radius / Athena.Solar_System.Earth_Radius),
-                  Encounter => 0,
-                  Ships     => <>);
+                  Composition => World.Composition,
+                  Climate     => World.Climate,
+                  Encounter   => 0,
+                  Ships       => <>);
             begin
                Model.Worlds.Append (Rec);
                if Model.Index_Map.Contains (World.Name) then
@@ -676,10 +737,10 @@ package body Athena.UI.Models.Stars is
       Layers : Draw_Model_Layers (1 .. Count);
       Index  : Natural := 0;
 
-      Left        : constant Real := -40.0;
-      Top         : constant Real := -40.0;
-      Right       : constant Real := 40.0;
-      Bottom      : constant Real := 40.0;
+      Left        : constant Real := -20.0;
+      Top         : constant Real := -20.0;
+      Right       : constant Real := 20.0;
+      Bottom      : constant Real := 20.0;
 
       Data   : constant Star_Model_Record_Access :=
                  new Star_Model_Record'

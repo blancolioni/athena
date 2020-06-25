@@ -131,6 +131,16 @@ package body Athena.Handles.World is
       return Non_Negative_Real
    is (Vector (Handle.Reference).Radius);
 
+   function Composition
+     (Handle : World_Handle)
+      return World_Composition
+   is (Vector (Handle.Reference).Composition);
+
+   function Climate
+     (Handle : World_Handle)
+      return World_Climate
+   is (Vector (Handle.Reference).Climate);
+
    function Has_Owner
      (World : World_Handle)
       return Boolean
