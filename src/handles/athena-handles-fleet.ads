@@ -101,10 +101,6 @@ private
      (Fleet : Fleet_Handle)
       return String;
 
-   overriding procedure Set_Name
-     (Fleet    : Fleet_Handle;
-      New_Name : String);
-
    overriding function Short_Name
      (Fleet : Fleet_Handle)
       return String;

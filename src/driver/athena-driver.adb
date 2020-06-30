@@ -240,7 +240,7 @@ begin
 
    Athena.Updates.Control.Start_Updates;
    Athena.Updates.Control.Set_Advance_Speed
-     (Advance_Per_Second => Athena.Calendar.Days (1));
+     (Advance_Per_Second => 60.0 * 60.0 * 4.0);
    Athena.Updates.Control.Resume_Updates;
 
    declare

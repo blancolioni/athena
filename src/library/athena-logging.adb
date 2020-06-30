@@ -1,3 +1,4 @@
+with Ada.Calendar.Formatting;
 with Ada.Directories;
 with Ada.Text_IO;
 
@@ -8,6 +9,7 @@ package body Athena.Logging is
 
    Logging_Enabled : Boolean := False;
    Log_File        : Ada.Text_IO.File_Type;
+   Start_Time      : Ada.Calendar.Time;
 
    -------------------
    -- Finish_Update --
@@ -27,11 +29,18 @@ package body Athena.Logging is
    procedure Log
      (Message  : String)
    is
+      use type Ada.Calendar.Time;
+      Elapsed : constant Duration :=
+                  Ada.Calendar.Clock - Start_Time;
    begin
       if Logging_Enabled then
          Ada.Text_IO.Put_Line
            (Log_File,
-            Athena.Calendar.Image
+            Ada.Calendar.Formatting.Image
+              (Elapsed_Time => Elapsed,
+               Include_Time_Fraction => True)
+            & Character'Val (9)
+            & Athena.Calendar.Image
               (Athena.Calendar.Clock, True)
             & Character'Val (9)
             & Message);
@@ -60,6 +69,7 @@ package body Athena.Logging is
                           Ada.Directories.Compose
                             (Log_Directory, Log_File_Name));
       Logging_Enabled := True;
+      Start_Time := Ada.Calendar.Clock;
    end Start_Logging;
 
    ------------------

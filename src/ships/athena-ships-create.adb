@@ -16,7 +16,7 @@ package body Athena.Ships.Create is
       Destination : Athena.Handles.World.World_Handle :=
         Athena.Handles.World.Empty_Handle)
    is
-      Ship : constant Athena.Handles.Ship.Ship_Handle :=
+      Ship : constant Athena.Handles.Ship.Ship_Handle'Class :=
                Athena.Handles.Ship.Create
                  (Name        => Name,
                   Owner       => Empire,

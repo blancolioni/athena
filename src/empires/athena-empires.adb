@@ -105,9 +105,11 @@ package body Athena.Empires is
       ----------------
 
       procedure Check_Ship (Ship : Athena.Handles.Ship_Reference) is
+         Handle : constant Athena.Handles.Ship.Ship_Handle'Class :=
+                    Athena.Handles.Ship.Get (Ship);
       begin
-         if Athena.Handles.Ship.Get (Ship).Name = Name then
-            Found := Athena.Handles.Ship.Get (Ship);
+         if Handle.Name = Name then
+            Found := Athena.Handles.Ship.Ship_Handle (Handle);
          end if;
       end Check_Ship;
 

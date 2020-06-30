@@ -561,15 +561,24 @@ package body Athena.UI.Models.Stars is
         (Ship : Athena.Handles.Ship.Ship_Handle)
       is
       begin
-         if not Ship.Has_Fleet
-           and then Ship.In_System_Space
-           and then Ship.At_Star (Data.Star)
-         then
-            Ship.Log ("added to ui " & Data.Star.Name);
-            Add_Journey
-              (Empire   => Ship.Owner,
-               Position => Ship.Current_Location.System_Position,
-               Size     => 3.0); --  Ship.Design.Tonnage / 100.0);
+         if not Ship.Has_Fleet then
+
+            declare
+               use type Athena.Movers.Mover_Location_Type;
+               use type Athena.Handles.Star.Star_Handle;
+               Current : constant Athena.Movers.Mover_Location :=
+                           Ship.Current_Location;
+            begin
+               if Current.Loc_Type = Athena.Movers.System_Space
+                 and then Current.Star = Data.Star
+               then
+                  Ship.Log ("added to ui " & Data.Star.Name);
+                  Add_Journey
+                    (Empire   => Ship.Owner,
+                     Position => Current.System_Position,
+                     Size     => 3.0); --  Ship.Design.Tonnage / 100.0);
+               end if;
+            end;
          end if;
       end Add_Ship;
 

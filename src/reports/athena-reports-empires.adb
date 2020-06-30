@@ -104,7 +104,7 @@ package body Athena.Reports.Empires is
       ----------------
 
       procedure Add_Ship (Ref : Athena.Handles.Ship_Reference) is
-         Ship : constant Athena.Handles.Ship.Ship_Handle :=
+         Ship : constant Athena.Handles.Ship.Ship_Handle'Class :=
                     Athena.Handles.Ship.Get (Ref);
       begin
          Add_Row (Table);

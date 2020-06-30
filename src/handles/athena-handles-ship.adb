@@ -1,15 +1,16 @@
 with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Containers.Indefinite_Doubly_Linked_Lists;
-with Ada.Containers.Vectors;
+
 with Ada.Strings.Unbounded;
 
-with Athena.Calendar;
 with Athena.Random;
 
 with Athena.Server;
 with Athena.Updates.Events;
 
 with Athena.Handles.Design_Module;
+
+with Athena.Handles.Vectors;
 
 package body Athena.Handles.Ship is
 
@@ -25,6 +26,7 @@ package body Athena.Handles.Ship is
        (Module_Reference);
 
    type Ship_Record is
+     new Athena.Movers.Mover_Interface with
       record
          Identifier        : Object_Identifier;
          Name              : Ada.Strings.Unbounded.Unbounded_String;
@@ -34,8 +36,8 @@ package body Athena.Handles.Ship is
          Experience        : Non_Negative_Real;
          Location          : Athena.Movers.Mover_Location;
          Destination       : Athena.Movers.Mover_Location;
-         Owner             : Empire_Reference;
-         Design            : Design_Reference;
+         Owner             : Athena.Handles.Empire.Empire_Handle;
+         Design            : Athena.Handles.Design.Design_Handle;
          Modules           : Module_Lists.List;
          Drives            : Module_Lists.List;
          Jump_Drive        : Module_Reference;
@@ -53,8 +55,28 @@ package body Athena.Handles.Ship is
          Script            : Ada.Strings.Unbounded.Unbounded_String;
       end record;
 
+   overriding function Location
+     (Rec : Ship_Record)
+      return Athena.Movers.Mover_Location
+   is (Rec.Location);
+
+   overriding function Has_Destination
+     (Rec : Ship_Record)
+      return Boolean
+   is (not Athena.Movers."="
+       (Rec.Destination.Loc_Type, Athena.Movers.Nowhere));
+
+   overriding function Destination
+     (Rec : Ship_Record)
+      return Athena.Movers.Mover_Location
+   is (Rec.Destination);
+
+   overriding function Progress
+     (Rec : Ship_Record)
+      return Unit_Real;
+
    package Ship_Vectors is
-     new Ada.Containers.Vectors
+     new Athena.Handles.Vectors
        (Real_Ship_Reference, Ship_Record);
 
    Vector : Ship_Vectors.Vector;
@@ -72,12 +94,12 @@ package body Athena.Handles.Ship is
    function Design
      (Ship : Ship_Handle)
       return Athena.Handles.Design.Design_Handle
-   is (Athena.Handles.Design.Get (Vector (Ship.Reference).Design));
+   is (Vector (Ship.Reference).Design);
 
    function Owner
      (Ship : Ship_Handle)
       return Athena.Handles.Empire.Empire_Handle
-   is (Athena.Handles.Empire.Get (Vector (Ship.Reference).Owner));
+   is (Vector (Ship.Reference).Owner);
 
    function Is_Alive
      (Ship : Ship_Handle)
@@ -174,6 +196,9 @@ package body Athena.Handles.Ship is
      (Ship : Ship_Handle)
    is
       use type Athena.Calendar.Time;
+
+      Ship_Update : Ship_Update_Handle := Ship.Update;
+
    begin
       if Ship.Has_Destination then
          Ship.Log ("activating; destination "
@@ -183,65 +208,46 @@ package body Athena.Handles.Ship is
                    & Ship.Current_Activity);
       end if;
 
-      declare
-         procedure Report (Cargo : Athena.Cargo.Cargo_Interface'Class;
-                           Quantity : Non_Negative_Real);
-
-         ------------
-         -- Report --
-         ------------
-
-         procedure Report (Cargo    : Athena.Cargo.Cargo_Interface'Class;
-                           Quantity : Non_Negative_Real)
-         is
-         begin
-            Ship.Log ("cargo: " & Image (Quantity) & " " & Cargo.Tag);
-         end Report;
-
-      begin
-         Vector (Ship.Reference).Cargo.Iterate (Report'Access);
-      end;
-
-      if Vector (Ship.Reference).Executing then
-         if Vector (Ship.Reference).Action_Finished
-           > Athena.Calendar.Clock
-         then
-            Ship.Log
-              ("current action finishes at "
-               & Athena.Calendar.Image
-                 (Vector (Ship.Reference).Action_Finished, True));
-            return;
-         end if;
-
-         Vector (Ship.Reference).Action_Started :=
-           Athena.Calendar.Clock;
-         Ship.First_Action.On_Finished (Ship);
-         Ship.Delete_First_Action;
-         Vector (Ship.Reference).Executing := False;
+      if Vector (Ship.Reference).Executing
+        and then Vector (Ship.Reference).Action_Finished
+        > Athena.Calendar.Clock
+      then
+         Ship.Log
+           ("current action finishes at "
+            & Athena.Calendar.Image
+              (Vector (Ship.Reference).Action_Finished, True));
+         return;
       end if;
 
-      if Ship.Has_Actions then
+      if Vector (Ship.Reference).Executing then
+         Vector (Ship.Reference).Actions.First_Element
+           .On_Finished (Ship_Update);
+         Ship_Update.Finish_Action;
+         Ship_Update.Commit;
+      end if;
+
+      if not Vector (Ship.Reference).Actions.Is_Empty then
          declare
             Execution_Time : constant Duration :=
-              Ship.First_Action.Start (Ship);
+                               Vector (Ship.Reference)
+                               .Actions.First_Element.Start (Ship_Update);
          begin
-            Vector (Ship.Reference).Executing := True;
-            Vector (Ship.Reference).Action_Started :=
-              Athena.Calendar.Clock;
-            Vector (Ship.Reference).Action_Finished :=
-              Athena.Calendar.Clock + Execution_Time;
+            Ship_Update.Start_Action (Execution_Time);
+            Ship_Update.Commit;
             Athena.Updates.Events.Update_With_Delay
               (Execution_Time, Ship);
             return;
          end;
       elsif Ship.Has_Manager then
-         Ship.Set_Activity (Idle);
-         Ship.Log ("signaling manager " & Ship.Manager'Image);
+         Ship_Update.Set_Activity (Idle);
+         Ship_Update.Commit;
          Ship.Owner.Send_Signal (Ship.Manager);
          return;
       end if;
 
-      Ship.Set_Activity (Idle);
+      Ship_Update.Set_Activity (Idle);
+      Ship_Update.Commit;
+
       Athena.Updates.Events.Update_With_Delay
         (Athena.Calendar.Days (1), Ship);
 
@@ -255,13 +261,24 @@ package body Athena.Handles.Ship is
      (Ship   : Ship_Handle;
       Action : Root_Ship_Action'Class)
    is
-      Actions : Ship_Action_Lists.List renames Vector (Ship.Reference).Actions;
-      Schedule : constant Boolean := Actions.Is_Empty;
+      procedure Update (Rec : in out Ship_Record);
+
+      ------------
+      -- Update --
+      ------------
+
+      procedure Update (Rec : in out Ship_Record) is
+         Actions  : Ship_Action_Lists.List renames Rec.Actions;
+         Schedule : constant Boolean := Actions.Is_Empty;
+      begin
+         Actions.Append (Action);
+         if Schedule then
+            Athena.Updates.Events.Update_With_Delay (0.0, Ship);
+         end if;
+      end Update;
+
    begin
-      Actions.Append (Action);
-      if Schedule then
-         Athena.Updates.Events.Update_With_Delay (0.0, Ship);
-      end if;
+      Vector.Update (Ship.Reference, Update'Access);
    end Add_Action;
 
    ---------------
@@ -273,8 +290,19 @@ package body Athena.Handles.Ship is
       Item      : Athena.Cargo.Cargo_Interface'Class;
       Quantity  : Non_Negative_Real)
    is
+      procedure Update (Rec : in out Ship_Record);
+
+      ------------
+      -- Update --
+      ------------
+
+      procedure Update (Rec : in out Ship_Record) is
+      begin
+         Rec.Cargo.Add_Cargo (Item, Quantity);
+      end Update;
+
    begin
-      Vector (Ship.Reference).Cargo.Add_Cargo (Item, Quantity);
+      Vector.Update (Ship.Reference, Update'Access);
    end Add_Cargo;
 
    --------------------
@@ -285,9 +313,19 @@ package body Athena.Handles.Ship is
      (Ship : Ship_Handle;
       XP   : Non_Negative_Real)
    is
-      Rec : Ship_Record renames Vector (Ship.Reference);
+      procedure Update (Rec : in out Ship_Record);
+
+      ------------
+      -- Update --
+      ------------
+
+      procedure Update (Rec : in out Ship_Record) is
+      begin
+         Rec.Experience := Rec.Experience + XP;
+      end Update;
+
    begin
-      Rec.Experience := Rec.Experience + XP;
+      Vector.Update (Ship.Reference, Update'Access);
    end Add_Experience;
 
    -----------------
@@ -307,7 +345,7 @@ package body Athena.Handles.Ship is
          when Athena.Cargo.Fuel =>
             return Rec.Tank_Size;
          when Athena.Cargo.People =>
-            return Athena.Handles.Design.Get (Rec.Design).Passenger_Berths;
+            return Rec.Design.Passenger_Berths;
       end case;
    end Cargo_Space;
 
@@ -316,12 +354,63 @@ package body Athena.Handles.Ship is
    -----------------------
 
    procedure Clear_Destination
-     (Ship        : Ship_Handle)
+     (Ship        : in out Ship_Update_Handle)
    is
-      Rec : Ship_Record renames Vector (Ship.Reference);
    begin
-      Rec.Destination := (Loc_Type => Athena.Movers.Nowhere);
+      Ship.Updates (Destination_Update) := True;
+      Ship.New_Destination := (Loc_Type => Athena.Movers.Nowhere);
    end Clear_Destination;
+
+   ------------
+   -- Commit --
+   ------------
+
+   procedure Commit (Ship : in out Ship_Update_Handle) is
+
+      procedure Do_Commit (Rec : in out Ship_Record);
+
+      ---------------
+      -- Do_Commit --
+      ---------------
+
+      procedure Do_Commit (Rec : in out Ship_Record) is
+      begin
+         if Ship.Updates (Action_Finished) then
+            Rec.Executing := False;
+            Rec.Actions.Delete_First;
+         end if;
+         if Ship.Updates (Action_Started) then
+            Rec.Executing := True;
+            Rec.Action_Started := Athena.Calendar.Clock;
+            Rec.Action_Finished := Ship.New_Action_Finished;
+         end if;
+         if Ship.Updates (Activity_Update) then
+            Rec.Activity := Ship.New_Activity;
+         end if;
+         if Ship.Updates (Destination_Update) then
+            Rec.Destination := Ship.New_Destination;
+         end if;
+         if Ship.Updates (Fleet_Update) then
+            Rec.Fleet := Ship.New_Fleet;
+         end if;
+         if Ship.Updates (Location_Update) then
+            Rec.Location := Ship.New_Location;
+         end if;
+         if Ship.Updates (Name_Update) then
+            Rec.Name := Ship.New_Name;
+         end if;
+      end Do_Commit;
+
+   begin
+      Vector.Update (Ship.Reference, Do_Commit'Access);
+      if Ship.Updates (Activity_Update) then
+         Athena.Server.Emit
+           (Source      => Ship,
+            Signal      => Ship_Activity_Changed,
+            Signal_Data => Athena.Signals.Null_Signal_Data);
+      end if;
+      Ship.Updates := (others => False);
+   end Commit;
 
    ------------
    -- Create --
@@ -335,7 +424,7 @@ package body Athena.Handles.Ship is
       Fleet       : Fleet_Reference;
       Manager     : Athena.Handles.Manager_Class;
       Script      : String)
-      return Ship_Handle
+      return Ship_Handle'Class
    is
       use Athena.Calendar;
       Rec : Ship_Record :=
@@ -348,8 +437,8 @@ package body Athena.Handles.Ship is
                  Experience        => 0.0,
                  Location          => (Athena.Movers.World_Orbit, World),
                  Destination       => <>,
-                 Owner             => Owner.Reference,
-                 Design            => Design.Reference,
+                 Owner             => Owner,
+                 Design            => Design,
                  Modules           => <>,
                  Drives            => <>,
                  Jump_Drive        => Null_Module_Reference,
@@ -394,13 +483,14 @@ package body Athena.Handles.Ship is
          end if;
       end Add_Design_Module;
 
+      Reference : Ship_Reference;
+
    begin
       Design.Iterate_Design_Modules (Add_Design_Module'Access);
-      Vector.Append (Rec);
 
-      return Handle : constant Ship_Handle :=
-        (True, Vector.Last_Index)
-      do
+      Vector.Append (Rec, Reference);
+
+      return Handle : constant Ship_Handle := (True, Reference) do
          Athena.Updates.Events.Update_At
            (Clock  => Rec.Next_Update,
             Update => Handle);
@@ -415,21 +505,50 @@ package body Athena.Handles.Ship is
      (Ship : Ship_Handle)
       return Non_Negative_Real
    is
-      Rec  : Ship_Record renames Vector (Ship.Reference);
-      Mass : Non_Negative_Real := Ship.Design.Mass;
+      Rec  : constant Ship_Record := Vector.Element (Ship.Reference);
+      Mass : Non_Negative_Real := Rec.Design.Mass;
    begin
       Mass := Mass + Rec.Cargo.Total_Mass;
       return Mass;
    end Current_Mass;
 
-   -------------------------
-   -- Delete_First_Action --
-   -------------------------
+   -------------------
+   -- Finish_Action --
+   -------------------
 
-   procedure Delete_First_Action (Ship : Ship_Handle) is
+   procedure Finish_Action (Ship : in out Ship_Update_Handle) is
    begin
-      Vector (Ship.Reference).Actions.Delete_First;
-   end Delete_First_Action;
+      Ship.Updates (Action_Finished) := True;
+
+      --  Rec.Action_Started := Athena.Calendar.Clock;
+      --  Rec.Actions.First_Element.On_Finished (Ship_Update);
+      --  Rec.Actions.Delete_First;
+      --  Rec.Executing := False;
+   end Finish_Action;
+
+   -----------------
+   -- Get_Journey --
+   -----------------
+
+   procedure Get_Journey
+     (Ship        : Ship_Handle;
+      Origin      : out Athena.Movers.Mover_Location;
+      Destination : out Athena.Movers.Mover_Location;
+      Current     : out Athena.Movers.Mover_Location)
+   is
+      use Athena.Movers;
+      Rec : constant Ship_Record := Vector.Element (Ship.Reference);
+   begin
+      Origin := Rec.Location;
+      Destination :=
+        (if not Rec.Has_Destination then Rec.Destination
+         else (Loc_Type => Athena.Movers.Nowhere));
+      Current :=
+        (if Rec.Has_Destination then Rec.Location
+         else Rec.Current_Location);
+      pragma Assert (Origin.Loc_Type = Destination.Loc_Type
+                     and then Destination.Loc_Type = Current.Loc_Type);
+   end Get_Journey;
 
    -----------------
    -- Iterate_All --
@@ -441,7 +560,7 @@ package body Athena.Handles.Ship is
    is
    begin
       for Reference in 1 .. Vector.Last_Index loop
-         Process (Get (Reference));
+         Process (Ship_Handle (Get (Reference)));
       end loop;
    end Iterate_All;
 
@@ -483,7 +602,7 @@ package body Athena.Handles.Ship is
 
    procedure Load (Stream : Ada.Streams.Stream_IO.Stream_Access) is
    begin
-      Ship_Vectors.Vector'Read (Stream, Vector);
+      Vector.Read (Stream);
       for Reference in 1 .. Vector.Last_Index loop
          if Vector (Reference).Actions.Is_Empty then
             Athena.Updates.Events.Update_At
@@ -502,13 +621,13 @@ package body Athena.Handles.Ship is
    ------------------------
 
    procedure Move_To_Deep_Space
-     (Ship : Ship_Handle)
+     (Ship : in out Ship_Update_Handle)
    is
-      Rec : Ship_Record renames Vector (Ship.Reference);
    begin
-      Rec.Location :=
+      Ship.Updates (Location_Update) := True;
+      Ship.New_Location :=
         (Athena.Movers.Deep_Space,
-         (Rec.Location.Star.X, Rec.Location.Star.Y, 0.0));
+         (Ship.Location.Star.X, Ship.Location.Star.Y, 0.0));
    end Move_To_Deep_Space;
 
    --------------------------
@@ -516,13 +635,13 @@ package body Athena.Handles.Ship is
    --------------------------
 
    procedure Move_To_System_Space
-     (Ship : Ship_Handle)
+     (Ship : in out Ship_Update_Handle)
    is
-      Rec : Ship_Record renames Vector (Ship.Reference);
    begin
-      Rec.Location :=
-        (Athena.Movers.System_Space, Rec.Location.World.Star,
-         Rec.Location.World.Current_Global_Position);
+      Ship.Updates (Location_Update) := True;
+      Ship.New_Location :=
+        (Athena.Movers.System_Space, Ship.Location.World.Star,
+         Ship.Location.World.Current_Global_Position);
    end Move_To_System_Space;
 
    --------------
@@ -533,11 +652,23 @@ package body Athena.Handles.Ship is
      (Ship : Ship_Handle)
       return Unit_Real
    is
+   begin
+      return Vector.Element (Ship.Reference).Progress;
+   end Progress;
+
+   --------------
+   -- Progress --
+   --------------
+
+   overriding function Progress
+     (Rec : Ship_Record)
+      return Unit_Real
+   is
       use type Athena.Calendar.Time;
       Action_Started  : constant Athena.Calendar.Time :=
-                          Vector (Ship.Reference).Action_Started;
+                          Rec.Action_Started;
       Action_Finished : constant Athena.Calendar.Time :=
-                          Vector (Ship.Reference).Action_Finished;
+                          Rec.Action_Finished;
       Total_Time    : constant Real :=
                         Real (Action_Finished - Action_Started);
       Elapsed_Time    : constant Real :=
@@ -569,7 +700,7 @@ package body Athena.Handles.Ship is
 
    procedure Save (Stream : Ada.Streams.Stream_IO.Stream_Access) is
    begin
-      Ship_Vectors.Vector'Write (Stream, Vector);
+      Vector.Write (Stream);
    end Save;
 
    ------------------
@@ -577,18 +708,12 @@ package body Athena.Handles.Ship is
    ------------------
 
    procedure Set_Activity
-     (Ship     : Ship_Handle;
+     (Ship     : in out Ship_Update_Handle;
       Activity : Ship_Activity)
    is
    begin
-      if Activity /= Vector (Ship.Reference).Activity then
-         Ship.Log ("activity: " & Activity'Image);
-         Vector (Ship.Reference).Activity := Activity;
-         Athena.Server.Emit
-           (Source      => Ship,
-            Signal      => Ship_Activity_Changed,
-            Signal_Data => Athena.Signals.Null_Signal_Data);
-      end if;
+      Ship.Updates (Activity_Update) := True;
+      Ship.New_Activity := Activity;
    end Set_Activity;
 
    ---------------------
@@ -596,13 +721,13 @@ package body Athena.Handles.Ship is
    ---------------------
 
    procedure Set_Destination
-     (Ship  : Ship_Handle;
+     (Ship  : in out Ship_Update_Handle;
       World : Athena.Handles.World.World_Handle)
    is
-      Rec      : Ship_Record renames Vector (Ship.Reference);
    begin
-      Rec.Destination :=
-        (Athena.Movers.World_Orbit, World);
+      Ship.Updates (Destination_Update) := True;
+      Ship.New_Destination :=
+           (Athena.Movers.World_Orbit, World);
    end Set_Destination;
 
    ---------------------
@@ -610,13 +735,14 @@ package body Athena.Handles.Ship is
    ---------------------
 
    procedure Set_Destination
-     (Ship : Ship_Handle;
+     (Ship : in out Ship_Update_Handle;
       Star : Athena.Handles.Star.Star_Handle)
    is
-      Rec : Ship_Record renames Vector (Ship.Reference);
    begin
-      Rec.Destination := (Athena.Movers.Deep_Space,
-                          (Star.X, Star.Y, 0.0));
+      Ship.Updates (Destination_Update) := True;
+      Ship.New_Destination :=
+        (Athena.Movers.Deep_Space,
+         (Star.X, Star.Y, 0.0));
    end Set_Destination;
 
    ---------------
@@ -624,24 +750,25 @@ package body Athena.Handles.Ship is
    ---------------
 
    procedure Set_Fleet
-     (Ship  : Ship_Handle;
+     (Ship  : in out Ship_Update_Handle;
       Fleet : Fleet_Reference)
    is
    begin
-      Vector (Ship.Reference).Fleet := Fleet;
+      Ship.Updates (Fleet_Update) := True;
+      Ship.New_Fleet := Fleet;
    end Set_Fleet;
 
    --------------
    -- Set_Name --
    --------------
 
-   overriding procedure Set_Name
-     (Ship     : Ship_Handle;
+   procedure Set_Name
+     (Ship     : in out Ship_Update_Handle;
       New_Name : String)
    is
-      Rec : Ship_Record renames Vector (Ship.Reference);
    begin
-      Rec.Name := +New_Name;
+      Ship.Updates (Name_Update) := True;
+      Ship.New_Name := +New_Name;
    end Set_Name;
 
    -----------------------
@@ -649,21 +776,21 @@ package body Athena.Handles.Ship is
    -----------------------
 
    procedure Set_Star_Location
-     (Ship  : Ship_Handle;
+     (Ship  : in out Ship_Update_Handle;
       Star  : Athena.Handles.Star.Star_Handle;
       Rho   : Non_Negative_Real;
       Theta : Athena.Trigonometry.Angle;
       Error : Non_Negative_Real)
    is
-      X : constant Real := Rho * Athena.Trigonometry.Cos (Theta)
-            + (if Error = 0.0 then 0.0
-               else Athena.Random.Normal_Random (Error));
-      Y : constant Real := Rho * Athena.Trigonometry.Sin (Theta)
-            + (if Error = 0.0 then 0.0
-               else Athena.Random.Normal_Random (Error));
-      Rec : Ship_Record renames Vector (Ship.Reference);
+      X   : constant Real := Rho * Athena.Trigonometry.Cos (Theta)
+              + (if Error = 0.0 then 0.0
+                 else Athena.Random.Normal_Random (Error));
+      Y   : constant Real := Rho * Athena.Trigonometry.Sin (Theta)
+              + (if Error = 0.0 then 0.0
+                 else Athena.Random.Normal_Random (Error));
    begin
-      Rec.Location := (Athena.Movers.System_Space, Star, (X, Y, 0.0));
+      Ship.Updates (Location_Update) := True;
+      Ship.New_Location := (Athena.Movers.System_Space, Star, (X, Y, 0.0));
    end Set_Star_Location;
 
    ----------------------------------
@@ -671,19 +798,19 @@ package body Athena.Handles.Ship is
    ----------------------------------
 
    procedure Set_System_Space_Destination
-     (Ship  : Ship_Handle;
+     (Ship  : in out Ship_Update_Handle;
       Rho   : Non_Negative_Real;
       Theta : Athena.Trigonometry.Angle)
    is
       Star : constant Athena.Handles.Star.Star_Handle :=
                Ship.Location_Star;
-      X : constant Real := Rho * Athena.Trigonometry.Cos (Theta);
-      Y : constant Real := Rho * Athena.Trigonometry.Sin (Theta);
-      Rec : Ship_Record renames Vector (Ship.Reference);
+      X    : constant Real := Rho * Athena.Trigonometry.Cos (Theta);
+      Y    : constant Real := Rho * Athena.Trigonometry.Sin (Theta);
    begin
-      Rec.Destination :=
-        (Athena.Movers.System_Space, Star,
-         (X, Y, 0.0));
+      Ship.Updates (Destination_Update) := True;
+      Ship.New_Destination :=
+           (Athena.Movers.System_Space, Star,
+            (X, Y, 0.0));
    end Set_System_Space_Destination;
 
    ------------------------
@@ -691,12 +818,22 @@ package body Athena.Handles.Ship is
    ------------------------
 
    procedure Set_World_Location
-     (Ship  : Ship_Handle;
+     (Ship  : in out Ship_Update_Handle;
       World : Athena.Handles.World.World_Handle)
    is
-      Rec : Ship_Record renames Vector (Ship.Reference);
+      procedure Update (Rec : in out Ship_Record);
+
+      ------------
+      -- Update --
+      ------------
+
+      procedure Update (Rec : in out Ship_Record) is
+      begin
+         Rec.Location := (Athena.Movers.World_Orbit, World);
+      end Update;
+
    begin
-      Rec.Location := (Athena.Movers.World_Orbit, World);
+      Vector.Update (Ship.Reference, Update'Access);
    end Set_World_Location;
 
    ---------------------------
@@ -707,6 +844,20 @@ package body Athena.Handles.Ship is
    begin
       return Athena.Signals.Signal (Signal_Ship_Activity_Changed);
    end Ship_Activity_Changed;
+
+   ------------------
+   -- Start_Action --
+   ------------------
+
+   procedure Start_Action
+     (Ship            : in out Ship_Update_Handle;
+      Action_Duration : Duration)
+   is
+      use type Athena.Calendar.Time;
+   begin
+      Ship.Updates (Action_Started) := True;
+      Ship.New_Action_Finished := Athena.Calendar.Clock + Action_Duration;
+   end Start_Action;
 
 begin
 

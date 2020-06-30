@@ -140,6 +140,7 @@ package body Athena.Managers.Attack is
          end if;
 
          if Fleet.Has_Destination
+           and then Fleet.In_Deep_Space
            and then Fleet.Destination_Star = Star
          then
             Stop := False;
@@ -175,7 +176,7 @@ package body Athena.Managers.Attack is
             procedure Add_Attack_Ship
               (Reference : Athena.Handles.Ship_Reference)
             is
-               Ship : constant Athena.Handles.Ship.Ship_Handle :=
+               Ship : constant Athena.Handles.Ship.Ship_Handle'Class :=
                         Athena.Handles.Ship.Get (Reference);
             begin
                if not Athena.Ships.Is_Armed (Ship) then
@@ -278,11 +279,12 @@ package body Athena.Managers.Attack is
            (Reference : Athena.Handles.Ship_Reference)
          is
             use type Athena.Handles.Design.Design_Handle;
-            Ship : constant Athena.Handles.Ship.Ship_Handle :=
+            Ship : constant Athena.Handles.Ship.Ship_Handle'Class :=
                      Athena.Handles.Ship.Get (Reference);
          begin
             if Ship.Design = Recon_Design then
-               Recon_Ships.Append (Ship);
+               Recon_Ships.Append
+                 (Athena.Handles.Ship.Ship_Handle (Ship));
             end if;
          end Add_Recon_Ship;
 
@@ -418,7 +420,9 @@ package body Athena.Managers.Attack is
 
       procedure Add_Fleet_Ship (Reference : Athena.Handles.Ship_Reference) is
       begin
-         Fleet_Ships.Append (Athena.Handles.Ship.Get (Reference));
+         Fleet_Ships.Append
+           (Athena.Handles.Ship.Ship_Handle
+              (Athena.Handles.Ship.Get (Reference)));
       end Add_Fleet_Ship;
 
    begin

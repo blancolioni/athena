@@ -1,3 +1,5 @@
+private with Athena.Calendar;
+
 with Ada.Streams.Stream_IO;
 
 with Athena.Cargo;
@@ -26,16 +28,12 @@ package Athena.Handles.Ship is
    with private;
 
    function Reference (Ship : Ship_Handle) return Ship_Reference;
-   function Get (Ship : Ship_Reference) return Ship_Handle;
+   function Get (Ship : Ship_Reference) return Ship_Handle'Class;
    function Empty_Handle return Ship_Handle;
 
    overriding function Name
      (Ship : Ship_Handle)
       return String;
-
-   overriding procedure Set_Name
-     (Ship     : Ship_Handle;
-      New_Name : String);
 
    function Owner
      (Ship : Ship_Handle)
@@ -65,6 +63,12 @@ package Athena.Handles.Ship is
      (Ship : Ship_Handle)
       return Unit_Real;
 
+   procedure Get_Journey
+     (Ship        : Ship_Handle;
+      Origin      : out Athena.Movers.Mover_Location;
+      Destination : out Athena.Movers.Mover_Location;
+      Current     : out Athena.Movers.Mover_Location);
+
    function Moving_To_Star
      (Ship : Ship_Handle;
       Star : Athena.Handles.Star.Star_Handle)
@@ -77,10 +81,6 @@ package Athena.Handles.Ship is
    function Fleet
      (Ship : Ship_Handle)
       return Fleet_Reference;
-
-   procedure Set_Fleet
-     (Ship  : Ship_Handle;
-      Fleet : Fleet_Reference);
 
    function Has_Manager
      (Ship : Ship_Handle)
@@ -131,17 +131,6 @@ package Athena.Handles.Ship is
       Star   : Athena.Handles.Star.Star_Handle)
       return Boolean;
 
-   function Start
-     (Action : Root_Ship_Action;
-      Ship   : Ship_Handle'Class)
-     return Duration
-   is abstract;
-
-   procedure On_Finished
-     (Action : Root_Ship_Action;
-      Ship   : Ship_Handle'Class)
-   is null;
-
    function Has_Actions (Ship : Ship_Handle) return Boolean;
 
    function First_Action (Ship : Ship_Handle) return Root_Ship_Action'Class
@@ -152,8 +141,8 @@ package Athena.Handles.Ship is
       Action : Root_Ship_Action'Class)
      with Post => Ship.Has_Actions;
 
-   procedure Delete_First_Action (Ship : Ship_Handle)
-     with Pre => Ship.Has_Actions;
+   --  procedure Delete_First_Action (Ship : Ship_Handle)
+   --    with Pre => Ship.Has_Actions;
 
    function Current_Activity
      (Ship : Ship_Handle)
@@ -171,7 +160,42 @@ package Athena.Handles.Ship is
       Fleet       : Fleet_Reference;
       Manager     : Athena.Handles.Manager_Class;
       Script      : String)
-      return Ship_Handle;
+      return Ship_Handle'Class;
+
+   type Ship_Update_Handle is
+     new Ship_Handle with private;
+
+   overriding function Empty_Handle
+      return Ship_Update_Handle;
+
+   function Update
+     (Reference : Ship_Reference)
+      return Ship_Update_Handle;
+
+   function Update
+     (Handle : Ship_Handle'Class)
+      return Ship_Update_Handle;
+
+   procedure Commit (Ship : in out Ship_Update_Handle);
+
+   procedure Set_Name
+     (Ship     : in out Ship_Update_Handle;
+      New_Name : String);
+
+   function Start
+     (Action : Root_Ship_Action;
+      Ship   : in out Ship_Update_Handle'Class)
+      return Duration
+      is abstract;
+
+   procedure On_Finished
+     (Action : Root_Ship_Action;
+      Ship   : in out Ship_Update_Handle'Class)
+   is null;
+
+   procedure Set_Fleet
+     (Ship  : in out Ship_Update_Handle;
+      Fleet : Fleet_Reference);
 
    procedure Load
      (Stream : Ada.Streams.Stream_IO.Stream_Access);
@@ -187,6 +211,25 @@ private
 
    type Ship_Activity is
      (Idle, Loading, Unloading, Departing, Jumping, Arriving);
+
+   type Root_Ship_Action is abstract tagged
+      record
+         Complete : Boolean := False;
+      end record;
+
+   function Image (Action : Root_Ship_Action) return String
+   is ("action");
+
+   function Complete
+     (Action : Root_Ship_Action'Class)
+      return Boolean
+   is (Action.Complete);
+
+   function Is_Moving_To
+     (Action : Root_Ship_Action;
+      Star   : Athena.Handles.Star.Star_Handle)
+      return Boolean
+   is (False);
 
    type Ship_Handle is
      new Root_Athena_Handle
@@ -239,15 +282,15 @@ private
       Quantity  : Non_Negative_Real);
 
    procedure Move_To_System_Space
-     (Ship : Ship_Handle)
+     (Ship : in out Ship_Update_Handle)
      with Pre => Ship.Orbiting_World;
 
    procedure Move_To_Deep_Space
-     (Ship : Ship_Handle)
+     (Ship : in out Ship_Update_Handle)
      with Pre => Ship.In_System_Space;
 
    procedure Set_System_Space_Destination
-     (Ship  : Ship_Handle;
+     (Ship  : in out Ship_Update_Handle;
       Rho   : Non_Negative_Real;
       Theta : Athena.Trigonometry.Angle);
 
@@ -256,38 +299,21 @@ private
    --     X, Y  : Real);
 
    procedure Clear_Destination
-     (Ship        : Ship_Handle);
+     (Ship : in out Ship_Update_Handle);
 
    procedure Set_Destination
-     (Ship  : Ship_Handle;
-      World : Athena.Handles.World.World_Handle)
-     with Pre => Ship.In_System_Space;
-
-   procedure Set_Destination
-     (Ship  : Ship_Handle;
-      Star  : Athena.Handles.Star.Star_Handle)
-     with Pre => Ship.In_Deep_Space;
-
-   procedure Set_Activity
-     (Ship     : Ship_Handle;
-      Activity : Ship_Activity);
-
-   procedure Set_World_Location
-     (Ship  : Ship_Handle;
+     (Ship  : in out Ship_Update_Handle;
       World : Athena.Handles.World.World_Handle);
 
-   procedure Set_Star_Location
-     (Ship  : Ship_Handle;
-      Star  : Athena.Handles.Star.Star_Handle;
-      Rho   : Non_Negative_Real;
-      Theta : Athena.Trigonometry.Angle;
-      Error : Non_Negative_Real);
+   procedure Set_Destination
+     (Ship  : in out Ship_Update_Handle;
+      Star  : Athena.Handles.Star.Star_Handle);
 
    function Reference (Ship : Ship_Handle) return Ship_Reference
    is (Ship.Reference);
 
-   function Get (Ship : Ship_Reference) return Ship_Handle
-   is (Ship /= 0, Ship);
+   function Get (Ship : Ship_Reference) return Ship_Handle'Class
+   is (Ship_Handle'(Ship /= 0, Ship));
 
    function Empty_Handle return Ship_Handle
    is (False, 0);
@@ -297,23 +323,58 @@ private
       return Non_Negative_Real
    is (Ship.Current_Tonnage (Athena.Cargo.Fuel));
 
-   type Root_Ship_Action is abstract tagged
+   type Update_Type is (Action_Started, Action_Finished,
+                        Activity_Update,
+                        Destination_Update, Fleet_Update,
+                        Location_Update, Name_Update);
+
+   type Update_Set is array (Update_Type) of Boolean;
+
+   type Ship_Update_Handle is
+     new Ship_Handle with
       record
-         Complete : Boolean := False;
+         Updates             : Update_Set := (others => False);
+         New_Action_Finished : Athena.Calendar.Time;
+         New_Activity        : Ship_Activity := Idle;
+         New_Fleet           : Fleet_Reference := Null_Fleet_Reference;
+         New_Destination     : Athena.Movers.Mover_Location;
+         New_Location        : Athena.Movers.Mover_Location;
+         New_Name            : Ada.Strings.Unbounded.Unbounded_String;
       end record;
 
-   function Image (Action : Root_Ship_Action) return String
-   is ("action");
+   procedure Start_Action
+     (Ship            : in out Ship_Update_Handle;
+      Action_Duration : Duration);
 
-   function Complete
-     (Action : Root_Ship_Action'Class)
-      return Boolean
-   is (Action.Complete);
+   procedure Finish_Action (Ship : in out Ship_Update_Handle);
 
-   function Is_Moving_To
-     (Action : Root_Ship_Action;
-      Star   : Athena.Handles.Star.Star_Handle)
-      return Boolean
-   is (False);
+   procedure Set_Activity
+     (Ship     : in out Ship_Update_Handle;
+      Activity : Ship_Activity);
+
+   procedure Set_World_Location
+     (Ship  : in out Ship_Update_Handle;
+      World : Athena.Handles.World.World_Handle);
+
+   procedure Set_Star_Location
+     (Ship  : in out Ship_Update_Handle;
+      Star  : Athena.Handles.Star.Star_Handle;
+      Rho   : Non_Negative_Real;
+      Theta : Athena.Trigonometry.Angle;
+      Error : Non_Negative_Real);
+
+   overriding function Empty_Handle
+     return Ship_Update_Handle
+   is (False, 0, others => <>);
+
+   function Update
+     (Reference : Ship_Reference)
+      return Ship_Update_Handle
+   is (True, Reference, others => <>);
+
+   function Update
+     (Handle : Ship_Handle'Class)
+      return Ship_Update_Handle
+   is (Handle.Has_Element, Handle.Reference, others => <>);
 
 end Athena.Handles.Ship;

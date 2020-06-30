@@ -69,7 +69,7 @@ package body Athena.Handles.Vectors is
      (Container : Vector; Reference : Index_Type) return Element_Type
    is
    begin
-      return Container.Internal.Constant_Reference (Reference);
+      return Container.Internal.Element (Reference);
    end Element;
 
    -----------------
@@ -187,6 +187,18 @@ package body Athena.Handles.Vectors is
       begin
          return (Element => Vector.Constant_Reference (Index).Element);
       end Constant_Reference;
+
+      -------------
+      -- Element --
+      -------------
+
+      function Element
+        (Index : Index_Type)
+         return Element_Type
+      is
+      begin
+         return Vector.Element (Index);
+      end Element;
 
       ----------------
       -- Last_Index --

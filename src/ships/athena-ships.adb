@@ -341,7 +341,7 @@ package body Athena.Ships is
 
       procedure Add_Hostile (Ship_Ref : Athena.Handles.Ship_Reference) is
          use type Athena.Handles.Empire.Empire_Handle;
-         Other : constant Athena.Handles.Ship.Ship_Handle :=
+         Other : constant Ship_Handle_Class :=
                    Athena.Handles.Ship.Get (Ship_Ref);
       begin
          if Ship.Owner /= Other.Owner
@@ -358,7 +358,7 @@ package body Athena.Ships is
 
       procedure Check_Relation (Ship_Ref : Athena.Handles.Ship_Reference) is
          use type Athena.Handles.Empire.Empire_Handle;
-         Other : constant Athena.Handles.Ship.Ship_Handle :=
+         Other : constant Ship_Handle_Class :=
                    Athena.Handles.Ship.Get (Ship_Ref);
       begin
          if Ship.Owner /= Other.Owner then

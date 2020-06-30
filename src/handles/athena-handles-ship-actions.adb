@@ -23,12 +23,12 @@ package body Athena.Handles.Ship.Actions is
 
    overriding function Start
      (Action : System_Departure_Action;
-      Ship   : Ship_Handle'Class)
+      Ship   : in out Ship_Update_Handle'Class)
       return Duration;
 
    overriding procedure On_Finished
      (Action : System_Departure_Action;
-      Ship   : Ship_Handle'Class);
+      Ship   : in out Ship_Update_Handle'Class);
 
    type System_Arrival_Action is
      new Root_Ship_Action with
@@ -41,12 +41,12 @@ package body Athena.Handles.Ship.Actions is
 
    overriding function Start
      (Action : System_Arrival_Action;
-      Ship   : Ship_Handle'Class)
+      Ship   : in out Ship_Update_Handle'Class)
       return Duration;
 
    overriding procedure On_Finished
      (Action : System_Arrival_Action;
-      Ship   : Ship_Handle'Class);
+      Ship   : in out Ship_Update_Handle'Class);
 
    type Jump_To_Action is
      new Root_Ship_Action with
@@ -59,12 +59,12 @@ package body Athena.Handles.Ship.Actions is
 
    overriding function Start
      (Action : Jump_To_Action;
-      Ship   : Ship_Handle'Class)
+      Ship   : in out Ship_Update_Handle'Class)
       return Duration;
 
    overriding procedure On_Finished
      (Action : Jump_To_Action;
-      Ship   : Ship_Handle'Class);
+      Ship   : in out Ship_Update_Handle'Class);
 
    overriding function Is_Moving_To
      (Action : Jump_To_Action;
@@ -83,12 +83,12 @@ package body Athena.Handles.Ship.Actions is
 
    overriding function Start
      (Action : Load_Cargo_Action;
-      Ship   : Ship_Handle'Class)
+      Ship   : in out Ship_Update_Handle'Class)
       return Duration;
 
    overriding procedure On_Finished
      (Action : Load_Cargo_Action;
-      Ship   : Ship_Handle'Class)
+      Ship   : in out Ship_Update_Handle'Class)
    is null;
 
    type Unload_Cargo_Action is
@@ -102,12 +102,12 @@ package body Athena.Handles.Ship.Actions is
 
    overriding function Start
      (Action : Unload_Cargo_Action;
-      Ship   : Ship_Handle'Class)
+      Ship   : in out Ship_Update_Handle'Class)
       return Duration;
 
    overriding procedure On_Finished
      (Action : Unload_Cargo_Action;
-      Ship   : Ship_Handle'Class)
+      Ship   : in out Ship_Update_Handle'Class)
    is null;
 
    ----------------
@@ -129,7 +129,7 @@ package body Athena.Handles.Ship.Actions is
    -------------
 
    procedure Move_To_Star
-     (Ship : Ship_Handle;
+     (Ship : Ship_Handle'Class;
       Star : Athena.Handles.Star.Star_Handle)
    is
       use Athena.Trigonometry;
@@ -170,17 +170,21 @@ package body Athena.Handles.Ship.Actions is
    -------------------
 
    procedure Move_To_World
-     (Ship  : Ship_Handle;
+     (Ship  : Ship_Handle'Class;
       World : Athena.Handles.World.World_Handle)
    is
    begin
 
-      Move_To_Star (Ship, World.Star);
+      if not Ship.At_World (World) then
+         if not Ship.At_Star (World.Star) then
+            Move_To_Star (Ship, World.Star);
+         end if;
 
-      Ship.Add_Action
-        (Action => System_Arrival_Action'
-           (Complete => False,
-            World    => World.Reference));
+         Ship.Add_Action
+           (Action => System_Arrival_Action'
+              (Complete => False,
+               World    => World.Reference));
+      end if;
 
    end Move_To_World;
 
@@ -190,7 +194,7 @@ package body Athena.Handles.Ship.Actions is
 
    overriding procedure On_Finished
      (Action : System_Departure_Action;
-      Ship   : Ship_Handle'Class)
+      Ship   : in out Ship_Update_Handle'Class)
    is
    begin
       Ship.Log ("reached jump point");
@@ -203,7 +207,7 @@ package body Athena.Handles.Ship.Actions is
 
    overriding procedure On_Finished
      (Action : System_Arrival_Action;
-      Ship   : Ship_Handle'Class)
+      Ship   : in out Ship_Update_Handle'Class)
    is
    begin
       Ship.Clear_Destination;
@@ -220,7 +224,7 @@ package body Athena.Handles.Ship.Actions is
 
    overriding procedure On_Finished
      (Action : Jump_To_Action;
-      Ship   : Ship_Handle'Class)
+      Ship   : in out Ship_Update_Handle'Class)
    is
    begin
 
@@ -255,7 +259,7 @@ package body Athena.Handles.Ship.Actions is
 
    overriding function Start
      (Action : Load_Cargo_Action;
-      Ship   : Ship_Handle'Class)
+      Ship   : in out Ship_Update_Handle'Class)
       return Duration
    is
    begin
@@ -316,7 +320,7 @@ package body Athena.Handles.Ship.Actions is
 
    overriding function Start
      (Action : System_Departure_Action;
-      Ship   : Ship_Handle'Class)
+      Ship   : in out Ship_Update_Handle'Class)
       return Duration
    is
    begin
@@ -342,7 +346,7 @@ package body Athena.Handles.Ship.Actions is
 
    overriding function Start
      (Action : Jump_To_Action;
-      Ship   : Ship_Handle'Class)
+      Ship   : in out Ship_Update_Handle'Class)
       return Duration
    is
    begin
@@ -386,7 +390,7 @@ package body Athena.Handles.Ship.Actions is
 
    overriding function Start
      (Action : Unload_Cargo_Action;
-      Ship   : Ship_Handle'Class)
+      Ship   : in out Ship_Update_Handle'Class)
       return Duration
    is
 
@@ -449,7 +453,7 @@ package body Athena.Handles.Ship.Actions is
 
    overriding function Start
      (Action : System_Arrival_Action;
-      Ship   : Ship_Handle'Class)
+      Ship   : in out Ship_Update_Handle'Class)
       return Duration
    is
    begin

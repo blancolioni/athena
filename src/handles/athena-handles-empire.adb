@@ -368,7 +368,7 @@ package body Athena.Handles.Empire is
       procedure Process_If_Managed
         (Reference : Ship_Reference)
       is
-         Ship : constant Athena.Handles.Ship.Ship_Handle :=
+         Ship : constant Athena.Handles.Ship.Ship_Handle'Class :=
             Athena.Handles.Ship.Get (Reference);
       begin
          if Ship.Has_Manager

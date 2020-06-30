@@ -44,10 +44,6 @@ package Athena.Handles is
 
    function Name (Has_Name : Has_Name_Interface) return String is abstract;
 
-   procedure Set_Name (Has_Name : Has_Name_Interface;
-                       New_Name : String)
-   is abstract;
-
    type Has_Identifier_Interface is interface;
 
    function Identifier

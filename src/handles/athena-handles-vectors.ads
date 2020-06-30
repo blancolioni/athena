@@ -44,10 +44,6 @@ package Athena.Handles.Vectors is
      with
        Implicit_Dereference => Element;
 
-   type Reference_Type (Element : not null access Element_Type) is private
-     with
-       Implicit_Dereference => Element;
-
    function Constant_Reference
      (Container : aliased Vector;
       Reference : Index_Type)
@@ -89,17 +85,16 @@ private
          null;
       end record;
 
-   type Reference_Type (Element : not null access Element_Type) is
-      record
-         null;
-      end record;
-
    package Element_Vectors is
      new Ada.Containers.Vectors (Index_Type, Element_Type, "=");
 
    protected type Synchronized_Vector is
 
       function Last_Index return Extended_Index;
+
+      function Element
+        (Index : Index_Type)
+         return Element_Type;
 
       function Constant_Reference
         (Index : Index_Type)

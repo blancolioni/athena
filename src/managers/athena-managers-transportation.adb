@@ -287,7 +287,7 @@ package body Athena.Managers.Transportation is
       procedure Check_Available
         (Reference : Athena.Handles.Ship_Reference)
       is
-         Ship : constant Athena.Handles.Ship.Ship_Handle :=
+         Ship : constant Athena.Handles.Ship.Ship_Handle'Class :=
                   Athena.Handles.Ship.Get (Reference);
 
          Suitable : Boolean := Ship.Is_Idle;
@@ -306,7 +306,7 @@ package body Athena.Managers.Transportation is
          end if;
 
          if Suitable then
-            Ships.Append (Ship);
+            Ships.Append (Athena.Handles.Ship.Ship_Handle (Ship));
          end if;
 
       end Check_Available;

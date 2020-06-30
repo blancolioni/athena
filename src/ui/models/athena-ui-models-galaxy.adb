@@ -7,6 +7,7 @@ with WL.String_Maps;
 with Nazar.Colors;
 with Nazar.Main;
 
+with Athena.Calendar;
 with Athena.Color;
 with Athena.Real_Arrays;
 with Athena.Voronoi_Diagrams;
@@ -703,13 +704,45 @@ package body Athena.UI.Models.Galaxy is
         (Ship : Athena.Handles.Ship.Ship_Handle)
       is
       begin
-         if not Ship.Has_Fleet and then Ship.In_Deep_Space then
-            Add_Journey
-              (From     => Ship.Deep_Space_Position,
-               To       => Ship.Destination.Position,
-               Empire   => Ship.Owner,
-               Progress => Ship.Progress,
-               Size     => 3.0); --  Ship.Design.Tonnage / 100.0);
+         if not Ship.Has_Fleet then
+            declare
+               use type Athena.Movers.Mover_Location_Type;
+               Origin      : Athena.Movers.Mover_Location;
+               Destination : Athena.Movers.Mover_Location;
+               Current     : Athena.Movers.Mover_Location;
+            begin
+               Ship.Get_Journey (Origin, Destination, Current);
+               if Current.Loc_Type = Athena.Movers.Deep_Space then
+                  Add_Journey
+                    (From     => Origin.Position,
+                     To       => Destination.Position,
+                     Empire   => Ship.Owner,
+                     Progress =>
+                       (Current.Position (1) - Origin.Position (1))
+                         / (Destination.Position (1) - Origin.Position (1)),
+                     Size     => 3.0); --  Ship.Design.Tonnage / 100.0);
+               end if;
+
+            exception
+               when others =>
+                  if not Ship.Has_Destination then
+                     Ship.Log ("should have had a destination");
+
+                     Ada.Text_IO.Put_Line
+                       (Ada.Text_IO.Standard_Error,
+                        Athena.Calendar.Image (Athena.Calendar.Clock)
+                        & ": "
+                        & Ship.Short_Name & " should have had a destination");
+                  else
+                     Ada.Text_IO.Put_Line
+                       (Ada.Text_IO.Standard_Error,
+                        Athena.Calendar.Image (Athena.Calendar.Clock)
+                        & ": "
+                        & Ship.Short_Name & " has unexpected destination: "
+                        & Ship.Destination_Name);
+                  end if;
+                  raise;
+            end;
          end if;
       end Add_Ship;
    begin

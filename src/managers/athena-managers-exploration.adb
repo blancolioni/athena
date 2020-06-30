@@ -13,6 +13,9 @@ with Athena.Handles.Ship.Actions;
 
 package body Athena.Managers.Exploration is
 
+   subtype Ship_Handle is Athena.Handles.Ship.Ship_Handle;
+   subtype Ship_Class is Ship_Handle'Class;
+
    type Exploration_Manager is
      new Root_Manager_Type with null record;
 
@@ -300,10 +303,10 @@ package body Athena.Managers.Exploration is
          --------------
 
          procedure Add_Ship (Reference : Athena.Handles.Ship_Reference) is
-            Ship : constant Athena.Handles.Ship.Ship_Handle :=
+            Ship : constant Ship_Class :=
                      Athena.Handles.Ship.Get (Reference);
          begin
-            Scout_Ships.Append (Ship);
+            Scout_Ships.Append (Ship_Handle (Ship));
          end Add_Ship;
 
       begin

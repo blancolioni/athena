@@ -43,8 +43,9 @@ package body Athena.Handles.Fleet is
    function First_Ship
      (Fleet : Fleet_Handle)
       return Athena.Handles.Ship.Ship_Handle
-   is (Athena.Handles.Ship.Get
-       (Vector (Fleet.Reference).Ships.First_Element))
+   is (Athena.Handles.Ship.Ship_Handle
+         (Athena.Handles.Ship.Get
+          (Vector (Fleet.Reference).Ships.First_Element)))
      with Pre => not Fleet.Is_Empty;
 
    function Owner
@@ -85,7 +86,13 @@ package body Athena.Handles.Fleet is
    is
    begin
       Vector (Fleet.Reference).Ships.Append (Ship);
-      Athena.Handles.Ship.Get (Ship).Set_Fleet (Fleet.Reference);
+      declare
+         Update : Athena.Handles.Ship.Ship_Update_Handle :=
+                    Athena.Handles.Ship.Get (Ship).Update;
+      begin
+         Update.Set_Fleet (Fleet.Reference);
+         Update.Commit;
+      end;
    end Add_Ship;
 
    ------------
@@ -161,7 +168,9 @@ package body Athena.Handles.Fleet is
    begin
       for Ship_Ref of Vector (Fleet.Reference).Ships loop
          Athena.Handles.Ship.Actions.Move_To_Star
-           (Ship => Athena.Handles.Ship.Get (Ship_Ref),
+           (Ship =>
+              Athena.Handles.Ship.Ship_Handle
+                (Athena.Handles.Ship.Get (Ship_Ref)),
             Star => Destination);
       end loop;
    end Move_To;
@@ -180,7 +189,9 @@ package body Athena.Handles.Fleet is
       else
          for Ship_Ref of Vector (Fleet.Reference).Ships loop
             Athena.Handles.Ship.Actions.Move_To_World
-              (Ship  => Athena.Handles.Ship.Get (Ship_Ref),
+              (Ship  =>
+                 Athena.Handles.Ship.Ship_Handle
+                   (Athena.Handles.Ship.Get (Ship_Ref)),
                World => Destination);
          end loop;
       end if;
@@ -212,29 +223,6 @@ package body Athena.Handles.Fleet is
    begin
       Vector.Write (Stream);
    end Save;
-
-   --------------
-   -- Set_Name --
-   --------------
-
-   overriding procedure Set_Name
-     (Fleet    : Fleet_Handle;
-      New_Name : String)
-   is
-      procedure Update (Rec : in out Fleet_Record);
-
-      ------------
-      -- Update --
-      ------------
-
-      procedure Update (Rec : in out Fleet_Record) is
-      begin
-         Rec.Name := +New_Name;
-      end Update;
-
-   begin
-      Vector.Update (Fleet.Reference, Update'Access);
-   end Set_Name;
 
    ----------------
    -- Short_Name --
