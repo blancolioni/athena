@@ -707,19 +707,22 @@ package body Athena.UI.Models.Galaxy is
          if not Ship.Has_Fleet then
             declare
                use type Athena.Movers.Mover_Location_Type;
+               use type Athena.Real_Arrays.Real_Vector;
                Origin      : Athena.Movers.Mover_Location;
                Destination : Athena.Movers.Mover_Location;
                Current     : Athena.Movers.Mover_Location;
+               Progress    : Unit_Real;
             begin
                Ship.Get_Journey (Origin, Destination, Current);
                if Current.Loc_Type = Athena.Movers.Deep_Space then
+                  Progress :=
+                    abs (Current.Position - Origin.Position)
+                    / abs (Destination.Position - Origin.Position);
                   Add_Journey
                     (From     => Origin.Position,
                      To       => Destination.Position,
                      Empire   => Ship.Owner,
-                     Progress =>
-                       (Current.Position (1) - Origin.Position (1))
-                         / (Destination.Position (1) - Origin.Position (1)),
+                     Progress => Progress,
                      Size     => 3.0); --  Ship.Design.Tonnage / 100.0);
                end if;
 

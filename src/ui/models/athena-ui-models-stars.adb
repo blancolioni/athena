@@ -572,7 +572,6 @@ package body Athena.UI.Models.Stars is
                if Current.Loc_Type = Athena.Movers.System_Space
                  and then Current.Star = Data.Star
                then
-                  Ship.Log ("added to ui " & Data.Star.Name);
                   Add_Journey
                     (Empire   => Ship.Owner,
                      Position => Current.System_Position,
