@@ -1,3 +1,4 @@
+private with Ada.Containers.Indefinite_Doubly_Linked_Lists;
 private with Athena.Calendar;
 
 with Ada.Streams.Stream_IO;
@@ -168,6 +169,18 @@ package Athena.Handles.Ship is
    overriding function Empty_Handle
       return Ship_Update_Handle;
 
+   overriding function Location
+     (Ship : Ship_Update_Handle)
+      return Athena.Movers.Mover_Location;
+
+   overriding function Has_Destination
+     (Ship : Ship_Update_Handle)
+      return Boolean;
+
+   overriding function Destination
+     (Ship : Ship_Update_Handle)
+      return Athena.Movers.Mover_Location;
+
    function Update
      (Reference : Ship_Reference)
       return Ship_Update_Handle;
@@ -328,18 +341,34 @@ private
                         Destination_Update, Fleet_Update,
                         Location_Update, Name_Update);
 
-   type Update_Set is array (Update_Type) of Boolean;
+   type Update_Record (Update : Update_Type) is
+      record
+         case Update is
+            when Action_Started =>
+               Start_Time  : Athena.Calendar.Time;
+               Finish_Time : Athena.Calendar.Time;
+            when Action_Finished =>
+               null;
+            when Activity_Update =>
+               Activity    : Ship_Activity;
+            when Destination_Update =>
+               Destination : Athena.Movers.Mover_Location;
+            when Fleet_Update =>
+               Fleet       : Fleet_Reference;
+            when Location_Update =>
+               Location    : Athena.Movers.Mover_Location;
+            when Name_Update =>
+               Name        : Ada.Strings.Unbounded.Unbounded_String;
+         end case;
+      end record;
+
+   package Update_Lists is
+     new Ada.Containers.Indefinite_Doubly_Linked_Lists (Update_Record);
 
    type Ship_Update_Handle is
      new Ship_Handle with
       record
-         Updates             : Update_Set := (others => False);
-         New_Action_Finished : Athena.Calendar.Time;
-         New_Activity        : Ship_Activity := Idle;
-         New_Fleet           : Fleet_Reference := Null_Fleet_Reference;
-         New_Destination     : Athena.Movers.Mover_Location;
-         New_Location        : Athena.Movers.Mover_Location;
-         New_Name            : Ada.Strings.Unbounded.Unbounded_String;
+         Updates             : Update_Lists.List;
       end record;
 
    procedure Start_Action

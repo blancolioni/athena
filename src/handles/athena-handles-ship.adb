@@ -1,8 +1,8 @@
 with Ada.Containers.Doubly_Linked_Lists;
-with Ada.Containers.Indefinite_Doubly_Linked_Lists;
 
 with Ada.Strings.Unbounded;
 
+with Athena.Logging;
 with Athena.Random;
 
 with Athena.Server;
@@ -357,8 +357,8 @@ package body Athena.Handles.Ship is
      (Ship        : in out Ship_Update_Handle)
    is
    begin
-      Ship.Updates (Destination_Update) := True;
-      Ship.New_Destination := (Loc_Type => Athena.Movers.Nowhere);
+      Ship.Updates.Append
+        ((Destination_Update, (Loc_Type => Athena.Movers.Nowhere)));
    end Clear_Destination;
 
    ------------
@@ -366,6 +366,8 @@ package body Athena.Handles.Ship is
    ------------
 
    procedure Commit (Ship : in out Ship_Update_Handle) is
+
+      New_Activity : Boolean := False;
 
       procedure Do_Commit (Rec : in out Ship_Record);
 
@@ -375,41 +377,47 @@ package body Athena.Handles.Ship is
 
       procedure Do_Commit (Rec : in out Ship_Record) is
       begin
-         if Ship.Updates (Action_Finished) then
-            Rec.Executing := False;
-            Rec.Actions.Delete_First;
-         end if;
-         if Ship.Updates (Action_Started) then
-            Rec.Executing := True;
-            Rec.Action_Started := Athena.Calendar.Clock;
-            Rec.Action_Finished := Ship.New_Action_Finished;
-         end if;
-         if Ship.Updates (Activity_Update) then
-            Rec.Activity := Ship.New_Activity;
-         end if;
-         if Ship.Updates (Destination_Update) then
-            Rec.Destination := Ship.New_Destination;
-         end if;
-         if Ship.Updates (Fleet_Update) then
-            Rec.Fleet := Ship.New_Fleet;
-         end if;
-         if Ship.Updates (Location_Update) then
-            Rec.Location := Ship.New_Location;
-         end if;
-         if Ship.Updates (Name_Update) then
-            Rec.Name := Ship.New_Name;
-         end if;
+         for Item of Ship.Updates loop
+            case Item.Update is
+               when Action_Finished =>
+                  Rec.Executing := False;
+                  Rec.Actions.Delete_First;
+               when Action_Started =>
+                  Rec.Executing := True;
+                  Rec.Action_Started := Item.Start_Time;
+                  Rec.Action_Finished := Item.Finish_Time;
+               when Activity_Update =>
+                  New_Activity := True;
+                  Rec.Activity := Item.Activity;
+               when Destination_Update =>
+                  Rec.Destination := Item.Destination;
+               when Fleet_Update =>
+                  Rec.Fleet := Item.Fleet;
+               when Location_Update =>
+                  Rec.Location := Item.Location;
+               when Name_Update =>
+                  Rec.Name := Item.Name;
+            end case;
+         end loop;
+
+         Athena.Logging.Log
+           (Rec.Identifier & " " & (-Rec.Name)
+            & ": location " & Rec.Current_Location_Name
+            & "; destination "
+            & (if Rec.Has_Destination
+              then Rec.Destination_Name
+              else "none"));
       end Do_Commit;
 
    begin
       Vector.Update (Ship.Reference, Do_Commit'Access);
-      if Ship.Updates (Activity_Update) then
+      if New_Activity then
          Athena.Server.Emit
            (Source      => Ship,
             Signal      => Ship_Activity_Changed,
             Signal_Data => Athena.Signals.Null_Signal_Data);
       end if;
-      Ship.Updates := (others => False);
+      Ship.Updates.Clear;
    end Commit;
 
    ------------
@@ -512,18 +520,30 @@ package body Athena.Handles.Ship is
       return Mass;
    end Current_Mass;
 
+   -----------------
+   -- Destination --
+   -----------------
+
+   overriding function Destination
+     (Ship : Ship_Update_Handle)
+      return Athena.Movers.Mover_Location
+   is
+   begin
+      for Item of reverse Ship.Updates loop
+         if Item.Update = Destination_Update then
+            return Item.Destination;
+         end if;
+      end loop;
+      return Ship_Handle (Ship).Destination;
+   end Destination;
+
    -------------------
    -- Finish_Action --
    -------------------
 
    procedure Finish_Action (Ship : in out Ship_Update_Handle) is
    begin
-      Ship.Updates (Action_Finished) := True;
-
-      --  Rec.Action_Started := Athena.Calendar.Clock;
-      --  Rec.Actions.First_Element.On_Finished (Ship_Update);
-      --  Rec.Actions.Delete_First;
-      --  Rec.Executing := False;
+      Ship.Updates.Append ((Update => Action_Finished));
    end Finish_Action;
 
    -----------------
@@ -541,14 +561,30 @@ package body Athena.Handles.Ship is
    begin
       Origin := Rec.Location;
       Destination :=
-        (if not Rec.Has_Destination then Rec.Destination
+        (if Rec.Has_Destination then Rec.Destination
          else (Loc_Type => Athena.Movers.Nowhere));
       Current :=
-        (if Rec.Has_Destination then Rec.Location
+        (if not Rec.Has_Destination then Rec.Location
          else Rec.Current_Location);
-      pragma Assert (Origin.Loc_Type = Destination.Loc_Type
-                     and then Destination.Loc_Type = Current.Loc_Type);
    end Get_Journey;
+
+   ---------------------
+   -- Has_Destination --
+   ---------------------
+
+   overriding function Has_Destination
+     (Ship : Ship_Update_Handle)
+      return Boolean
+   is
+      use type Athena.Movers.Mover_Location_Type;
+   begin
+      for Item of reverse Ship.Updates loop
+         if Item.Update = Destination_Update then
+            return Item.Destination.Loc_Type /= Athena.Movers.Nowhere;
+         end if;
+      end loop;
+      return Ship_Handle (Ship).Has_Destination;
+   end Has_Destination;
 
    -----------------
    -- Iterate_All --
@@ -616,6 +652,24 @@ package body Athena.Handles.Ship is
       end loop;
    end Load;
 
+   --------------
+   -- Location --
+   --------------
+
+   overriding function Location
+     (Ship : Ship_Update_Handle)
+      return Athena.Movers.Mover_Location
+   is
+   begin
+      for Item of reverse Ship.Updates loop
+         if Item.Update = Location_Update then
+            return Item.Location;
+         end if;
+      end loop;
+
+      return Ship_Handle (Ship).Location;
+   end Location;
+
    ------------------------
    -- Move_To_Deep_Space --
    ------------------------
@@ -624,10 +678,12 @@ package body Athena.Handles.Ship is
      (Ship : in out Ship_Update_Handle)
    is
    begin
-      Ship.Updates (Location_Update) := True;
-      Ship.New_Location :=
-        (Athena.Movers.Deep_Space,
-         (Ship.Location.Star.X, Ship.Location.Star.Y, 0.0));
+      Ship.Updates.Append
+        (Update_Record'
+           (Update      => Location_Update,
+            Location    =>
+              (Athena.Movers.Deep_Space,
+               (Ship.Location.Star.X, Ship.Location.Star.Y, 0.0))));
    end Move_To_Deep_Space;
 
    --------------------------
@@ -638,10 +694,12 @@ package body Athena.Handles.Ship is
      (Ship : in out Ship_Update_Handle)
    is
    begin
-      Ship.Updates (Location_Update) := True;
-      Ship.New_Location :=
-        (Athena.Movers.System_Space, Ship.Location.World.Star,
-         Ship.Location.World.Current_Global_Position);
+      Ship.Updates.Append
+        (Update_Record'
+           (Update      => Location_Update,
+            Location    =>
+              (Athena.Movers.System_Space, Ship.Location.World.Star,
+               Ship.Location.World.Current_Global_Position)));
    end Move_To_System_Space;
 
    --------------
@@ -712,8 +770,7 @@ package body Athena.Handles.Ship is
       Activity : Ship_Activity)
    is
    begin
-      Ship.Updates (Activity_Update) := True;
-      Ship.New_Activity := Activity;
+      Ship.Updates.Append ((Activity_Update, Activity));
    end Set_Activity;
 
    ---------------------
@@ -725,9 +782,8 @@ package body Athena.Handles.Ship is
       World : Athena.Handles.World.World_Handle)
    is
    begin
-      Ship.Updates (Destination_Update) := True;
-      Ship.New_Destination :=
-           (Athena.Movers.World_Orbit, World);
+      Ship.Updates.Append ((Destination_Update,
+                           (Athena.Movers.World_Orbit, World)));
    end Set_Destination;
 
    ---------------------
@@ -739,10 +795,9 @@ package body Athena.Handles.Ship is
       Star : Athena.Handles.Star.Star_Handle)
    is
    begin
-      Ship.Updates (Destination_Update) := True;
-      Ship.New_Destination :=
-        (Athena.Movers.Deep_Space,
-         (Star.X, Star.Y, 0.0));
+      Ship.Updates.Append ((Destination_Update,
+                           (Athena.Movers.Deep_Space,
+                            (Star.X, Star.Y, 0.0))));
    end Set_Destination;
 
    ---------------
@@ -754,8 +809,7 @@ package body Athena.Handles.Ship is
       Fleet : Fleet_Reference)
    is
    begin
-      Ship.Updates (Fleet_Update) := True;
-      Ship.New_Fleet := Fleet;
+      Ship.Updates.Append ((Fleet_Update, Fleet));
    end Set_Fleet;
 
    --------------
@@ -767,8 +821,7 @@ package body Athena.Handles.Ship is
       New_Name : String)
    is
    begin
-      Ship.Updates (Name_Update) := True;
-      Ship.New_Name := +New_Name;
+      Ship.Updates.Append ((Name_Update, +New_Name));
    end Set_Name;
 
    -----------------------
@@ -789,8 +842,9 @@ package body Athena.Handles.Ship is
               + (if Error = 0.0 then 0.0
                  else Athena.Random.Normal_Random (Error));
    begin
-      Ship.Updates (Location_Update) := True;
-      Ship.New_Location := (Athena.Movers.System_Space, Star, (X, Y, 0.0));
+      Ship.Updates.Append
+        ((Location_Update,
+         (Athena.Movers.System_Space, Star, (X, Y, 0.0))));
    end Set_Star_Location;
 
    ----------------------------------
@@ -807,10 +861,10 @@ package body Athena.Handles.Ship is
       X    : constant Real := Rho * Athena.Trigonometry.Cos (Theta);
       Y    : constant Real := Rho * Athena.Trigonometry.Sin (Theta);
    begin
-      Ship.Updates (Destination_Update) := True;
-      Ship.New_Destination :=
-           (Athena.Movers.System_Space, Star,
-            (X, Y, 0.0));
+      Ship.Updates.Append
+        ((Destination_Update,
+         (Athena.Movers.System_Space, Star,
+            (X, Y, 0.0))));
    end Set_System_Space_Destination;
 
    ------------------------
@@ -821,19 +875,9 @@ package body Athena.Handles.Ship is
      (Ship  : in out Ship_Update_Handle;
       World : Athena.Handles.World.World_Handle)
    is
-      procedure Update (Rec : in out Ship_Record);
-
-      ------------
-      -- Update --
-      ------------
-
-      procedure Update (Rec : in out Ship_Record) is
-      begin
-         Rec.Location := (Athena.Movers.World_Orbit, World);
-      end Update;
-
    begin
-      Vector.Update (Ship.Reference, Update'Access);
+      Ship.Updates.Append
+        ((Location_Update, (Athena.Movers.World_Orbit, World)));
    end Set_World_Location;
 
    ---------------------------
@@ -855,8 +899,9 @@ package body Athena.Handles.Ship is
    is
       use type Athena.Calendar.Time;
    begin
-      Ship.Updates (Action_Started) := True;
-      Ship.New_Action_Finished := Athena.Calendar.Clock + Action_Duration;
+      Ship.Updates.Append
+        ((Action_Started, Athena.Calendar.Clock,
+         Athena.Calendar.Clock + Action_Duration));
    end Start_Action;
 
 begin

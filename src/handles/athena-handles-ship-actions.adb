@@ -7,6 +7,7 @@ with Athena.Handles.Colony;
 
 with Athena.Colonies;
 with Athena.Ships;
+with Athena.Stars;
 
 package body Athena.Handles.Ship.Actions is
 
@@ -349,19 +350,21 @@ package body Athena.Handles.Ship.Actions is
       Ship   : in out Ship_Update_Handle'Class)
       return Duration
    is
+      From : constant Athena.Handles.Star.Star_Handle := Ship.Location_Star;
+      To   : constant Athena.Handles.Star.Star_Handle := Action.Destination;
    begin
-      if Ship.At_Star (Action.Destination) then
+      if Ship.At_Star (To) then
          return 0.0;
       end if;
 
-      Ship.Location_Star.Remove_Ship (Ship.Reference);
+      From.Remove_Ship (Ship.Reference);
 
       Ship.Move_To_Deep_Space;
       Ship.Set_Destination (Action.Destination);
 
       declare
          Total_Distance : constant Non_Negative_Real :=
-                            Ship.Current_Journey_Length;
+                            Athena.Stars.Distance (From, To);
          Speed          : constant Non_Negative_Real :=
                             Athena.Ships.Get_Jump_Speed (Ship);
          Journey_Time   : constant Duration :=
