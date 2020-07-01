@@ -26,6 +26,8 @@ package Athena.Movers is
          end case;
       end record;
 
+   function Image (Location : Mover_Location) return String;
+
    function Get_Star
      (Location : Mover_Location)
       return Athena.Handles.Star.Star_Handle;
