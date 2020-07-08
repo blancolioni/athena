@@ -338,7 +338,7 @@ package body Athena.Handles.Colony is
       for Commodity of Commodities loop
          if Commodity.Class = Resource
            and then not Commodity.Is_Abstract
-           and then Colony.World.Resource_Quality (Commodity) > 0.0
+           and then Colony.World.Resource_Concentration (Commodity) > 0.0
          then
             Count := Count + 1;
             Result (Count) := Commodity;

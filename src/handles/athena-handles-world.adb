@@ -4,17 +4,15 @@ with Ada.Strings.Unbounded;
 
 with WL.String_Maps;
 
-with Athena.Elementary_Functions;
-with Athena.Logging;
-
 with Athena.Solar_System;
 
 package body Athena.Handles.World is
 
    type Deposit_Record is
       record
-         Resource : Commodity_Reference;
-         Quality  : Non_Negative_Real;
+         Resource      : Commodity_Reference;
+         Available     : Non_Negative_Real;
+         Concentration : Unit_Real;
       end record;
 
    package Deposit_Lists is
@@ -166,6 +164,26 @@ package body Athena.Handles.World is
       return Unit_Real
    is (Vector (World.Reference).Habitability);
 
+   function Hydrosphere
+     (World : World_Handle)
+      return Unit_Real
+   is (Vector (World.Reference).Hydrosphere);
+
+   function Life
+     (World : World_Handle)
+      return Life_Complexity_Type
+   is (Vector (World.Reference).Life);
+
+   function Age
+     (World : World_Handle)
+      return Non_Negative_Real
+   is (Vector (World.Reference).Age);
+
+   function Orbit_Zone
+     (World : World_Handle)
+      return Stellar_Orbit_Zone
+   is (Vector (World.Reference).Orbit_Zone);
+
    function Has_Colony
      (World : World_Handle)
       return Boolean
@@ -175,6 +193,21 @@ package body Athena.Handles.World is
      (World : World_Handle)
       return Colony_Reference
    is (Vector (World.Reference).Colony);
+
+   -----------------
+   -- Add_Deposit --
+   -----------------
+
+   procedure Add_Deposit
+     (Handle        : World_Handle;
+      Resource      : Athena.Handles.Commodity.Commodity_Handle;
+      Available     : Non_Negative_Real;
+      Concentration : Unit_Real)
+   is
+   begin
+      Vector (Handle.Reference).Deposits.Append
+        ((Resource.Reference, Available, Concentration));
+   end Add_Deposit;
 
    -------------
    -- Add_Gas --
@@ -235,40 +268,11 @@ package body Athena.Handles.World is
       Sea_Level           : Natural)
       return World_Handle
    is
-      Deposits : Deposit_Lists.List;
    begin
       if Map.Contains (Name) then
          raise Constraint_Error with
            "multiple worlds called '" & Name & "'";
       end if;
-
-      declare
-         use Athena.Handles.Commodity;
-      begin
-         for Commodity of All_Commodities loop
-            if Commodity.Class = Athena.Handles.Commodity.Resource
-              and then not Commodity.Is_Abstract
-            then
-               declare
-                  Quality : constant Non_Negative_Real :=
-                              Resource
-                                * Execute (Commodity.Deposit_Constraint);
-               begin
-                  Athena.Logging.Log
-                    ("world " & Name
-                     & ": resource " & Image (Resource)
-                     & "; deposit "
-                     & Commodity.Tag
-                     & "; quality "
-                     & Image (Quality));
-                  Deposits.Append
-                    (Deposit_Record'
-                       (Resource => Commodity.Reference,
-                        Quality  => Quality));
-               end;
-            end if;
-         end loop;
-      end;
 
       Vector.Append
         (World_Record'
@@ -330,29 +334,24 @@ package body Athena.Handles.World is
       for Item of Vector (Handle.Reference).Deposits loop
          if Item.Resource = Resource.Reference then
             declare
-               Quality : constant Non_Negative_Real := Item.Quality;
-               Change  : constant Real :=
-                           (if Size <= 1.0
-                            then 0.0
-                            else Quality
-                            * Athena.Elementary_Functions.Log (Size)
-                            / 100000.0);
+               Concentration : constant Unit_Real := Item.Concentration;
+               Available     : constant Non_Negative_Real := Item.Available;
+               Extracted     : constant Non_Negative_Real :=
+                                 Real'Min (Size * Concentration, Available);
             begin
-               return Extracted : constant Non_Negative_Real :=
-                 Size * Change * 10000.0
-               do
-                  Item.Quality :=
-                    (if Change < Quality
-                     then Quality - Change
-                     else Quality / 2.0);
-                  Handle.Log
-                    (Resource.Tag
-                     & ": quality " & Image (Quality)
-                     & "; size " & Image (Size)
-                     & "; change " & Image (Change)
-                     & "; new quality " & Image (Item.Quality)
-                     & "; extracted " & Image (Extracted));
-               end return;
+               if Extracted > 0.0 then
+                  Item.Concentration := Item.Concentration
+                    * (Available - Extracted) / Available;
+                  Item.Available := Item.Available - Extracted;
+               end if;
+
+               Handle.Log
+                 (Resource.Tag
+                  & ": concentration " & Image (Concentration * 100.0)
+                  & "; available " & Image (Available)
+                  & "; size " & Image (Size)
+                  & "; extracted " & Image (Extracted));
+               return Extracted;
             end;
          end if;
       end loop;
@@ -454,23 +453,23 @@ package body Athena.Handles.World is
       Rec.Orbiting_Ships.Delete (Position);
    end Remove_Ship;
 
-   ----------------------
-   -- Resource_Quality --
-   ----------------------
+   ----------------------------
+   -- Resource_Concentration --
+   ----------------------------
 
-   function Resource_Quality
+   function Resource_Concentration
      (Handle   : World_Handle;
       Resource : Athena.Handles.Commodity.Commodity_Handle)
-      return Non_Negative_Real
+      return Unit_Real
    is
    begin
       for Item of Vector (Handle.Reference).Deposits loop
          if Item.Resource = Resource.Reference then
-            return Item.Quality;
+            return Item.Concentration;
          end if;
       end loop;
       return 0.0;
-   end Resource_Quality;
+   end Resource_Concentration;
 
    ----------
    -- Save --

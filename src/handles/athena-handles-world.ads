@@ -8,24 +8,6 @@ with Athena.Handles.Star;
 
 package Athena.Handles.World is
 
-   type World_Composition is
-     (Hydrogen, Gaseous, Ice, Rock, Rock_Ice, Rock_Iron);
-
-   type World_Climate is
-     (Airless, Desert, Iceball, Martian, Temperate, Venusian, Water, Jovian);
-
-   type Stellar_Orbit_Zone is
-     (Red, Yellow, Green, Blue, Black);
-
-   type Atmosphere_Class is
-     (None, Trace, Thin, Average, Dense);
-
-   type Atmospheric_Gas is
-     (Ar, Cl2, CH4, CO2, F2, H2, He, N2, NH3, O2, SO2);
-
-   type Life_Complexity_Type is
-     (No_Life, Prebiotic, Single_Celled, Plants, Multicellular);
-
    type World_Handle is
      new Root_Athena_Handle
      and Has_Identifier_Interface
@@ -49,10 +31,10 @@ package Athena.Handles.World is
      (Handle : World_Handle)
       return World_Climate;
 
-   function Resource_Quality
+   function Resource_Concentration
      (Handle   : World_Handle;
       Resource : Athena.Handles.Commodity.Commodity_Handle)
-      return Non_Negative_Real;
+      return Unit_Real;
 
    function Extract_Resource
      (Handle   : World_Handle;
@@ -108,6 +90,22 @@ package Athena.Handles.World is
      (World : World_Handle)
       return Unit_Real;
 
+   function Hydrosphere
+     (World : World_Handle)
+      return Unit_Real;
+
+   function Life
+     (World : World_Handle)
+     return Life_Complexity_Type;
+
+   function Age
+     (World : World_Handle)
+      return Non_Negative_Real;
+
+   function Orbit_Zone
+     (World : World_Handle)
+      return Stellar_Orbit_Zone;
+
    function Create
      (Star                : Athena.Handles.Star.Star_Handle;
       Name                : String;
@@ -142,6 +140,12 @@ package Athena.Handles.World is
      (Handle           : World_Handle;
       Gas              : Atmospheric_Gas;
       Partial_Pressure : Unit_Real);
+
+   procedure Add_Deposit
+     (Handle        : World_Handle;
+      Resource      : Athena.Handles.Commodity.Commodity_Handle;
+      Available     : Non_Negative_Real;
+      Concentration : Unit_Real);
 
    function Get_By_Name
      (Name : String)

@@ -1,9 +1,9 @@
 class = resource
 density = 0.8  # https://www.reference.com/science/bulk-density-coal-e55167b75b4deafc
-deposits = common
-#{
-#	common = {
-#		life-bearing = 4
-#		minimum-age = 4G
-#	}
-#}
+deposits =
+{
+	common = {
+		life = multicellular
+		minimum-age = 4G
+	}
+}

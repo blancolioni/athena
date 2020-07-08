@@ -18,6 +18,24 @@ package Athena.Handles is
 
    procedure Next_Turn;
 
+   type World_Composition is
+     (Hydrogen, Gaseous, Ice, Rock, Rock_Ice, Rock_Iron);
+
+   type World_Climate is
+     (Airless, Desert, Iceball, Martian, Temperate, Venusian, Water, Jovian);
+
+   type Stellar_Orbit_Zone is
+     (Red, Yellow, Green, Blue, Black);
+
+   type Atmosphere_Class is
+     (None, Trace, Thin, Average, Dense);
+
+   type Atmospheric_Gas is
+     (Ar, Cl2, CH4, CO2, F2, H2, He, N2, NH3, O2, SO2);
+
+   type Life_Complexity_Type is
+     (No_Life, Prebiotic, Single_Celled, Plants, Multicellular);
+
    type Root_Athena_Handle is
      abstract new Athena.Signals.Signal_Source_Interface
    with private;

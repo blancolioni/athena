@@ -3,6 +3,7 @@ with Ada.Text_IO;
 
 with WL.Numerics.Roman;
 with WL.Random;
+with WL.Random.Weighted_Random_Choices;
 
 with Athena.Elementary_Functions;
 with Athena.Random;
@@ -11,7 +12,12 @@ with Athena.Trigonometry;
 
 with Athena.Solar_System;
 
-with Athena.Handles.World;             use Athena.Handles.World;
+with Athena.Resources.Deposits;
+
+with Athena.Handles;                   use Athena.Handles;
+
+with Athena.Handles.Commodity;
+with Athena.Handles.World;
 
 package body Athena.Configure.Worlds is
 
@@ -93,6 +99,9 @@ package body Athena.Configure.Worlds is
       Index : Positive;
       Zone  : Planetary_Zone;
       Orbit : Non_Negative_Real);
+
+   procedure Generate_Deposits
+     (World : Athena.Handles.World.World_Handle);
 
    package Planet_Tables is
 
@@ -505,6 +514,67 @@ package body Athena.Configure.Worlds is
       return Value;
    end D;
 
+   procedure Generate_Deposits
+     (World : Athena.Handles.World.World_Handle)
+   is
+      use Athena.Elementary_Functions;
+      package Resource_Choices is
+        new WL.Random.Weighted_Random_Choices
+          (Athena.Handles.Commodity.Commodity_Handle,
+           Athena.Handles.Commodity."=");
+
+      Initial_Concentration : constant Unit_Real :=
+        (0.4 + Athena.Random.Unit_Random / 2.0)
+        ** (World.Radius
+            / Athena.Solar_System.Earth_Radius);
+      Concentration         : Unit_Real := Initial_Concentration;
+      Deposit_Count         : Positive;
+      Resource_Choice : Resource_Choices.Weighted_Choice_Set;
+
+   begin
+
+      for Resource of Athena.Handles.Commodity.Resource_Commodities loop
+         declare
+            Score : constant Natural :=
+                      Athena.Resources.Deposits.Score_Resource
+                        (Generator => Resource.Generator,
+                         World     => World);
+         begin
+            if Score > 0 then
+               Resource_Choice.Insert (Resource, Score);
+            end if;
+         end;
+      end loop;
+
+      Deposit_Count :=
+        Natural'Max
+          (Natural (World.Radius / Athena.Solar_System.Earth_Radius * 10.0),
+           1);
+
+      while Concentration > Initial_Concentration / 20.0 loop
+         declare
+            Resource : constant Athena.Handles.Commodity.Commodity_Handle :=
+                         Resource_Choice.Choose;
+            This_Conc    : constant Unit_Real :=
+                             Unit_Clamp
+                               ((Athena.Random.Normal_Random (0.1)
+                                + 1.0)
+                                * Concentration);
+         begin
+            World.Add_Deposit
+              (Resource      => Resource,
+               Concentration => This_Conc,
+               Available     =>
+                 Athena.Random.About
+                   (2.0e5, 1.0e5));
+         end;
+
+         Concentration := Concentration
+           * (Athena.Random.Unit_Random + 15.0) / 16.0;
+         Deposit_Count := Natural'Max (Deposit_Count - 1, 1);
+      end loop;
+   end Generate_Deposits;
+
    --------------------
    -- Generate_World --
    --------------------
@@ -864,8 +934,15 @@ package body Athena.Configure.Worlds is
                World.Add_Gas (Item.Gas, Item.Partial);
             end loop;
          end if;
+
+         Generate_Deposits (World);
+
       end;
    end Generate_World;
+
+   ---------------------
+   -- Generate_Worlds --
+   ---------------------
 
    procedure Generate_Worlds
      (Star : Athena.Handles.Star.Star_Handle)

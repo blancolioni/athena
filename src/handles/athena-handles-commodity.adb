@@ -1,12 +1,6 @@
-with Ada.Containers.Doubly_Linked_Lists;
 with WL.String_Maps;
 
-with Athena.Random;
-
 package body Athena.Handles.Commodity is
-
-   package Resource_Constraint_Lists is
-     new Ada.Containers.Doubly_Linked_Lists (Resource_Constraint);
 
    type Commodity_Record is
       record
@@ -15,7 +9,7 @@ package body Athena.Handles.Commodity is
          Class       : Commodity_Class;
          Is_Abstract : Boolean;
          Density     : Non_Negative_Real;
-         Constraints : Resource_Constraint_Lists.List;
+         Generator   : Athena.Resources.Resource_Generator;
       end record;
 
    package Commodity_Vectors is
@@ -44,11 +38,6 @@ package body Athena.Handles.Commodity is
    is (if Handle.Is_Abstract
        then 0.0 else Vector (Handle.Reference).Density);
 
-   function Deposit_Constraint
-     (Handle : Commodity_Handle)
-      return Resource_Constraint
-   is (Vector (Handle.Reference).Constraints.First_Element);
-
    Food_Ref  : Commodity_Reference := Null_Commodity_Reference;
    Fuel_Ref  : Commodity_Reference := Null_Commodity_Reference;
    Power_Ref : Commodity_Reference := Null_Commodity_Reference;
@@ -66,17 +55,19 @@ package body Athena.Handles.Commodity is
    function Water return Commodity_Handle
    is (Get (Water_Ref));
 
-   --------------------
-   -- Add_Constraint --
-   --------------------
+   ----------------------------
+   -- Add_Resource_Generator --
+   ----------------------------
 
-   procedure Add_Deposit_Constraint
+   procedure Add_Resource_Frequency
      (Handle     : Commodity_Handle;
-      Constraint : Resource_Constraint)
+      Frequency  : Athena.Resources.Resource_Frequency)
    is
    begin
-      Vector (Handle.Reference).Constraints.Append (Constraint);
-   end Add_Deposit_Constraint;
+      Athena.Resources.Add_Resource_Frequency
+        (Generator => Vector (Handle.Reference).Generator,
+         Frequency => Frequency);
+   end Add_Resource_Frequency;
 
    ---------------
    -- Add_Stock --
@@ -136,7 +127,7 @@ package body Athena.Handles.Commodity is
             Density     => Density,
             Class       => Class,
             Is_Abstract => Is_Abstract,
-            Constraints => <>));
+            Generator   => <>));
 
       Map.Insert (Tag, Vector.Last_Index);
 
@@ -158,27 +149,6 @@ package body Athena.Handles.Commodity is
       return (True, Vector.Last_Index);
    end Create;
 
-   -------------
-   -- Execute --
-   -------------
-
-   function Execute
-     (Constraint : Resource_Constraint)
-      return Non_Negative_Real
-   is
-   begin
-      return Q : Non_Negative_Real := 1.0 do
-         for Item of Constraint.List loop
-            case Item.Class is
-               when Frequency_Constraint =>
-                  Q := Q
-                    * (Athena.Random.Normal_Random (Item.Standard_Deviation)
-                       + Item.Mean);
-            end case;
-         end loop;
-      end return;
-   end Execute;
-
    ------------
    -- Exists --
    ------------
@@ -188,21 +158,17 @@ package body Athena.Handles.Commodity is
       return Map.Contains (Tag);
    end Exists;
 
-   --------------------------
-   -- Frequency_Constraint --
-   --------------------------
+   ---------------
+   -- Generator --
+   ---------------
 
-   function Frequency_Constraint
-     (Mean               : Unit_Real;
-      Standard_Deviation : Unit_Real)
-      return Resource_Constraint
+   function Generator
+     (Handle : Commodity_Handle)
+      return Athena.Resources.Resource_Generator
    is
-      List : Constraint_Lists.List;
    begin
-      List.Append ((Frequency_Constraint, Mean, Standard_Deviation));
-      return Resource_Constraint'
-        (List => List);
-   end Frequency_Constraint;
+      return Vector (Handle.Reference).Generator;
+   end Generator;
 
    ----------------
    -- Get_By_Tag --
@@ -252,6 +218,23 @@ package body Athena.Handles.Commodity is
    begin
       Stock.Set_Stock (Commodity, Stock.Get_Stock (Commodity) - Quantity);
    end Remove_Stock;
+
+   --------------------------
+   -- Resource_Commodities --
+   --------------------------
+
+   function Resource_Commodities return Commodity_Array is
+      Result : Commodity_Array (1 .. Natural (Vector.Last_Index));
+      Count  : Natural := 0;
+   begin
+      for Ref in 1 .. Vector.Last_Index loop
+         if Vector.Element (Ref).Class = Resource then
+            Count := Count + 1;
+            Result (Count) := Get (Ref);
+         end if;
+      end loop;
+      return Result (1 .. Count);
+   end Resource_Commodities;
 
    ----------
    -- Save --

@@ -39,8 +39,8 @@ package body Athena.UI.Models.Stars is
          Handle      : Athena.Handles.World.World_Handle;
          Color       : Nazar.Colors.Nazar_Color;
          X, Y        : Nazar.Nazar_Float;
-         Composition : Athena.Handles.World.World_Composition;
-         Climate     : Athena.Handles.World.World_Climate;
+         Composition : Athena.Handles.World_Composition;
+         Climate     : Athena.Handles.World_Climate;
          Radius      : Non_Negative_Real;
          Ships       : Empire_Ships_Lists.List;
          Encounter   : Natural;
@@ -170,8 +170,8 @@ package body Athena.UI.Models.Stars is
       return Boolean;
 
    function Image_Resource
-     (Composition : Athena.Handles.World.World_Composition;
-      Climate     : Athena.Handles.World.World_Climate)
+     (Composition : Athena.Handles.World_Composition;
+      Climate     : Athena.Handles.World_Climate)
       return String;
 
    ---------------------
@@ -460,11 +460,11 @@ package body Athena.UI.Models.Stars is
    --------------------
 
    function Image_Resource
-     (Composition : Athena.Handles.World.World_Composition;
-      Climate     : Athena.Handles.World.World_Climate)
+     (Composition : Athena.Handles.World_Composition;
+      Climate     : Athena.Handles.World_Climate)
       return String
    is
-      use Athena.Handles.World;
+      use Athena.Handles;
    begin
       case Composition is
          when Hydrogen =>

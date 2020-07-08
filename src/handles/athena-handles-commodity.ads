@@ -1,23 +1,13 @@
-private with Ada.Containers.Indefinite_Doubly_Linked_Lists;
 private with Ada.Containers.Vectors;
 
 with Ada.Streams.Stream_IO;
+
+with Athena.Resources;
 
 package Athena.Handles.Commodity is
 
    type Commodity_Class is
      (Food, Fuel, Manufactured, Power, Resource, Water);
-
-   type Resource_Constraint is private;
-
-   function Execute
-     (Constraint : Resource_Constraint)
-      return Non_Negative_Real;
-
-   function Frequency_Constraint
-     (Mean               : Unit_Real;
-      Standard_Deviation : Unit_Real)
-      return Resource_Constraint;
 
    type Commodity_Handle is
      new Root_Athena_Handle
@@ -40,12 +30,6 @@ package Athena.Handles.Commodity is
      (Handle : Commodity_Handle)
       return Non_Negative_Real;
 
-   function Deposit_Constraint
-     (Handle : Commodity_Handle)
-      return Resource_Constraint
-     with Pre => Handle.Class = Resource
-     and then not Handle.Is_Abstract;
-
    function Exists
      (Tag : String)
       return Boolean;
@@ -67,9 +51,13 @@ package Athena.Handles.Commodity is
       Density     : Non_Negative_Real)
       return Commodity_Handle;
 
-   procedure Add_Deposit_Constraint
+   procedure Add_Resource_Frequency
      (Handle     : Commodity_Handle;
-      Constraint : Resource_Constraint);
+      Frequency  : Athena.Resources.Resource_Frequency);
+
+   function Generator
+     (Handle : Commodity_Handle)
+      return Athena.Resources.Resource_Generator;
 
    procedure Load
      (Stream : Ada.Streams.Stream_IO.Stream_Access);
@@ -80,6 +68,7 @@ package Athena.Handles.Commodity is
    type Commodity_Array is array (Positive range <>) of Commodity_Handle;
 
    function All_Commodities return Commodity_Array;
+   function Resource_Commodities return Commodity_Array;
 
    type Stock_Interface is interface;
 
@@ -167,25 +156,5 @@ private
       return Non_Negative_Real
    is (if Stock.Vector.Is_Empty then 0.0
        else Stock.Vector.Element (Commodity.Reference));
-
-   type Subconstraint_Class is (Frequency_Constraint);
-
-   type Subconstraint_Type (Class : Subconstraint_Class) is
-      record
-         case Class is
-            when Frequency_Constraint =>
-               Mean               : Unit_Real;
-               Standard_Deviation : Signed_Unit_Real;
-         end case;
-      end record;
-
-   package Constraint_Lists is
-     new Ada.Containers.Indefinite_Doubly_Linked_Lists
-       (Subconstraint_Type);
-
-   type Resource_Constraint is
-      record
-         List : Constraint_Lists.List;
-      end record;
 
 end Athena.Handles.Commodity;

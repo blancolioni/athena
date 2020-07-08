@@ -1,2 +1,18 @@
 class = water
 density = 1
+
+deposits = {
+    unlimited = { 
+        hydrosphere = 10%
+    }
+    unlimited = { 
+        composition = ice
+    }
+    unlimited = { 
+        composition = rock_ice
+    }
+    rare = { zone = yellow }
+    uncommon = { zone = green }
+    common = { zone = blue }
+    abundant = { zone = black }
+}
