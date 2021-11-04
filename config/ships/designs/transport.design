@@ -1,15 +1,7 @@
-hull = { type = standard material = steel-hull }
-tonnage = 1500
-fuel_tank = 400
+design = {
+    drive = 10
+    cargo = 10
+}
+default-manager = transport
 default-script = escape
 default-rank = 9
-default-manager = transport
-
-components = {
-    bridge-6
-    computer-5
-    thruster-1 = { count = 2 }
-    jump-1
-    chemical-30
-    low-berth = { count = 10 }
-}

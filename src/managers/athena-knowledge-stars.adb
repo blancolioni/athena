@@ -1,16 +1,14 @@
 with Athena.Logging;
 with Athena.Turns;
 
-with Athena.Colonies;
 with Athena.Ships;
-with Athena.Stars;
 with Athena.Treaties;
 
-with Athena.Handles.Ship;
-with Athena.Handles.Star_Knowledge;
+with Minerva.Ship;
+with Minerva.Ship_Knowledge;
+with Minerva.Star_Knowledge;
 
-with Athena.Db.Ship_Knowledge;
-with Athena.Db.Star_Knowledge;
+with Minerva.Star_Distance;
 
 package body Athena.Knowledge.Stars is
 
@@ -33,12 +31,12 @@ package body Athena.Knowledge.Stars is
 
    procedure Update_Neighbours
      (Knowledge : in out Star_Knowledge'Class;
-      Colony    : Athena.Handles.Colony.Colony_Class);
+      Colony    : Minerva.Colony.Colony_Class);
 
-   function Get_Knowledge_Reference
-     (For_Empire : Athena.Handles.Empire.Empire_Class;
-      For_Star   : Athena.Handles.Star.Star_Class)
-      return Athena.Db.Star_Knowledge_Reference;
+   function Get_Star_Knowledge
+     (For_Empire : Minerva.Empire.Empire_Class;
+      For_Star   : Minerva.Star.Star_Class)
+      return Minerva.Star_Knowledge.Star_Knowledge_Class;
 
    -----------------
    -- Clear_Cache --
@@ -54,51 +52,16 @@ package body Athena.Knowledge.Stars is
    ----------------------
 
    procedure Clear_Colonizing
-     (Empire     : Athena.Handles.Empire.Empire_Class;
-      Star       : Athena.Handles.Star.Star_Class)
+     (Empire     : Minerva.Empire.Empire_Class;
+      Star       : Minerva.Star.Star_Class)
    is
-      use type Athena.Db.Star_Knowledge_Reference;
-      K : constant Athena.Db.Star_Knowledge_Reference :=
-            Athena.Db.Star_Knowledge.Get_Reference_By_Star_Knowledge
-              (Star.Reference_Star, Empire.Reference_Empire);
+      K : constant Minerva.Star_Knowledge.Star_Knowledge_Class :=
+            Get_Star_Knowledge (Empire, Star);
    begin
-      if K /= Athena.Db.Null_Star_Knowledge_Reference then
-         Athena.Db.Star_Knowledge.Update_Star_Knowledge (K)
-           .Set_Colonizing (False)
-           .Done;
-      end if;
-
+      K.Update_Star_Knowledge
+        .Set_Colonizing (False)
+        .Done;
    end Clear_Colonizing;
-
-   -----------------------------
-   -- Get_Knowledge_Reference --
-   -----------------------------
-
-   function Get_Knowledge_Reference
-     (For_Empire : Athena.Handles.Empire.Empire_Class;
-      For_Star   : Athena.Handles.Star.Star_Class)
-      return Athena.Db.Star_Knowledge_Reference
-   is
-      use Athena.Db;
-      K : constant Star_Knowledge_Reference :=
-            Athena.Db.Star_Knowledge.Get_Reference_By_Star_Knowledge
-              (For_Star.Reference_Star, For_Empire.Reference_Empire);
-   begin
-      if K = Null_Star_Knowledge_Reference then
-         return Athena.Handles.Star_Knowledge.Create
-           (Star       => For_Star,
-            Empire     => For_Empire,
-            Owner      => Athena.Handles.Empire.Empty_Handle,
-            Last_Visit => Athena.Handles.Turn.Empty_Handle,
-            Last_Pop   => 0.0,
-            Last_Ind   => 0.0,
-            Visited    => False,
-            Colonizing => False)
-           .Reference_Star_Knowledge;
-      else
-         return K;
-      end if;
-   end Get_Knowledge_Reference;
 
    ---------------------
    -- Get_Known_Ships --
@@ -106,18 +69,16 @@ package body Athena.Knowledge.Stars is
 
    function Get_Known_Ships
      (Knowledge : Star_Knowledge'Class;
-      At_Star   : Athena.Handles.Star.Star_Class)
+      At_Star   : Minerva.Star.Star_Class)
       return Known_Ship_Lists.List
    is
-      K_Rec : constant Athena.Db.Star_Knowledge.Star_Knowledge_Type :=
-                Athena.Db.Star_Knowledge.Get_By_Star_Knowledge
-                  (At_Star.Reference_Star, Knowledge.Empire.Reference_Empire);
+      K : constant Minerva.Star_Knowledge.Star_Knowledge_Class :=
+            Get_Star_Knowledge (Knowledge.Empire, At_Star);
    begin
       return List : Known_Ship_Lists.List do
          for Known_Ship of
-           Athena.Db.Ship_Knowledge.Select_By_Ship_Knowledge
-             (K_Rec.Get_Star_Knowledge_Reference,
-              K_Rec.Last_Visit)
+           Minerva.Ship_Knowledge.Select_By_Ship_Knowledge
+             (K, K.Last_Visit)
          loop
             List.Append
               (Known_Ship_Record'
@@ -127,6 +88,34 @@ package body Athena.Knowledge.Stars is
       end return;
    end Get_Known_Ships;
 
+   -----------------------------
+   -- Get_Knowledge_Reference --
+   -----------------------------
+
+   function Get_Star_Knowledge
+     (For_Empire : Minerva.Empire.Empire_Class;
+      For_Star   : Minerva.Star.Star_Class)
+      return Minerva.Star_Knowledge.Star_Knowledge_Class
+   is
+      K : constant Minerva.Star_Knowledge.Star_Knowledge_Handle :=
+            Minerva.Star_Knowledge.Get_By_Star_Knowledge
+              (For_Star, For_Empire);
+   begin
+      if not K.Has_Element then
+         return Minerva.Star_Knowledge.Create
+           (Star       => For_Star,
+            Empire     => For_Empire,
+            Owner      => Minerva.Empire.Empty_Handle,
+            Last_Visit => Minerva.Turn.Empty_Handle,
+            Last_Pop   => 0.0,
+            Last_Ind   => 0.0,
+            Visited    => False,
+            Colonizing => False);
+      else
+         return K;
+      end if;
+   end Get_Star_Knowledge;
+
    ------------------------
    -- Iterate_Neighbours --
    ------------------------
@@ -135,8 +124,8 @@ package body Athena.Knowledge.Stars is
      (Knowledge : Star_Knowledge'Class;
       Max_Range : Non_Negative_Real;
       Process   : not null access procedure
-        (Neighbour : Athena.Handles.Star.Star_Class;
-         Nearest   : Athena.Handles.Colony.Colony_Class; Stop : out Boolean))
+        (Neighbour : Minerva.Star.Star_Class;
+         Nearest   : Minerva.Colony.Colony_Class; Stop : out Boolean))
    is
    begin
       for Rec of Knowledge.Neighbour_List loop
@@ -159,9 +148,9 @@ package body Athena.Knowledge.Stars is
      (Knowledge : Star_Knowledge'Class;
       Max_Range : Non_Negative_Real;
       Process   : not null access
-        procedure (Threat      : Athena.Handles.Empire.Empire_Class;
-                   Threat_Star : Athena.Handles.Star.Star_Class;
-                   Nearest     : Athena.Handles.Colony.Colony_Class;
+        procedure (Threat      : Minerva.Empire.Empire_Class;
+                   Threat_Star : Minerva.Star.Star_Class;
+                   Nearest     : Minerva.Colony.Colony_Class;
                    Stop        : out Boolean))
    is
    begin
@@ -185,7 +174,7 @@ package body Athena.Knowledge.Stars is
    procedure Iterate_Uncolonized
      (Knowledge : Star_Knowledge'Class;
       Process   : not null access
-        procedure (Star      : Athena.Handles.Star.Star_Class;
+        procedure (Star      : Minerva.Star.Star_Class;
                    Stop      : out Boolean))
    is
    begin
@@ -207,18 +196,13 @@ package body Athena.Knowledge.Stars is
 
    function Last_Visit
      (Knowledge : Star_Knowledge'Class;
-      Star      : Athena.Handles.Star.Star_Class)
-      return Athena.Handles.Turn.Turn_Class
+      Star      : Minerva.Star.Star_Class)
+      return Minerva.Turn.Turn_Class
    is
-      Rec : constant Athena.Db.Star_Knowledge.Star_Knowledge_Type :=
-              Athena.Db.Star_Knowledge.Get_By_Star_Knowledge
-                (Star.Reference_Star, Knowledge.Empire.Reference_Empire);
+      K : constant Minerva.Star_Knowledge.Star_Knowledge_Class :=
+            Get_Star_Knowledge (Knowledge.Empire, Star);
    begin
-      if Rec.Has_Element then
-         return Athena.Handles.Turn.Get (Rec.Last_Visit);
-      else
-         return Athena.Handles.Turn.Empty_Handle;
-      end if;
+      return K.Last_Visit;
    end Last_Visit;
 
    ----------
@@ -227,7 +211,7 @@ package body Athena.Knowledge.Stars is
 
    procedure Load
      (Knowledge  : in out Star_Knowledge;
-      For_Empire : Athena.Handles.Empire.Empire_Class)
+      For_Empire : Minerva.Empire.Empire_Class)
    is
       Turn : constant Positive := Athena.Turns.Current_Turn;
 
@@ -278,29 +262,15 @@ package body Athena.Knowledge.Stars is
       end;
 
       Knowledge.Empire :=
-        Athena.Handles.Empire.Get (For_Empire.Reference_Empire);
+        Minerva.Empire.Get (For_Empire.Reference_Empire);
 
       Athena.Logging.Log
         (For_Empire.Name
          & "/knowledge: scanning colonies");
 
-      declare
-         procedure Update (Colony : Athena.Handles.Colony.Colony_Class);
-
-         ------------
-         -- Update --
-         ------------
-
-         procedure Update (Colony : Athena.Handles.Colony.Colony_Class) is
-         begin
-            Update_Neighbours (Knowledge, Colony);
-         end Update;
-
-      begin
-         Athena.Colonies.For_All_Colonies
-           (Owned_By => For_Empire,
-            Process  => Update'Access);
-      end;
+      for Colony of Minerva.Colony.Select_By_Empire (For_Empire) loop
+         Update_Neighbours (Knowledge, Colony);
+      end loop;
 
       Athena.Logging.Log
         (For_Empire.Name & "/knowledge: sorting neighbours");
@@ -333,20 +303,19 @@ package body Athena.Knowledge.Stars is
       Athena.Logging.Log
         (For_Empire.Name & "/knowledge: scanning star knowledge");
 
-      for K of Athena.Db.Star_Knowledge.Select_By_Empire
-        (For_Empire.Reference_Empire)
+      for K of Minerva.Star_Knowledge.Select_By_Empire
+        (For_Empire)
       loop
          if K.Visited then
             declare
-               Handle : constant Athena.Handles.Star.Star_Handle :=
-                          Athena.Handles.Star.Get (K.Star);
+               Star : constant Minerva.Star.Star_Class := K.Star;
             begin
-               Knowledge.Visited.Insert (Handle.Identifier, Handle);
-               if not Handle.Owner.Has_Element then
-                  Knowledge.Uncolonized.Insert (Handle.Identifier, Handle);
+               Knowledge.Visited.Insert (Star.Identifier, Star);
+               if not Star.Owner.Has_Element then
+                  Knowledge.Uncolonized.Insert (Star.Identifier, Star);
                end if;
                if K.Colonizing then
-                  Knowledge.Colonizing.Insert (Handle.Identifier, Handle);
+                  Knowledge.Colonizing.Insert (Star.Identifier, Star);
                end if;
             end;
          end if;
@@ -369,14 +338,14 @@ package body Athena.Knowledge.Stars is
 
    procedure Set_Colonizing
      (Knowledge  : in out Star_Knowledge'Class;
-      Star       : Athena.Handles.Star.Star_Class;
+      Star       : Minerva.Star.Star_Class;
       Colonizing : Boolean)
    is
-      K : constant Athena.Db.Star_Knowledge_Reference :=
-            Get_Knowledge_Reference
+      K : constant Minerva.Star_Knowledge.Star_Knowledge_Class :=
+            Get_Star_Knowledge
               (Knowledge.Empire, Star);
    begin
-      Athena.Db.Star_Knowledge.Update_Star_Knowledge (K)
+      Minerva.Star_Knowledge.Update_Star_Knowledge (K)
         .Set_Colonizing (Colonizing)
         .Done;
 
@@ -398,10 +367,10 @@ package body Athena.Knowledge.Stars is
 
    function Turns_Since_Last_Visit
      (Knowledge : Star_Knowledge'Class;
-      Star      : Athena.Handles.Star.Star_Class)
+      Star      : Minerva.Star.Star_Class)
       return Natural
    is
-      Last_Visit_Turn : constant Athena.Handles.Turn.Turn_Class :=
+      Last_Visit_Turn : constant Minerva.Turn.Turn_Class :=
                           Knowledge.Last_Visit (Star);
    begin
       if Last_Visit_Turn.Has_Element then
@@ -418,13 +387,13 @@ package body Athena.Knowledge.Stars is
 
    procedure Update_Neighbours
      (Knowledge : in out Star_Knowledge'Class;
-      Colony    : Athena.Handles.Colony.Colony_Class)
+      Colony    : Minerva.Colony.Colony_Class)
    is
-      Handle : constant Athena.Handles.Colony.Colony_Handle :=
-                 Athena.Handles.Colony.Get (Colony.Reference_Colony);
+      Handle : constant Minerva.Colony.Colony_Handle :=
+                 Minerva.Colony.Get (Colony.Reference_Colony);
 
       procedure Update
-        (Neighbour : Athena.Handles.Star.Star_Class;
+        (Neighbour : Minerva.Star.Star_Class;
          Distance  : Non_Negative_Real);
 
       ------------
@@ -432,7 +401,7 @@ package body Athena.Knowledge.Stars is
       ------------
 
       procedure Update
-        (Neighbour : Athena.Handles.Star.Star_Class;
+        (Neighbour : Minerva.Star.Star_Class;
          Distance  : Non_Negative_Real)
       is
          use Neighbour_Maps;
@@ -455,8 +424,8 @@ package body Athena.Knowledge.Stars is
             end;
          else
             declare
-               Star : constant Athena.Handles.Star.Star_Handle :=
-                        Athena.Handles.Star.Get (Neighbour.Reference_Star);
+               Star : constant Minerva.Star.Star_Handle :=
+                        Minerva.Star.Get (Neighbour.Reference_Star);
             begin
                Knowledge.Neighbour_Map.Insert
                  (Neighbour.Identifier,
@@ -470,10 +439,12 @@ package body Athena.Knowledge.Stars is
 
    begin
 
-      Athena.Stars.Iterate_Nearest
-        (To_Star   => Colony.Star,
-         Max_Range => 20.0,
-         Process   => Update'Access);
+      for Star_Distance of
+        Minerva.Star_Distance.Select_Closest_Stars_Bounded_By_Distance
+          (Colony.Star, 0.0, 20.0)
+      loop
+         Update (Star_Distance.To, Star_Distance.Distance);
+      end loop;
 
    end Update_Neighbours;
 
@@ -482,34 +453,31 @@ package body Athena.Knowledge.Stars is
    -----------
 
    procedure Visit
-     (Empire : Athena.Handles.Empire.Empire_Class;
-      Star   : Athena.Handles.Star.Star_Class)
+     (Empire : Minerva.Empire.Empire_Class;
+      Star   : Minerva.Star.Star_Class)
    is
-      K      : constant Athena.Db.Star_Knowledge_Reference :=
-                 Get_Knowledge_Reference (Empire, Star);
-      Colony : constant Athena.Handles.Colony.Colony_Class :=
-                 Athena.Colonies.Get_Colony (Star);
-      Owner  : constant Athena.Db.Empire_Reference :=
-                 (if Star.Owner.Has_Element
-                  then Star.Owner.Reference_Empire
-                  else Athena.Db.Null_Empire_Reference);
+      K      : constant Minerva.Star_Knowledge.Star_Knowledge_Class :=
+                 Get_Star_Knowledge (Empire, Star);
+      Colony : constant Minerva.Colony.Colony_Class :=
+                 Minerva.Colony.Get_By_Star (Star);
+      Owner  : constant Minerva.Empire.Empire_Class := Star.Owner;
       Pop    : constant Non_Negative_Real :=
-                 (if Colony.Has_Element then Colony.Pop else 0.0);
+                 (if Colony.Has_Element then Colony.Population else 0.0);
       Ind    : constant Non_Negative_Real :=
                  (if Colony.Has_Element then Colony.Industry else 0.0);
 
       procedure Record_Ship
-        (Ship : Athena.Handles.Ship.Ship_Class);
+        (Ship : Minerva.Ship.Ship_Class);
 
       -----------------
       -- Record_Ship --
       -----------------
 
       procedure Record_Ship
-        (Ship : Athena.Handles.Ship.Ship_Class)
+        (Ship : Minerva.Ship.Ship_Class)
       is
-         Current : constant Db.Ship_Knowledge.Ship_Knowledge_Type :=
-                     Athena.Db.Ship_Knowledge.Get_By_Observed_Ship
+         Current : constant Minerva.Ship_Knowledge.Ship_Knowledge_Class :=
+                     Minerva.Ship_Knowledge.Get_By_Observed_Ship
                        (K, Ship.Identifier);
       begin
 
@@ -526,37 +494,37 @@ package body Athena.Knowledge.Stars is
          end if;
 
          if Current.Has_Element then
-            Athena.Db.Ship_Knowledge.Update_Ship_Knowledge
-              (Current.Get_Ship_Knowledge_Reference)
+            Current.Update_Ship_Knowledge
               .Set_Star_Knowledge (K)
-              .Set_Turn (Athena.Turns.Current_Turn.Reference_Turn)
+              .Set_Turn (Athena.Turns.Current_Turn)
               .Done;
          else
-            Athena.Db.Ship_Knowledge.Create
+            Minerva.Ship_Knowledge.Create
               (Star_Knowledge => K,
-               Owner          => Ship.Empire.Reference_Empire,
+               Owner          => Ship.Empire,
                Turn           =>
-                 Athena.Turns.Current_Turn.Reference_Turn,
+                 Athena.Turns.Current_Turn,
                Identifier     => Ship.Identifier,
                Name           => Ship.Name,
-               Mass           => Athena.Ships.Mass (Ship),
-               Weapon_Mass    => Athena.Ships.Weapon_Mass (Ship),
-               Impulse        => Athena.Ships.Get_Impulse (Ship));
+               Mass           => Athena.Ships.Current_Mass (Ship),
+               Weapon_Mass    => Athena.Ships.Weapon_Mass (Ship));
          end if;
       end Record_Ship;
 
    begin
-      Athena.Db.Star_Knowledge.Update_Star_Knowledge (K)
+      Minerva.Star_Knowledge.Update_Star_Knowledge (K)
         .Set_Visited (True)
-        .Set_Last_Visit (Athena.Turns.Current_Turn.Reference_Turn)
+        .Set_Last_Visit (Athena.Turns.Current_Turn)
         .Set_Owner (Owner)
         .Set_Last_Pop (Pop)
         .Set_Last_Ind (Ind)
         .Done;
 
-      Athena.Ships.For_All_Ships
-        (At_Star => Star,
-         Process => Record_Ship'Access);
+      for Ship of
+        Minerva.Ship.Select_By_Star (Star)
+      loop
+         Record_Ship (Ship);
+      end loop;
 
       declare
          Knowledge : Star_Knowledge;

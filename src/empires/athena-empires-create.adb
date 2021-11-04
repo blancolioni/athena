@@ -1,17 +1,17 @@
-with Athena.Managers;
+with Athena.Identifiers;
 with Athena.Money;
-
-with Athena.Colonies;
 with Athena.Ships.Create;
+with Athena.Turns;
 
-with Athena.Handles.Colony;
-with Athena.Handles.Commodity;
-with Athena.Handles.Design;
-with Athena.Handles.Empire;
-with Athena.Handles.Facility;
-with Athena.Handles.Fleet;
-with Athena.Handles.Installation;
-with Athena.Handles.Production;
+with Minerva.Colony;
+with Minerva.Empire;
+with Minerva.Empire_Capital;
+with Minerva.Empire_Manager;
+with Minerva.Empire_Tec;
+with Minerva.Fleet;
+with Minerva.Ship_Design;
+with Minerva.Star_Knowledge;
+with Minerva.System_Designs;
 
 package body Athena.Empires.Create is
 
@@ -20,7 +20,7 @@ package body Athena.Empires.Create is
    ----------------
 
    procedure New_Empire
-     (Star      : Athena.Handles.Star.Star_Handle;
+     (Star      : Minerva.Star.Star_Class;
       Name      : String;
       Plural    : String;
       Adjective : String;
@@ -30,121 +30,153 @@ package body Athena.Empires.Create is
    is
       Init : constant Tropos.Configuration :=
         Template.Child ("init");
+      Ships : constant Tropos.Configuration :=
+                Template.Child ("ships");
 
       function Get (Name : String) return Real
       is (Real (Long_Float'(Init.Get (Name, 0.0))));
 
-      Empire         : constant Handles.Empire.Empire_Handle :=
-                         Athena.Handles.Empire.Create_Empire
-                           (Name       => Name,
+      function Design
+        (Tag : String)
+         return Minerva.Ship_Design.Ship_Design_Class;
+
+      ------------
+      -- Design --
+      ------------
+
+      function Design
+        (Tag : String)
+         return Minerva.Ship_Design.Ship_Design_Class
+      is
+         Config : constant Tropos.Configuration :=
+                    Template
+                      .Child ("standard-designs")
+                      .Child (Tag);
+         Name   : constant String :=
+                    (if Config.Child_Count > 0
+                     then Config.Value
+                     else "");
+         Result : constant Minerva.Ship_Design.Ship_Design_Class :=
+                    Minerva.Ship_Design.First_By_Name (Name);
+      begin
+         return Result;
+      end Design;
+
+      Empire         : constant Minerva.Empire.Empire_Handle :=
+                         Minerva.Empire.Create
+                           (Identifier => Athena.Identifiers.Next_Identifier,
+                            Name       => Name,
                             Plural     => Plural,
                             Adjective  => Adjective,
-                            Star       => Star.Reference,
                             Cash       =>
                               Athena.Money.To_Money (Get ("cash")),
                             Debt       =>
                               Athena.Money.To_Money (Get ("debt")),
-                            Color      => Color);
+                            Rgb        =>
+                              Athena.Color.To_Natural (Color));
 
    begin
 
-      Star.Set_Name (Capital);
-      Star.Set_Owner (Empire.Reference);
+      Star.Update_Star
+        .Set_Name (Capital)
+        .Set_Owner (Empire)
+        .Done;
+
+      Minerva.Empire_Capital.Create
+        (Empire => Empire,
+         Star   => Star);
 
       declare
-         Colony : constant Athena.Handles.Colony.Colony_Handle :=
-                    Athena.Colonies.New_Colony
-                      (At_Star    => Star,
-                       Owner      => Empire,
-                       Pop        => Get ("pop"),
-                       Industry   => Get ("ind"),
-                       Material   => 100.0);
+         procedure Set_Manager
+           (Name : String);
+
+         -----------------
+         -- Set_Manager --
+         -----------------
+
+         procedure Set_Manager
+           (Name : String)
+         is
+         begin
+            Set_Manager_Script
+              (Empire, Minerva.Manager.Get_By_Tag (Name), Name);
+            Enable_Manager
+              (Empire  => Empire,
+               Manager => Minerva.Manager.Get_By_Tag (Name));
+         end Set_Manager;
+
       begin
-         Empire.Set_Capital (Colony.Reference);
-
-         for Installation_Config of Init.Child ("installations") loop
-            declare
-               Facility : constant Athena.Handles.Facility.Facility_Handle :=
-                 Athena.Handles.Facility.Get_By_Tag
-                   (Installation_Config.Config_Name);
-               Size     : constant Non_Negative_Real :=
-                 Real'Value (Installation_Config.Attribute ("size"));
-            begin
-               Colony.Add_Installation
-                 (Athena.Handles.Installation.Create (Facility, Size));
-            end;
-         end loop;
-
-         for Stock_Config of Init.Child ("stock") loop
-            Colony.Set_Stock
-              (Commodity =>
-                 Athena.Handles.Commodity.Get_By_Tag
-                   (Stock_Config.Config_Name),
-               Quantity  =>
-                 Real (Long_Float'(Stock_Config.Value)));
-         end loop;
-
-         for Production_Config of Init.Child ("economy") loop
-            Colony.Set_Production
-              (Production =>
-                 Athena.Handles.Production.Get_By_Tag
-                   (Production_Config.Config_Name),
-               Fraction   =>
-                 Real (Long_Float'(Production_Config.Value)));
-         end loop;
+         Set_Manager ("attack");
+         Set_Manager ("colonize");
+         Set_Manager ("defend");
+         Set_Manager ("develop");
+         Set_Manager ("explore");
+         Set_Manager ("research");
+         Set_Manager ("transport");
+         Set_Manager ("upgrade");
       end;
 
-      for Manager in Athena.Handles.Manager_Class loop
+      for Technology of Minerva.Technology.Scan_By_Tag loop
+         Minerva.Empire_Tec.Create
+           (Empire     => Empire,
+            Technology => Technology,
+            Investment => 0.0,
+            Level      => 1.0);
+      end loop;
+
+      Minerva.Colony.Create
+        (Identifier => Athena.Identifiers.Next_Identifier,
+         Star       => Star,
+         Empire     => Empire,
+         Founded    => Athena.Turns.Current_Turn,
+         Construct  => Get ("construct"),
+         Population => Get ("pop"),
+         Industry   => Get ("ind"),
+         Material   => Get ("material"));
+
+      Minerva.Star_Knowledge.Create
+        (Star       => Star,
+         Empire     => Empire,
+         Owner      => Empire,
+         Last_Visit => Athena.Turns.Current_Turn,
+         Last_Pop   => Get ("pop"),
+         Last_Ind   => Get ("ind"),
+         Visited    => True,
+         Colonizing => False);
+
+      Minerva.System_Designs.Create
+        (Empire     => Empire,
+         Scout      => Design ("scout"),
+         Recon      => Design ("recon"),
+         Transport  => Design ("transport"),
+         Defender   => Design ("defender"),
+         Destroyer  => Design ("destroyer"),
+         Cruiser    => Design ("cruiser"),
+         Battleship => Design ("battleship"),
+         Carrier    => Design ("carrier"));
+
+      for Ship_Config of Ships loop
          declare
-            Name : constant String := Manager'Image;
+            Design : constant Minerva.Ship_Design.Ship_Design_Class :=
+                       Minerva.Ship_Design.First_By_Name
+                         (Ship_Config.Config_Name);
+            Manager : constant Minerva.Manager.Manager_Class :=
+                        Design.Default_Manager;
          begin
-            if Athena.Managers.Exists (Name) then
-               Empire.Set_Manager
-                 (Manager,
-                  Athena.Managers.Get_Manager
-                    (Manager'Image, Empire.Reference));
-            end if;
+            for I in 1 .. Ship_Config.Value loop
+               Athena.Ships.Create.Create_Ship
+                 (Empire      => Empire,
+                  Star        => Star,
+                  Design      => Design,
+                  Fleet       => Minerva.Fleet.Empty_Handle,
+                  Manager     =>
+                    Minerva.Empire_Manager.Get_By_Empire_Manager
+                      (Empire, Manager),
+                  Name        => Design.Name,
+                  Destination => Minerva.Star.Empty_Handle);
+            end loop;
          end;
       end loop;
-
-      for Standard_Design_Config of
-        Template.Child ("standard-designs")
-      loop
-         Empire.Set_Standard_Design
-           (Class  =>
-              Athena.Handles.Empire.Standard_Empire_Design'Value
-                (Standard_Design_Config.Config_Name),
-            Design =>
-              Athena.Handles.Design.Get_By_Name
-                (Standard_Design_Config.Value)
-            .Reference);
-      end loop;
-
-      declare
-         use Athena.Handles.Design;
-      begin
-
-         for Ship of Init.Child ("ships") loop
-            declare
-               Design : constant Design_Handle :=
-                          Athena.Handles.Design.Get_By_Name
-                            (Ship.Config_Name);
-               Count  : constant Natural :=
-                          (if Ship.Child_Count = 0 then 1 else Ship.Value);
-            begin
-               for I in 1 .. Count loop
-                  Athena.Ships.Create.Create_Ship
-                    (Empire  => Empire,
-                     Star    => Star,
-                     Fleet   => Athena.Handles.Fleet.Empty_Handle,
-                     Manager => Design.Default_Manager,
-                     Design  => Design,
-                     Name    => Athena.Ships.New_Name (Empire, Design.Name));
-               end loop;
-            end;
-         end loop;
-
-      end;
 
    end New_Empire;
 

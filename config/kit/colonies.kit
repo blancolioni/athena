@@ -1,0 +1,28 @@
+with Base;
+with Empires;
+with Orders;
+with Stars;
+
+package Colonies is
+
+record Colony : Has_Identifier is
+    unique key Star;
+    key Empire;
+    Founded      : Turn;
+    Construct    : Long_Float;
+    Population   : Long_Float;
+    Industry     : Long_Float;
+    Material     : Long_Float;
+end Colony;
+
+type Colony_Order_Category is (Build_Industry, Produce_Material);
+
+record Colony_Order : Order is
+    key Colony;
+    Category : Colony_Order_Category;
+    Value    : Long_Float;
+    key Colony_Category_Order with Colony, Category;
+end Colony_Order;
+ 
+
+end Colonies;

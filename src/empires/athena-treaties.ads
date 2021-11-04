@@ -1,17 +1,17 @@
-with Athena.Handles.Empire;
-with Athena.Handles.War;
+with Minerva.Empire;
+with Minerva.War;
 
 package Athena.Treaties is
 
    function At_War
-     (E1, E2 : Athena.Handles.Empire.Empire_Handle)
+     (Empire_1, Empire_2 : Minerva.Empire.Empire_Class)
       return Boolean;
 
    function Get_War
-     (E1, E2 : Athena.Handles.Empire.Empire_Handle)
-      return Athena.Handles.War.War_Handle;
+     (Empire_1, Empire_2 : Minerva.Empire.Empire_Class)
+      return Minerva.War.War_Class;
 
    procedure Declare_War
-     (E1, E2 : Athena.Handles.Empire.Empire_Handle);
+     (Aggressor, Defender : Minerva.Empire.Empire_Class);
 
 end Athena.Treaties;

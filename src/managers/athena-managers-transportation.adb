@@ -1,339 +1,249 @@
-with Athena.Ships;
-with Athena.Stars;
+with Ada.Containers.Doubly_Linked_Lists;
 
-with Athena.Ships.Lists;
+with Athena.Empires;
+with Athena.Ships.Designs;
+with Athena.Ships.Orders;
+with Athena.Technology;
 
-with Athena.Handles.Design;
-with Athena.Handles.Empire;
-with Athena.Handles.Fleet;
-with Athena.Handles.Ship.Actions;
-with Athena.Handles.Star;
+with Minerva.Ship;
+with Minerva.Ship_Design;
+with Minerva.Empire;
 
 package body Athena.Managers.Transportation is
 
+   package Ship_Lists is
+     new Ada.Containers.Doubly_Linked_Lists
+       (Minerva.Ship.Ship_Handle, Minerva.Ship."=");
+
    type Transportation_Manager is
-     new Root_Manager_Type with null record;
+     new Athena_Manager_Script with null record;
 
    overriding function Identifier
      (Manager : Transportation_Manager)
       return String
    is ("transportation");
 
-   overriding procedure Dispatch_Create_Orders
-     (Manager : in out Transportation_Manager);
+   overriding procedure Create_Orders
+     (Manager : Transportation_Manager);
+
+   overriding procedure Process_Message
+     (Manager : Transportation_Manager;
+      Msg     : Message_Type'Class);
+
+   procedure Get_Transport
+     (Manager    : Transportation_Manager'Class;
+      From_Star  : Minerva.Star.Star_Handle;
+      Capacity   : Non_Negative_Real;
+      Ships      : out Ship_Lists.List;
+      Remaining  : out Non_Negative_Real);
 
    type Transport_Message_Type is
      new Message_Type with
       record
-         Empire   : Athena.Handles.Empire_Reference;
-         From     : Athena.Handles.Star_Reference;
-         To       : Athena.Handles.Star_Reference;
-         Cargo    : Athena.Cargo.Cargo_Container;
-         Priority : Athena.Handles.Order_Priority;
+         Empire   : Minerva.Empire.Empire_Handle;
+         From     : Minerva.Star.Star_Handle;
+         To       : Minerva.Star.Star_Handle;
+         Cargo    : Minerva.Db.Cargo_Type;
+         Quantity : Non_Negative_Real;
+         Priority : Integer;
       end record;
 
-   procedure Get_Transport
-     (For_Empire : Athena.Handles.Empire.Empire_Handle;
-      From_Star  : Athena.Handles.Star.Star_Handle;
-      Cargo      : Athena.Cargo.Cargo_Container;
-      Ships      : out Athena.Ships.Lists.List);
+   -------------------
+   -- Create_Orders --
+   -------------------
 
-   --  function Find_Idle_Ship
-   --    (For_Empire : Athena.Handles.Empire.Empire_Handle;
-   --     From_Star  : Athena.Handles.Star.Star_Handle;
-   --     Cargo      : Athena.Cargo.Cargo_Interface'Class)
-   --     return Athena.Handles.Ship.Ship_Handle;
-
-   function Cargo_Transport_Design
-     (For_Empire : Athena.Handles.Empire.Empire_Handle;
-      Cargo      : Athena.Cargo.Cargo_Container)
-      return Athena.Handles.Design.Design_Handle
-     with Unreferenced;
-
-   ----------------------------
-   -- Cargo_Transport_Design --
-   ----------------------------
-
-   function Cargo_Transport_Design
-     (For_Empire : Athena.Handles.Empire.Empire_Handle;
-      Cargo      : Athena.Cargo.Cargo_Container)
-      return Athena.Handles.Design.Design_Handle
+   overriding procedure Create_Orders
+     (Manager : Transportation_Manager)
    is
-      Design_Class : constant Athena.Handles.Empire.Standard_Empire_Design :=
-                       (if Cargo.Tonnage (Athena.Cargo.People) > 0.0
-                        then Athena.Handles.Empire.Transport
-                        else Athena.Handles.Empire.Freighter);
    begin
-      return Athena.Handles.Design.Get
-        (For_Empire.Standard_Design (Design_Class));
-   end Cargo_Transport_Design;
+      null;
+   end Create_Orders;
 
    ------------------------------------
    -- Default_Transportation_Manager --
    ------------------------------------
 
    function Default_Transportation_Manager
-     return Root_Manager_Type'Class
+     return Athena_Manager_Script'Class
    is
    begin
       return Manager : constant Transportation_Manager :=
         Transportation_Manager'
           (Name     => +"transport",
            Empire   => <>,
-           Priority => 1050,
-           Has_Next_Update => True,
-           Next_Update => Athena.Calendar.Clock,
-           Messages => <>);
+           Manager => <>,
+           Priority => 1050);
    end Default_Transportation_Manager;
-
-   ----------------------------
-   -- Dispatch_Create_Orders --
-   ----------------------------
-
-   overriding procedure Dispatch_Create_Orders
-     (Manager : in out Transportation_Manager)
-   is
-      Empire : constant Athena.Handles.Empire.Empire_Handle :=
-                 Athena.Handles.Empire.Get (Manager.Empire);
-   begin
-      while not Manager.Messages.Is_Empty loop
-         declare
-            Message : constant Transport_Message_Type :=
-                        Transport_Message_Type
-                          (Manager.Messages.First_Element);
-            From    : constant Athena.Handles.Star.Star_Handle :=
-                        Athena.Handles.Star.Get (Message.From);
-
-            function More_Convenient
-              (Left, Right : Athena.Handles.Ship.Ship_Handle)
-               return Boolean;
-
-            ---------------------
-            -- More_Convenient --
-            ---------------------
-
-            function More_Convenient
-              (Left, Right : Athena.Handles.Ship.Ship_Handle)
-               return Boolean
-            is
-               use type Athena.Handles.Star.Star_Handle;
-            begin
-               if Left.Has_Star_Location then
-                  if Left.Star_Location = From then
-                     return True;
-                  elsif Right.Has_Star_Location then
-                     if Right.Star_Location = From then
-                        return False;
-                     else
-                        return Athena.Stars.Distance (Left.Star_Location, From)
-                          < Athena.Stars.Distance (Right.Star_Location, From);
-                     end if;
-                  else
-                     return Right.Destination /= From;
-                  end if;
-               elsif Right.Has_Star_Location then
-                  return Right.Star_Location = From
-                    or else Left.Destination /= From;
-               elsif Left.Destination = From then
-                  return True;
-               else
-                  return False;
-               end if;
-            end More_Convenient;
-
-            package Ship_Sorting is
-              new Athena.Ships.Lists.Generic_Sorting (More_Convenient);
-
-            Ships   : Athena.Ships.Lists.List;
-         begin
-            Manager.Messages.Delete_First;
-
-            Get_Transport
-              (For_Empire => Empire,
-               From_Star  => From,
-               Cargo      => Message.Cargo,
-               Ships      => Ships);
-
-            Ship_Sorting.Sort (Ships);
-
-            declare
-               use type Athena.Handles.Star.Star_Handle;
-               Container : Athena.Cargo.Cargo_Container :=
-                             Message.Cargo;
-            begin
-               while not Container.Is_Empty
-                 and then not Ships.Is_Empty
-               loop
-
-                  declare
-                     Ship : constant Athena.Handles.Ship.Ship_Handle :=
-                              Ships.First_Element;
-                  begin
-                     Ships.Delete_First;
-                     if Ship.Is_Idle then
-                        Manager.Log
-                          ("using ship: " & Ship.Short_Name
-                           & " to transport " & Container.Content_Summary);
-
-                        Container.Remove (Ship);
-
-                        if not Container.Is_Empty
-                          and then Ship.Star_Location /= From
-                        then
-                           Athena.Handles.Ship.Actions.Move_To (Ship, From);
-                        end if;
-
-                        declare
-                           Cargo : Athena.Cargo.Cargo_Container :=
-                                     Container;
-                        begin
-                           Cargo.Remove_Capacity (Ship);
-                           Ship.Add_Action
-                             (Athena.Handles.Ship.Actions.Load_Cargo
-                                (Cargo));
-                           Container.Remove_Cargo (Cargo);
-                        end;
-
-                        Athena.Handles.Ship.Actions.Move_To
-                          (Ship, Athena.Handles.Star.Get (Message.To));
-
-                        Ship.Add_Action
-                          (Athena.Handles.Ship.Actions.Unload_Cargo
-                             (Message.Cargo));
-
-                     end if;
-                  end;
-               end loop;
-            end;
-         end;
-      end loop;
-      Manager.Set_Next_Update_Delay (Athena.Calendar.Days (10));
-   end Dispatch_Create_Orders;
-
-   --------------------
-   -- Find_Idle_Ship --
-   --------------------
-
-   --  function Find_Idle_Ship
-   --    (For_Empire : Athena.Handles.Empire.Empire_Handle;
-   --     From_Star  : Athena.Handles.Star.Star_Handle;
-   --     Cargo      : Athena.Cargo.Cargo_Interface'Class)
-   --     return Athena.Handles.Ship.Ship_Handle
-   --  is
-   --     Closest : Athena.Handles.Ship.Ship_Handle :=
-   --                 Athena.Handles.Ship.Empty_Handle;
-   --     Distance : Non_Negative_Real := Non_Negative_Real'Last;
-   --
-   --     procedure Check_Available
-   --       (Reference : Athena.Handles.Ship_Reference);
-   --
-   --     ---------------------
-   --     -- Check_Available --
-   --     ---------------------
-   --
-   --     procedure Check_Available
-   --       (Reference : Athena.Handles.Ship_Reference)
-   --     is
-   --        Ship : constant Athena.Handles.Ship.Ship_Handle :=
-   --                 Athena.Handles.Ship.Get (Reference);
-   --     begin
-   --        if Ship.Idle
-   --          and then Athena.Ships.Cargo_Space (Ship, Cargo.Category) > 0.0
-   --        then
-   --           declare
-   --              D : constant Non_Negative_Real :=
-   --                    Athena.Stars.Distance
-   --                      (From_Star, Ship.Star_Location);
-   --           begin
-   --              if D < Distance then
-   --                 Closest := Ship;
-   --                 Distance := D;
-   --              end if;
-   --           end;
-   --        end if;
-   --     end Check_Available;
-   --
-   --  begin
-   --     For_Empire.Iterate_Managed_Ships
-   --       (Manager => Athena.Handles.Transport_Manager,
-   --        Process => Check_Available'Access);
-   --
-   --     return Closest;
-   --
-   --  end Find_Idle_Ship;
 
    -------------------
    -- Get_Transport --
    -------------------
 
    procedure Get_Transport
-     (For_Empire : Athena.Handles.Empire.Empire_Handle;
-      From_Star  : Athena.Handles.Star.Star_Handle;
-      Cargo      : Athena.Cargo.Cargo_Container;
-      Ships      : out Athena.Ships.Lists.List)
+     (Manager    : Transportation_Manager'Class;
+      From_Star  : Minerva.Star.Star_Handle;
+      Capacity   : Non_Negative_Real;
+      Ships      : out Ship_Lists.List;
+      Remaining  : out Non_Negative_Real)
    is
       pragma Unreferenced (From_Star);
+      Available : Non_Negative_Real := 0.0;
 
       procedure Check_Available
-        (Reference : Athena.Handles.Ship_Reference);
+        (Ship : Minerva.Ship.Ship_Class);
 
       ---------------------
       -- Check_Available --
       ---------------------
 
       procedure Check_Available
-        (Reference : Athena.Handles.Ship_Reference)
+        (Ship : Minerva.Ship.Ship_Class)
       is
-         Ship : constant Athena.Handles.Ship.Ship_Handle :=
-                  Athena.Handles.Ship.Get (Reference);
-
-         Suitable : Boolean := Ship.Is_Idle;
-
       begin
-
-         if Suitable then
-            for Category in Athena.Cargo.Cargo_Category loop
-               if Cargo.Tonnage (Category) > 0.0
-                 and then Ship.Cargo_Space (Category) = 0.0
-               then
-                  Suitable := False;
-                  exit;
-               end if;
-            end loop;
+         if Available >= Capacity then
+            return;
          end if;
 
-         if Suitable then
-            Ships.Append (Ship);
+         if Athena.Ships.Is_Idle (Ship)
+           and then Athena.Ships.Total_Cargo_Space (Ship) > 0.0
+         then
+            Available := Available
+              + Athena.Ships.Total_Cargo_Space (Ship);
+            Ships.Append (Ship.To_Ship_Handle);
          end if;
-
       end Check_Available;
 
    begin
       Ships.Clear;
 
-      For_Empire.Iterate_Managed_Ships
-        (Manager => Athena.Handles.Transport_Manager,
-         Process => Check_Available'Access);
+      for Ship of
+        Minerva.Ship.Select_By_Empire_Manager
+          (Manager.Manager)
+      loop
+         Check_Available (Ship);
+      end loop;
+
+      Remaining := Real'Max (Capacity - Available, 0.0);
    end Get_Transport;
+
+   ---------------------
+   -- Process_Message --
+   ---------------------
+
+   overriding procedure Process_Message
+     (Manager : Transportation_Manager;
+      Msg     : Message_Type'Class)
+   is
+      Message : constant Transport_Message_Type :=
+                  Transport_Message_Type (Msg);
+      From    : constant Minerva.Star.Star_Handle := Message.From;
+      Ships   : Ship_Lists.List;
+      Missing : Non_Negative_Real;
+   begin
+
+      Manager.Log
+        ("transport " & Image (Message.Quantity)
+         & " " & Message.Cargo'Image
+         & " from " & Message.From.Name
+         & " to " & Message.To.Name);
+
+      Get_Transport
+        (Manager    => Manager,
+         From_Star  => From,
+         Capacity   => Message.Quantity,
+         Ships      => Ships,
+         Remaining  => Missing);
+
+      if Missing > 0.0 then
+         declare
+            Transport : constant Minerva.Ship_Design.Ship_Design_Class :=
+                          Athena.Empires.Standard_Transport_Design
+                            (Manager.Empire);
+            Cargo     : constant Non_Negative_Real :=
+                          Athena.Ships.Designs.Cargo_Space
+                            (Transport,
+                             Athena.Empires.Current_Tec_Level
+                               (Manager.Empire,
+                                Athena.Technology.Get ("cargo")));
+            Required  : constant Natural :=
+                          Natural (Missing / Cargo);
+         begin
+            if Required > 0 then
+               Manager.Log
+                 ("missing capacity: " & Image (Missing)
+                  & "; transport cargo: " & Image (Cargo)
+                  & "; required transports:" & Required'Image);
+
+               --  Athena.Orders.Build_Ships
+               --    (Empire   => For_Empire,
+               --     Design   => Transport,
+               --     Count    => Required,
+               --     Fleet    => Minerva.Fleet.Empty_Handle,
+               --     Manager  => Manager,
+               --     Send_To  =>
+               --       Minerva.Star.Get (Order.From),
+               --     Priority => Manager.Priority);
+            end if;
+         end;
+      end if;
+
+      declare
+         Remaining : Non_Negative_Real := Message.Quantity;
+      begin
+         for Ship of Ships loop
+            if Athena.Ships.Is_Idle (Ship) then
+               declare
+                  Available : constant Non_Negative_Real :=
+                                Athena.Ships.Available_Cargo_Space
+                                  (Ship);
+
+                  Loaded : constant Non_Negative_Real :=
+                             Real'Min (Remaining, Available);
+                  Have   : constant Non_Negative_Real :=
+                             Athena.Ships.Current_Cargo
+                               (Ship, Message.Cargo);
+               begin
+                  if Have < Loaded then
+                     if not Athena.Ships.Has_Star_Location (Ship, From) then
+                        Athena.Ships.Orders.Move_To (Ship, From);
+                     end if;
+
+                     Athena.Ships.Orders.Load_Cargo
+                       (Ship, Message.Cargo, Loaded - Have);
+                  end if;
+
+                  Remaining := Real'Max (Remaining - Loaded - Have, 0.0);
+
+                  Athena.Ships.Orders.Move_To
+                    (Ship, Message.To);
+                  Athena.Ships.Orders.Unload_Cargo
+                    (Ship, Message.Cargo, Loaded + Have);
+               end;
+            end if;
+         end loop;
+      end;
+   end Process_Message;
 
    -----------------------
    -- Transport_Message --
    -----------------------
 
    function Transport_Message
-     (Empire   : Athena.Handles.Empire_Reference;
-      From     : Athena.Handles.Star_Reference;
-      To       : Athena.Handles.Star_Reference;
-      Cargo    : Athena.Cargo.Cargo_Container;
-      Priority : Athena.Handles.Order_Priority)
+     (Empire   : Minerva.Empire.Empire_Class;
+      From     : Minerva.Star.Star_Class;
+      To       : Minerva.Star.Star_Class;
+      Cargo    : Minerva.Db.Cargo_Type;
+      Quantity : Non_Negative_Real;
+      Priority : Integer)
       return Message_Type'Class
    is
    begin
       return Transport_Message_Type'
-        (Empire   => Empire,
-         From     => From,
-         To       => To,
+        (Empire   => Empire.To_Empire_Handle,
+         From     => From.To_Star_Handle,
+         To       => To.To_Star_Handle,
          Cargo    => Cargo,
+         Quantity => Quantity,
          Priority => Priority);
    end Transport_Message;
 

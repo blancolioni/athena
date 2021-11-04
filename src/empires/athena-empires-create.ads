@@ -2,12 +2,10 @@ with Tropos;
 
 with Athena.Color;
 
-with Athena.Handles.Star;
-
 package Athena.Empires.Create is
 
    procedure New_Empire
-     (Star      : Athena.Handles.Star.Star_Handle;
+     (Star      : Minerva.Star.Star_Class;
       Name      : String;
       Plural    : String;
       Adjective : String;

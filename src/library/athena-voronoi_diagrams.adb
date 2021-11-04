@@ -137,7 +137,8 @@ package body Athena.Voronoi_Diagrams is
                           Diagram.Sites.Element (T.C).Point);
          begin
             Diagram.Diagram_Pts.Append (Centre);
-            Diagram.Triangles.Append ((T.A, T.B, T.C));
+            Diagram.Triangles.Append
+              (Voronoi_Triangle'(T.A, T.B, T.C));
 
          end;
       end loop;
@@ -163,7 +164,8 @@ package body Athena.Voronoi_Diagrams is
 
             Diagram.Sort_Points (Site_Points (1 .. Count),
                                  Diagram.Sites.Element (Site_Index).Point);
-            Diagram.Diagram.Append ((Count, Site_Points (1 .. Count)));
+            Diagram.Diagram.Append
+              (Voronoi_Polygon'(Count, Site_Points (1 .. Count)));
          end;
       end loop;
 --

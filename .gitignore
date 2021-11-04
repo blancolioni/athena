@@ -19,6 +19,7 @@ src/kit/*
 src/driver/athena-paths.ads
 src/driver/athena-options.ad[bs]
 config/delauny.txt
+encounters
 
 # Log file
 log

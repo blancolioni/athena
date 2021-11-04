@@ -1,18 +1,18 @@
 with Nazar.Models.Draw;
 with Nazar.Models.Text;
 
-with Athena.Handles.Empire;
+with Minerva.Empire;
 
 package Athena.UI.Models is
 
    function Current_Date_Model return Nazar.Models.Text.Nazar_Text_Model;
 
    function Current_Cash_Model
-     (Empire : Athena.Handles.Empire.Empire_Handle)
+     (Empire : Minerva.Empire.Empire_Class)
      return Nazar.Models.Text.Nazar_Text_Model;
 
    function Current_Debt_Model
-     (Empire : Athena.Handles.Empire.Empire_Handle)
+     (Empire : Minerva.Empire.Empire_Class)
       return Nazar.Models.Text.Nazar_Text_Model;
 
    type Draw_Model_Layers is

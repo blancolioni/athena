@@ -14,4 +14,6 @@
 ./build/bin/athena-driver --add-empire --name=Terra --plural=Terrans --adjective=Terran --color=#e6beff --capital=Sol
 ./build/bin/athena-driver --add-empire --name=Theodora --plural=Theodorans --adjective=Theodoran --color=#9a6324 --capital=Cherson
 ./build/bin/athena-driver --add-empire --name=Hegemony --plural=Hegemons --adjective=Hegemon --color=#fffac8 --capital="Tau Ceti Center"
-./build/bin/athena-driver --add-empire --name=Ousters --adjective=Ouster --color=#800000 --capital=Hyperion
+./build/bin/athena-driver --add-empire --name=Ousters --adjective=Ouster --color=#888 --capital=Hyperion
+./build/bin/athena-driver --add-empire --name=Mallorea --adjective=Mallorean  --plural=Malloreans --color=#800020 --capital="Mal Zeth"
+cp athena.marlowe athena-init.marlowe

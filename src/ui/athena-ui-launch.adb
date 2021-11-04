@@ -7,7 +7,7 @@ package body Athena.UI.Launch is
    ----------------------
 
    function Get_Encounter_UI
-     (Encounter : Athena.Handles.Encounter.Encounter_Handle)
+     (Encounter : Minerva.Encounter.Encounter_Class)
       return Athena_User_Interface'Class
    is
    begin
@@ -19,7 +19,7 @@ package body Athena.UI.Launch is
    ------------
 
    function Get_UI
-     (Empire : Athena.Handles.Empire.Empire_Handle)
+     (Empire : Minerva.Empire.Empire_Class)
       return Athena_User_Interface'Class
    is
    begin

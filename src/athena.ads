@@ -1,15 +1,15 @@
+with Timon;
+
 package Athena is
 
    pragma Pure (Athena);
 
-   type Real is new Long_Float range Long_Float'First .. Long_Float'Last;
+   subtype Real is Timon.Real;
 
    subtype Unit_Real is Real range 0.0 .. 1.0;
    subtype Signed_Unit_Real is Real range -1.0 .. 1.0;
 
    subtype Non_Negative_Real is Real range 0.0 .. Real'Last;
-
-   subtype Real_Time is Real;
 
    function Clamp (X : Real;
                    Lo, Hi : Real)

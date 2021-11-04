@@ -1,59 +1,46 @@
 with Ada.Containers.Doubly_Linked_Lists;
 
-with Athena.Ships.Lists;
+with Athena.Empires;
+with Athena.Knowledge.Stars;
+with Athena.Ships.Orders;
 with Athena.Stars;
+with Athena.Turns;
 
-with Athena.Handles.Colony;
-with Athena.Handles.Empire;
-with Athena.Handles.Knowledge;
-with Athena.Handles.Ship;
-with Athena.Handles.Star;
-
-with Athena.Handles.Ship.Actions;
+with Minerva.Colony;
+with Minerva.Fleet;
+with Minerva.Ship;
+with Minerva.Ship_Build_Order;
+with Minerva.Star;
 
 package body Athena.Managers.Exploration is
 
    type Exploration_Manager is
-     new Root_Manager_Type with null record;
+     new Athena_Manager_Script with null record;
 
    overriding function Identifier
      (Manager : Exploration_Manager)
       return String
    is ("exploration");
 
-   overriding procedure Dispatch_Create_Orders
-     (Manager : in out Exploration_Manager);
+   overriding procedure Create_Orders
+     (Manager : Exploration_Manager);
 
-   ---------------------------------
-   -- Default_Exploration_Manager --
-   ---------------------------------
+   package Ship_Lists is
+     new Ada.Containers.Doubly_Linked_Lists
+       (Minerva.Ship.Ship_Handle, Minerva.Ship."=");
 
-   function Default_Exploration_Manager
-     return Root_Manager_Type'Class
-   is
-   begin
-      return Manager : constant Exploration_Manager :=
-        Exploration_Manager'
-          (Name     => +"explore",
-           Empire   => <>,
-           Priority => 1050,
-           Has_Next_Update => True,
-           Next_Update => Athena.Calendar.Clock,
-           Messages => <>);
-   end Default_Exploration_Manager;
+   -------------------
+   -- Create_Orders --
+   -------------------
 
-   ----------------------------
-   -- Dispatch_Create_Orders --
-   ----------------------------
-
-   overriding procedure Dispatch_Create_Orders
-     (Manager : in out Exploration_Manager)
+   overriding procedure Create_Orders
+     (Manager : Exploration_Manager)
    is
       Max_Range : constant Non_Negative_Real := 20.0;
 
       type Star_Score_Record is
          record
-            Star  : Athena.Handles.Star.Star_Handle;
+            Star  : Minerva.Star.Star_Handle;
             Score : Non_Negative_Real;
          end record;
 
@@ -66,50 +53,47 @@ package body Athena.Managers.Exploration is
       package Star_Score_Sorting is
         new Star_Score_Lists.Generic_Sorting (Better);
 
-      Scout_Ships : Athena.Ships.Lists.List;
+      Scout_Ships : Ship_Lists.List;
       Neighbours  : Star_Score_Lists.List;
 
-      Empire : constant Athena.Handles.Empire.Empire_Handle :=
-                 Athena.Handles.Empire.Get (Manager.Empire);
-      Knowledge   : constant Athena.Handles.Knowledge.Knowledge_Handle :=
-                      Empire.Knowledge;
-
       procedure Check_Scout_Target
-        (Star    : Athena.Handles.Star.Star_Handle;
-         Nearest : Athena.Handles.Colony.Colony_Handle;
+        (Star    : Minerva.Star.Star_Handle;
+         Nearest : Minerva.Colony.Colony_Handle;
          Stop    : out Boolean)
         with Unreferenced;
 
 --        function Check_Upgrade
---          (Scout : Athena.Handles.Ship.Ship_Handle)
+--          (Scout : Minerva.Ship.Ship_Handle)
 --           return Boolean;
 
       procedure Score_Star
-        (Star    : Athena.Handles.Star.Star_Handle;
-         Nearest : Athena.Handles.Colony_Reference;
+        (Star    : Minerva.Star.Star_Class;
+         Nearest : Minerva.Colony.Colony_Class;
          Stop    : out Boolean);
 
       procedure Assign_Ship
-        (Available : in out Athena.Ships.Lists.List;
-         To_Star   : Athena.Handles.Star.Star_Handle);
+        (Available : in out Ship_Lists.List;
+         To_Star   : Minerva.Star.Star_Class);
+
+      Knowledge : Athena.Knowledge.Stars.Star_Knowledge;
 
       -----------------
       -- Assign_Ship --
       -----------------
 
       procedure Assign_Ship
-        (Available : in out Athena.Ships.Lists.List;
-         To_Star   : Athena.Handles.Star.Star_Handle)
+        (Available : in out Ship_Lists.List;
+         To_Star   : Minerva.Star.Star_Class)
       is
-         Assigned : Athena.Ships.Lists.Cursor :=
-                      Athena.Ships.Lists.No_Element;
+         Assigned : Ship_Lists.Cursor :=
+                      Ship_Lists.No_Element;
          Closest  : Non_Negative_Real := Non_Negative_Real'Last;
       begin
          for Position in Available.Iterate loop
             declare
                D : constant Non_Negative_Real :=
                      Athena.Stars.Distance
-                       (Athena.Ships.Lists.Element (Position).Star_Location,
+                       (Ship_Lists.Element (Position).Star,
                         To_Star);
             begin
                if D < Closest then
@@ -119,15 +103,15 @@ package body Athena.Managers.Exploration is
             end;
          end loop;
 
-         pragma Assert (Athena.Ships.Lists.Has_Element (Assigned),
+         pragma Assert (Ship_Lists.Has_Element (Assigned),
                         "expected a non-empty available list");
 
          declare
-            Ship : constant Athena.Handles.Ship.Ship_Handle :=
-                     Athena.Ships.Lists.Element (Assigned);
+            Ship : constant Minerva.Ship.Ship_Handle :=
+                     Ship_Lists.Element (Assigned);
          begin
             Manager.Log ("move " & Ship.Name & " to " & To_Star.Name);
-            Athena.Handles.Ship.Actions.Move_To (Ship, To_Star);
+            Athena.Ships.Orders.Move_To (Ship, To_Star);
          end;
 
          Available.Delete (Assigned);
@@ -138,13 +122,12 @@ package body Athena.Managers.Exploration is
       ------------------------
 
       procedure Check_Scout_Target
-        (Star    : Athena.Handles.Star.Star_Handle;
-         Nearest : Athena.Handles.Colony.Colony_Handle;
+        (Star    : Minerva.Star.Star_Handle;
+         Nearest : Minerva.Colony.Colony_Handle;
          Stop    : out Boolean)
       is
-         use type Athena.Handles.Star.Star_Handle;
-         Closest : Athena.Handles.Ship.Ship_Handle :=
-                     Athena.Handles.Ship.Empty_Handle;
+         Closest : Minerva.Ship.Ship_Handle :=
+                     Minerva.Ship.Empty_Handle;
          Min_D   : Non_Negative_Real := Non_Negative_Real'Last;
       begin
          Stop := False;
@@ -153,16 +136,16 @@ package body Athena.Managers.Exploration is
          end if;
 
          for Ship of Scout_Ships loop
-            if Ship.Destination = Star then
+            if Ship.Destination.Identifier = Star.Identifier then
                return;
-            elsif Ship.Is_Idle then
-               if Ship.Star_Location = Nearest.Star then
+            elsif Athena.Ships.Is_Idle (Ship) then
+               if Ship.Star.Identifier = Nearest.Star.Identifier then
                   Closest := Ship;
                   exit;
                else
                   declare
                      D : constant Non_Negative_Real :=
-                           Athena.Stars.Distance (Ship.Star_Location, Star);
+                           Athena.Stars.Distance (Ship.Star, Star);
                   begin
                      if D < Min_D then
                         Min_D := D;
@@ -175,7 +158,7 @@ package body Athena.Managers.Exploration is
          end loop;
 
          if Closest.Has_Element then
-            Athena.Handles.Ship.Actions.Move_To (Closest, Star);
+            Athena.Ships.Orders.Move_To (Closest, Star);
          else
             Stop := True;
          end if;
@@ -187,12 +170,12 @@ package body Athena.Managers.Exploration is
       -------------------
 
 --        function Check_Upgrade
---          (Scout : Athena.Handles.Ship.Ship_Handle)
+--          (Scout : Minerva.Ship.Ship_Handle)
 --           return Boolean
 --        is
 --
 --           function Needs_Upgrade
---             (Ship : Athena.Handles.Ship.Ship_Handle)
+--             (Ship : Minerva.Ship.Ship_Handle)
 --              return Boolean;
 --
 --           -------------------
@@ -200,20 +183,20 @@ package body Athena.Managers.Exploration is
 --           -------------------
 --
 --           function Needs_Upgrade
---             (Ship : Athena.Handles.Ship.Ship_Handle)
+--             (Ship : Minerva.Ship.Ship_Handle)
 --              return Boolean
 --           is
 --              Result : Boolean := False;
 --
 --              procedure Check
---                (Module : Athena.Handles.Ship_Module.Ship_Module_Handle);
+--                (Module : Minerva.Ship_Module.Ship_Module_Handle);
 --
 --              -----------
 --              -- Check --
 --              -----------
 --
 --              procedure Check
---                (Module : Athena.Handles.Ship_Module.Ship_Module_Handle)
+--                (Module : Minerva.Ship_Module.Ship_Module_Handle)
 --              is
 --              begin
 --                 if Module.Tec_Level + 2.0 <
@@ -240,7 +223,7 @@ package body Athena.Managers.Exploration is
 --                or else Scout.Star.Owner.Identifier /= For_Empire.Identifier
 --              then
 --                 declare
---                    Colony : constant Athena.Handles.Colony.Colony_Handle :=
+--                    Colony : constant Minerva.Colony.Colony_Handle :=
 --                               Athena.Colonies.Nearest_Colony
 --                                 (Scout.Empire, Scout.Star);
 --                 begin
@@ -271,13 +254,12 @@ package body Athena.Managers.Exploration is
       ----------------
 
       procedure Score_Star
-        (Star    : Athena.Handles.Star.Star_Handle;
-         Nearest : Athena.Handles.Colony_Reference;
+        (Star    : Minerva.Star.Star_Class;
+         Nearest : Minerva.Colony.Colony_Class;
          Stop    : out Boolean)
       is
-         use type Athena.Handles.Star.Star_Handle;
-         Colony : constant Athena.Handles.Colony.Colony_Handle :=
-                    Athena.Handles.Colony.Get (Nearest);
+         Colony : constant Minerva.Colony.Colony_Handle :=
+                    Nearest.To_Colony_Handle;
          Score     : constant Non_Negative_Real :=
                        (Colony.Population + Colony.Industry)
                        / Athena.Stars.Distance (Colony.Star, Star);
@@ -285,23 +267,20 @@ package body Athena.Managers.Exploration is
       begin
          if not Knowledge.Visited (Star) then
             for Ship of Scout_Ships loop
-               if Ship.Has_Destination
-                 and then Ship.Destination = Star
-               then
+               if Athena.Ships.Has_Destination (Ship, Star) then
                   Is_Target := True;
                   exit;
                end if;
 
-               if Ship.Has_Star_Location
-                 and then Ship.Star_Location = Star
-               then
+               if Athena.Ships.Has_Star_Location (Ship, Star) then
                   Is_Target := True;
                   exit;
                end if;
             end loop;
 
             if not Is_Target then
-               Neighbours.Append ((Star, Score));
+               Neighbours.Append
+                 (Star_Score_Record'(Star.To_Star_Handle, Score));
             end if;
          end if;
          Stop := False;
@@ -309,24 +288,14 @@ package body Athena.Managers.Exploration is
 
    begin
 
-      declare
-         procedure Add_Ship (Reference : Athena.Handles.Ship_Reference);
+      Knowledge.Load (Manager.Empire);
 
-         --------------
-         -- Add_Ship --
-         --------------
-
-         procedure Add_Ship (Reference : Athena.Handles.Ship_Reference) is
-            Ship : constant Athena.Handles.Ship.Ship_Handle :=
-                     Athena.Handles.Ship.Get (Reference);
-         begin
-            Scout_Ships.Append (Ship);
-         end Add_Ship;
-
-      begin
-         Empire.Iterate_Managed_Ships
-           (Athena.Handles.Exploration_Manager, Add_Ship'Access);
-      end;
+      for Ship of
+        Minerva.Ship.Select_By_Empire_Manager
+          (Manager.Manager)
+      loop
+         Scout_Ships.Append (Ship.To_Ship_Handle);
+      end loop;
 
       Knowledge.Iterate_Neighbours
         (Max_Range, Score_Star'Access);
@@ -340,10 +309,10 @@ package body Athena.Managers.Exploration is
       declare
          Previous_Score : Non_Negative_Real := 0.0;
          Busy_Count     : Natural := 0;
-         Available_Ships : Athena.Ships.Lists.List;
+         Available_Ships : Ship_Lists.List;
       begin
          for Ship of Scout_Ships loop
-            if Ship.Is_Idle then
+            if Athena.Ships.Is_Idle (Ship) then
                Available_Ships.Append (Ship);
             else
                Busy_Count := Busy_Count + 1;
@@ -355,7 +324,8 @@ package body Athena.Managers.Exploration is
          loop
             Manager.Log
               ("scouting "
-               & Neighbours.First_Element.Star.Name & ": score "
+               & Neighbours.First_Element.Star.Name
+               & ": score "
                & Image (Neighbours.First_Element.Score));
             Assign_Ship (Available_Ships, Neighbours.First_Element.Star);
             Previous_Score := Neighbours.First_Element.Score;
@@ -385,12 +355,23 @@ package body Athena.Managers.Exploration is
                if Required > 0 then
                   Manager.Log ("required scouts =" & Required'Image);
 
+                  Minerva.Ship_Build_Order.Create
+                    (Turn        => Athena.Turns.Current_Turn,
+                     Empire      => Manager.Empire,
+                     Priority    => Manager.Priority,
+                     Ship_Design =>
+                       Athena.Empires.Standard_Scout_Design (Manager.Empire),
+                     Manager     => Manager.Manager,
+                     Fleet       => Minerva.Fleet.Empty_Handle,
+                     Send_To     => Athena.Empires.Capital (Manager.Empire),
+                     Count       => Required);
+
                   --  Athena.Orders.Build_Ships
                   --    (Empire   => For_Empire,
                   --     Design   => Athena.Empires.Scout_Design (For_Empire),
-                  --     Fleet    => Athena.Handles.Fleet.Empty_Handle,
+                  --     Fleet    => Minerva.Fleet.Empty_Handle,
                   --     Manager  => Manager,
-                  --     Send_To  => Athena.Handles.Star.Empty_Handle,
+                  --     Send_To  => Minerva.Star.Empty_Handle,
                   --     Count    => Required,
                   --     Priority => Manager.Priority);
                end if;
@@ -398,7 +379,22 @@ package body Athena.Managers.Exploration is
          end;
       end;
 
-      Manager.Set_Next_Update_Delay (Athena.Calendar.Days (10));
-   end Dispatch_Create_Orders;
+   end Create_Orders;
+
+   ---------------------------------
+   -- Default_Exploration_Manager --
+   ---------------------------------
+
+   function Default_Exploration_Manager
+     return Athena_Manager_Script'Class
+   is
+   begin
+      return Manager : constant Exploration_Manager :=
+        Exploration_Manager'
+          (Name     => +"explore",
+           Empire   => <>,
+           Priority => 1050,
+           Manager => <>);
+   end Default_Exploration_Manager;
 
 end Athena.Managers.Exploration;

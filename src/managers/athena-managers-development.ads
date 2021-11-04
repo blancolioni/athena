@@ -1,6 +1,6 @@
 package Athena.Managers.Development is
 
    function Default_Development_Manager
-     return Root_Manager_Type'Class;
+     return Athena_Manager_Script'Class;
 
 end Athena.Managers.Development;

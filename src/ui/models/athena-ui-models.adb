@@ -13,7 +13,7 @@ package body Athena.UI.Models is
    type Current_Cash_Model_Record is
      new Dynamic_Text_Model with
       record
-         Empire : Athena.Handles.Empire.Empire_Handle;
+         Empire : Minerva.Empire.Empire_Handle;
       end record;
 
    overriding function Current_Text
@@ -24,7 +24,7 @@ package body Athena.UI.Models is
    type Current_Debt_Model_Record is
      new Dynamic_Text_Model with
       record
-         Empire : Athena.Handles.Empire.Empire_Handle;
+         Empire : Minerva.Empire.Empire_Handle;
       end record;
 
    overriding function Current_Text
@@ -37,14 +37,14 @@ package body Athena.UI.Models is
    ------------------------
 
    function Current_Cash_Model
-     (Empire : Athena.Handles.Empire.Empire_Handle)
+     (Empire : Minerva.Empire.Empire_Class)
       return Nazar.Models.Text.Nazar_Text_Model
    is
    begin
       return Model : constant Nazar.Models.Text.Nazar_Text_Model :=
         new Current_Cash_Model_Record'
           (Nazar.Models.Text.Nazar_Text_Model_Record with
-             Empire => Empire)
+             Empire => Empire.To_Empire_Handle)
       do
          Model.Set_Text ("");
          Model.Reload;
@@ -70,14 +70,14 @@ package body Athena.UI.Models is
    ------------------------
 
    function Current_Debt_Model
-     (Empire : Athena.Handles.Empire.Empire_Handle)
+     (Empire : Minerva.Empire.Empire_Class)
       return Nazar.Models.Text.Nazar_Text_Model
    is
    begin
       return Model : constant Nazar.Models.Text.Nazar_Text_Model :=
         new Current_Debt_Model_Record'
           (Nazar.Models.Text.Nazar_Text_Model_Record with
-             Empire => Empire)
+             Empire => Empire.To_Empire_Handle)
       do
          Model.Set_Text ("");
          Model.Reload;

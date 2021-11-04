@@ -1,18 +1,20 @@
-with Athena.Handles.Empire;
-with Athena.Handles.Fleet;
-with Athena.Handles.Star;
-with Athena.Handles.Design;
+with Minerva.Empire;
+with Minerva.Empire_Manager;
+with Minerva.Fleet;
+with Minerva.Ship_Design;
+with Minerva.Star;
 
 package Athena.Ships.Create is
 
    procedure Create_Ship
-     (Empire      : Athena.Handles.Empire.Empire_Handle;
-      Star        : Athena.Handles.Star.Star_Handle;
-      Design      : Athena.Handles.Design.Design_Handle;
+     (Empire      : Minerva.Empire.Empire_Class;
+      Star        : Minerva.Star.Star_Class;
+      Design      : Minerva.Ship_Design.Ship_Design_Class;
+      Fleet       : Minerva.Fleet.Fleet_Class;
+      Manager     : Minerva.Empire_Manager.Empire_Manager_Class;
       Name        : String;
-      Fleet       : Athena.Handles.Fleet.Fleet_Handle;
-      Manager     : Athena.Handles.Manager_Class;
-      Destination : Athena.Handles.Star.Star_Handle :=
-        Athena.Handles.Star.Empty_Handle);
+      Destination : Minerva.Star.Star_Class)
+     with Pre => Design.Has_Element
+     and then Star.Has_Element;
 
 end Athena.Ships.Create;

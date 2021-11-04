@@ -6,17 +6,19 @@ with Ada.Text_IO;
 with WL.String_Sets;
 
 with Athena.Elementary_Functions;
+with Athena.Identifiers;
 with Athena.Random;
 with Athena.Real_Images;
 
-with Athena.Configure.Commodities;
-with Athena.Configure.Facilities;
-with Athena.Configure.Production;
-with Athena.Configure.Ships;
-
-with Athena.Handles.Star;
+with Minerva.Manager;
+with Minerva.Star;
+with Minerva.Star_Distance;
+with Minerva.Technology;
+with Minerva.Turn;
 
 package body Athena.Configure is
+
+   function Random_Star_Mass return Non_Negative_Real with Unreferenced;
 
    function Image (X : Real) return String
                    renames Athena.Real_Images.Approximate_Image;
@@ -60,7 +62,7 @@ package body Athena.Configure is
       type Generated_Star_Record is
          record
             X, Y    : Real;
-            Handle  : Athena.Handles.Star.Star_Handle;
+            Handle  : Minerva.Star.Star_Handle;
             Nearest : Star_Distance_Lists.List;
          end record;
 
@@ -210,22 +212,24 @@ package body Athena.Configure is
             Gen          : constant Generated_Star_Record :=
                              Vector.Element (I);
             Star_Name    : constant String := Create_System_Name;
-            Resource     : constant Unit_Real :=
-                             Athena.Random.Unit_Random;
-            Habitability : constant Unit_Real :=
-                             Athena.Random.Unit_Random;
-            Space        : constant Positive :=
-                             Natural (Habitability ** 2 * 10_000.0) + 1;
-            Star_Handle  : constant Athena.Handles.Star.Star_Handle :=
-                             Athena.Handles.Star.Create
-                               (X             => Gen.X,
+            Star_Handle  : constant Minerva.Star.Star_Handle :=
+                             Minerva.Star.Create
+                               (Identifier    =>
+                                    Athena.Identifiers.Next_Identifier,
+                                Name          => Star_Name,
+                                X             => Gen.X,
                                 Y             => Gen.Y,
                                 Core_Distance =>
                                   Sqrt (Gen.X ** 2 + Gen.Y ** 2),
-                                Name          => Star_Name,
-                                Space         => Space,
-                                Resource      => Resource,
-                                Habitability  => Habitability);
+                                Space         =>
+                                  Natural
+                                    (Athena.Random.Unit_Random ** 2
+                                     * 10_000.0),
+                                Resource      =>
+                                  Athena.Random.Unit_Random
+                                * 0.9375 + 0.0625,
+                                Habitability  =>
+                                  Athena.Random.Unit_Random);
          begin
 
             Vector.Reference (I).Handle := Star_Handle;
@@ -236,7 +240,23 @@ package body Athena.Configure is
       Ada.Text_IO.Put ("calculating distances ...");
       Ada.Text_IO.Flush;
 
-      Athena.Handles.Star.Calculate_Distances;
+      for I in 1 .. Star_Count loop
+         for J in 1 .. I - 1 loop
+            declare
+               A : Generated_Star_Record renames Vector (I);
+               B : Generated_Star_Record renames Vector (J);
+               D : constant Non_Negative_Real :=
+                     Sqrt ((A.X - B.X) ** 2 + (A.Y - B.Y) ** 2);
+            begin
+               if D < Radius_X / 10.0 then
+                  Minerva.Star_Distance.Create
+                    (A.Handle, B.Handle, D);
+                  Minerva.Star_Distance.Create
+                    (B.Handle, A.Handle, D);
+               end if;
+            end;
+         end loop;
+      end loop;
 
       Ada.Text_IO.Put_Line (" done");
 
@@ -248,29 +268,48 @@ package body Athena.Configure is
 
    procedure Initialize_Database is
    begin
-      --  Athena.Handles.Turn.Create (1, True);
-      --
-      --  Athena.Handles.Manager.Create (Tag => "explore", Priority => 1060);
-      --  Athena.Handles.Manager.Create (Tag => "colonize", Priority => 1080);
-      --  Athena.Handles.Manager.Create (Tag => "upgrade", Priority => 10);
-      --  Athena.Handles.Manager.Create (Tag => "repair", Priority => 10);
-      --  Athena.Handles.Manager.Create (Tag => "defend", Priority => 1030);
-      --  Athena.Handles.Manager.Create (Tag => "attack", Priority => 800);
-      --  Athena.Handles.Manager.Create (Tag => "develop", Priority => 1050);
-      --  Athena.Handles.Manager.Create (Tag => "research", Priority => 100);
-      --  Athena.Handles.Manager.Create (Tag => "transport", Priority => 1040);
-      --
-      --  Athena.Handles.Technology.Create (Tag => "drive");
-      --  Athena.Handles.Technology.Create (Tag => "weapon");
-      --  Athena.Handles.Technology.Create (Tag => "shield");
-      --  Athena.Handles.Technology.Create (Tag => "cargo");
-      --
+      Minerva.Turn.Create (1, True);
 
-      Athena.Configure.Commodities.Configure_Commodities;
-      Athena.Configure.Facilities.Configure_Facilities;
-      Athena.Configure.Production.Configure_Production;
-      Athena.Configure.Ships.Configure_Ships;
+      Minerva.Manager.Create (Tag => "explore", Priority => 1060);
+      Minerva.Manager.Create (Tag => "colonize", Priority => 1080);
+      Minerva.Manager.Create (Tag => "upgrade", Priority => 10);
+      Minerva.Manager.Create (Tag => "repair", Priority => 10);
+      Minerva.Manager.Create (Tag => "defend", Priority => 1030);
+      Minerva.Manager.Create (Tag => "attack", Priority => 800);
+      Minerva.Manager.Create (Tag => "develop", Priority => 1050);
+      Minerva.Manager.Create (Tag => "research", Priority => 100);
+      Minerva.Manager.Create (Tag => "transport", Priority => 1040);
+
+      Minerva.Technology.Create (Tag => "drive");
+      Minerva.Technology.Create (Tag => "weapon");
+      Minerva.Technology.Create (Tag => "shield");
+      Minerva.Technology.Create (Tag => "cargo");
 
    end Initialize_Database;
+
+   ----------------------
+   -- Random_Star_Mass --
+   ----------------------
+
+   function Random_Star_Mass return Non_Negative_Real is
+      Seed             : constant Real := Athena.Random.Unit_Random;
+      Solar_Mass_Count : Real;
+   begin
+      if Seed <= 0.99 then
+         Solar_Mass_Count :=
+           0.1 + 6.0 * Seed - 15.0 * Seed ** 2
+             + 11.0 * Seed ** 3;
+      else
+         declare
+            X : constant Real := (Seed - 0.99) * 1.0E4;
+            A : constant Real := 0.110833;
+            B : constant Real := -14.0358;
+            C : constant Real := 445.25;
+         begin
+            Solar_Mass_Count := A * X ** 2 + B * X + C;
+         end;
+      end if;
+      return Solar_Mass_Count;
+   end Random_Star_Mass;
 
 end Athena.Configure;

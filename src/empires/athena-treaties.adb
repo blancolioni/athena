@@ -1,23 +1,23 @@
-with Athena.Logging;
+with Athena.Turns;
 
-with Athena.Handles.Relationship;
+with Minerva.Relationship;
+with Minerva.Turn;
 
 package body Athena.Treaties is
-
-   function Get_Relationship
-     (From_Empire, To_Empire : Athena.Handles.Empire.Empire_Handle)
-      return Athena.Handles.Relationship.Relationship_Handle;
 
    ------------
    -- At_War --
    ------------
 
    function At_War
-     (E1, E2 : Athena.Handles.Empire.Empire_Handle)
-      return Boolean
+     (Empire_1, Empire_2 : Minerva.Empire.Empire_Class) return Boolean
    is
+      Relationship : constant Minerva.Relationship.Relationship_Class :=
+                       Minerva.Relationship.Get_By_Relationship
+                         (Empire_1, Empire_2);
    begin
-      return Get_Relationship (E1, E2).War;
+      return Relationship.Has_Element
+        and then Relationship.War;
    end At_War;
 
    -----------------
@@ -25,58 +25,70 @@ package body Athena.Treaties is
    -----------------
 
    procedure Declare_War
-     (E1, E2 : Athena.Handles.Empire.Empire_Handle)
+     (Aggressor, Defender : Minerva.Empire.Empire_Class)
    is
-      R_To        : constant Athena.Handles.Relationship.Relationship_Handle :=
-                      Get_Relationship (E1, E2);
-      R_From      : constant Athena.Handles.Relationship.Relationship_Handle :=
-                      Get_Relationship (E2, E1);
-      New_Opinion : constant Integer :=
-                      R_From.Opinion - 100;
+      To_Defender : constant Minerva.Relationship.Relationship_Class :=
+                      Minerva.Relationship.Get_By_Relationship
+                        (Aggressor, Defender);
+      To_Aggressor : constant Minerva.Relationship.Relationship_Class :=
+                       Minerva.Relationship.Get_By_Relationship
+                         (Defender, Aggressor);
    begin
-      R_To.Set_War (True);
-      R_From.Set_War (True);
-      R_From.Set_Opinion (New_Opinion);
+      if To_Defender.Has_Element then
+         To_Defender.Update_Relationship
+           .Set_War (True)
+           .Done;
+      else
+         Minerva.Relationship.Create
+           (From    => Aggressor,
+            To      => Defender,
+            Opinion => 0,
+            War     => True,
+            Hostile => False,
+            Allied  => False,
+            Trade   => False);
+      end if;
+      if To_Aggressor.Has_Element then
+         To_Aggressor.Update_Relationship
+           .Set_War (True)
+           .Done;
+      else
+         Minerva.Relationship.Create
+           (From    => Defender,
+            To      => Aggressor,
+            Opinion => 0,
+            War     => True,
+            Hostile => False,
+            Allied  => False,
+            Trade   => False);
+      end if;
 
-      Athena.Handles.War.Create
-        (Attacker => E1,
-         Defender => E2);
+      Minerva.War.Create
+        (Attacker => Aggressor,
+         Defender => Defender,
+         Start    => Athena.Turns.Current_Turn,
+         Finish   => Minerva.Turn.Empty_Handle);
 
-      Athena.Logging.Log
-        (E1.Name & " declared war on " & E2.Name);
    end Declare_War;
-
-   ----------------------
-   -- Get_Relationship --
-   ----------------------
-
-   function Get_Relationship
-     (From_Empire, To_Empire : Athena.Handles.Empire.Empire_Handle)
-      return Athena.Handles.Relationship.Relationship_Handle
-   is
-   begin
-      return Athena.Handles.Relationship.Find_Relationship
-        (From_Empire, To_Empire);
-   end Get_Relationship;
 
    -------------
    -- Get_War --
    -------------
 
    function Get_War
-     (E1, E2 : Athena.Handles.Empire.Empire_Handle)
-      return Athena.Handles.War.War_Handle
+     (Empire_1, Empire_2 : Minerva.Empire.Empire_Class)
+      return Minerva.War.War_Class
    is
-      War : constant Athena.Handles.War.War_Handle :=
-              Athena.Handles.War.Find_War (E1, E2);
    begin
-      if not War.Has_Element then
-         Athena.Logging.Log
-           ("warning: encounter but no war between "
-            & E1.Name & " and " & E2.Name);
+      if Minerva.War.Is_War
+        (Empire_1, Empire_2, Minerva.Turn.Empty_Handle)
+      then
+         return Minerva.War.Get_By_War
+           (Empire_1, Empire_2, Minerva.Turn.Empty_Handle);
+      else
+         return Minerva.War.Get_By_War
+           (Empire_2, Empire_1, Minerva.Turn.Empty_Handle);
       end if;
-
-      return War;
    end Get_War;
 
 end Athena.Treaties;

@@ -1,0 +1,44 @@
+package Base is
+
+type Athena.Money.Money_Type is new Long_Float
+   with To_Database => To_Real,
+        From_Database => To_Money,
+        To_String => Image,
+        From_String => Value;
+
+type Athena.Money.Price_Type is new Long_Float
+   with To_Database => To_Real,
+        From_Database => To_Price,
+        To_String => Image,
+        From_String => Value;
+
+type Athena.Trigonometry.Angle is new Long_Float
+   with To_Database => To_Degrees,
+        From_Database => From_Degrees,
+        To_String => Image,
+        From_String => Value;
+
+record Has_Identifier is
+    unique key Identifier : Fixed_String (8);
+end Has_Identifier;
+
+record Has_Name is
+    key Name : String (32) is Display;
+end Has_Name;
+
+record Next_Identifier is
+    Next : Fixed_String (8);
+end Next_Identifier;
+
+record Localised is
+    unique key Tag : String (16) is Display;
+end Localised;
+
+record Turn is
+    unique key Turn_Number : Natural;
+    key Current : Boolean;
+end Turn;
+
+record Technology : Localised;
+
+end Base;

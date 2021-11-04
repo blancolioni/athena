@@ -1,6 +1,6 @@
 package Athena.Managers.Colonization is
 
    function Default_Colonization_Manager
-     return Root_Manager_Type'Class;
+     return Athena_Manager_Script'Class;
 
 end Athena.Managers.Colonization;

@@ -2,65 +2,54 @@ private with Ada.Containers.Indefinite_Doubly_Linked_Lists;
 private with Ada.Strings.Unbounded;
 private with Athena.Real_Images;
 
-with Athena.Calendar;
-with Athena.Handles;
+with Minerva.Empire;
+with Minerva.Empire_Manager;
 
 package Athena.Managers is
 
    type Message_Type is abstract tagged private;
 
-   type Root_Manager_Type is abstract tagged private;
+   type Athena_Manager_Script is abstract tagged private;
 
    function Identifier
-     (Manager : Root_Manager_Type)
+     (Manager : Athena_Manager_Script)
       return String
       is abstract;
 
    procedure Create_Orders
-     (Manager : in out Root_Manager_Type'Class);
-
-   procedure Dispatch_Create_Orders
-     (Manager : in out Root_Manager_Type)
+     (Manager : Athena_Manager_Script)
    is abstract;
 
+   procedure Process_Message
+     (Manager : Athena_Manager_Script;
+      Message : Message_Type'Class)
+   is null;
+
    procedure Initialize
-     (Manager : in out Root_Manager_Type;
+     (Script  : in out Athena_Manager_Script;
+      Manager : Minerva.Empire_Manager.Empire_Manager_Class;
       Name    : String;
-      Empire  : Athena.Handles.Empire_Reference);
-
-   function Has_Next_Update
-     (Manager : Root_Manager_Type'Class)
-      return Boolean;
-
-   function Next_Update
-     (Manager : Root_Manager_Type'Class)
-      return Athena.Calendar.Time
-     with Pre => Has_Next_Update (Manager);
-
-   procedure Set_Next_Update
-     (Manager   : in out Root_Manager_Type'Class;
-      Update_At : Athena.Calendar.Time);
-
-   procedure Set_Next_Update_Delay
-     (Manager      : in out Root_Manager_Type'Class;
-      Update_Delay : Duration);
-
-   procedure Send_Message
-     (To      : in out Root_Manager_Type'Class;
-      Message : Message_Type'Class);
+      Empire  : Minerva.Empire.Empire_Class);
 
    function Exists
-     (Name   : String)
+     (Class  : String;
+      Name   : String)
       return Boolean;
 
    function Get_Manager
-     (Name   : String;
-      Empire : Athena.Handles.Empire_Reference)
-      return Root_Manager_Type'Class
-     with Pre => Exists (Name);
+     (Class  : String;
+      Name   : String;
+      Empire : Minerva.Empire.Empire_Class)
+      return Athena_Manager_Script'Class
+     with Pre => Exists (Class, Name);
+
+   procedure Send_Message
+     (Destination : String;
+      Empire      : Minerva.Empire.Empire_Class;
+      Message     : Message_Type'Class);
 
    procedure Log
-     (Manager : Root_Manager_Type'Class;
+     (Manager : Athena_Manager_Script'Class;
       Message : String);
 
    procedure Load_Managers;
@@ -75,25 +64,13 @@ private
    package Message_Lists is
      new Ada.Containers.Indefinite_Doubly_Linked_Lists (Message_Type'Class);
 
-   type Root_Manager_Type is abstract tagged
+   type Athena_Manager_Script is abstract tagged
       record
-         Name            : Ada.Strings.Unbounded.Unbounded_String;
-         Empire          : Athena.Handles.Empire_Reference;
-         Priority        : Athena.Handles.Order_Priority;
-         Has_Next_Update : Boolean := False;
-         Next_Update     : Athena.Calendar.Time;
-         Messages        : Message_Lists.List;
+         Manager     : Minerva.Empire_Manager.Empire_Manager_Handle;
+         Name        : Ada.Strings.Unbounded.Unbounded_String;
+         Empire      : Minerva.Empire.Empire_Handle;
+         Priority    : Integer;
       end record;
-
-   function Has_Next_Update
-     (Manager : Root_Manager_Type'Class)
-      return Boolean
-   is (Manager.Has_Next_Update);
-
-   function Next_Update
-     (Manager : Root_Manager_Type'Class)
-      return Athena.Calendar.Time
-   is (Manager.Next_Update);
 
    function "+" (S : String) return Ada.Strings.Unbounded.Unbounded_String
                  renames Ada.Strings.Unbounded.To_Unbounded_String;

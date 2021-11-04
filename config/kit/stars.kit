@@ -1,0 +1,39 @@
+package Stars is
+
+record Star : Has_Identifier, Has_Name is
+    X                 : Long_Float;
+    Y                 : Long_Float;
+    key Core_Distance : Long_Float;
+    key Owner         : Empire;
+    key Occupier      : Empire;
+    Space             : Positive;
+    Resource          : Long_Float;
+    Habitability      : Long_Float;
+end Star;    
+
+record Empire_Capital is
+    unique key Empire;
+    key Star;
+end Empire_Capital;
+
+record Star_Distance is
+    key From : Star;
+    To : Star;
+    key Distance : Long_Float;
+    unique key Star_Distance with From, To;
+    key Closest_Stars with From, Distance;
+end Star_Distance;
+
+record Star_Knowledge is
+    key Star;
+    key Empire;
+    Owner       : Empire;
+    Last_Visit  : Turn;
+    Last_Pop    : Long_Float;
+    Last_Ind    : Long_Float;
+    Visited     : Boolean;
+    Colonizing  : Boolean;
+    unique key Star_Knowledge with Star, Empire;
+end Star_Knowledge;
+
+end Stars;

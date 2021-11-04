@@ -1,14 +1,7 @@
-hull = { type = standard material = steel-hull }
-tonnage = 1000
-armor = { type = steel points = 1 }
-fuel_tank = 500
+design = {
+    drive = 2
+    laser = { power = 1 }
+}
+default-manager = attack
 default-script = escape
 default-rank = 9
-default-manager = attack
-
-components = {
-    bridge-6
-    computer-5
-    thruster-1
-    jump-1
-}

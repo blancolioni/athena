@@ -22,4 +22,12 @@ package Athena.Color is
       return String
    is (To_Html_String ((R, G, B, Alpha)));
 
+   function To_Natural
+     (Color : Athena_Color)
+      return Natural;
+
+   function To_Color
+     (RGB : Natural)
+      return Athena_Color;
+
 end Athena.Color;

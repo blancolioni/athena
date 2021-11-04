@@ -1,0 +1,49 @@
+0000 - 00FF Vectors
+0000 - 0001 on new signal
+0002 - 0003 on signal lost
+0004 - 0005 on weapon ready
+
+0000 - 01FF State
+0000 Flags
+0001 Flags
+0002 Module Count
+0010 Module 0
+0020 Module 1
+...
+00F0 Module 14
+
+00x0 Module type
+00x1 Mass
+00x2 Condition
+00x3 Charge
+00x4 Uses
+00x8 enable
+
+1000 - 1FFF Signals
+1000 - 103F Signal 0
+...
+1FC0 - 1FFF Signal 255
+
+xx00        Flags
+     01 - active
+     02 - hostile
+     04 - neutral
+     08 - allied
+     10 - military
+     20 - jumping
+     40 - missile
+     80 - fighter
+     
+xx01        Flags
+     01 - valid - zero after last valid signal
+
+xx02 - condition (0 - destroyed, 255 - undamaged)
+xx03 - send message
+xx04 - xx07 delta-x
+xx08 - xx0B delta-y
+xx0C - xx0F delta-z
+xx10 - mass
+xx14 - xx07 velocity-x
+xx18 - xx0B velocity-y
+xx1C - xx0F velocity-z
+

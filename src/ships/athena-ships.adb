@@ -1,406 +1,525 @@
+with Ada.Characters.Handling;
+
 with WL.Numerics.Roman;
 
-with Athena.Cargo.Commodities;
-with Athena.Empires;
-with Athena.Treaties;
+with Athena.Elementary_Functions;
+with Athena.Logging;
 
-with Athena.Handles.Commodity;
-with Athena.Handles.Design_Module;
-with Athena.Handles.Encounter;
-with Athena.Handles.Module;
+with Athena.Ships.Designs;
+
+with Minerva.Design_Component;
+with Minerva.Ship_Module;
+with Minerva.Weapon_Component;
 
 package body Athena.Ships is
 
-   -----------------------
-   -- Add_Refuel_Action --
-   -----------------------
+   function Nice_Name
+     (Base  : String;
+      Valid : not null access
+        function (S : String) return Boolean)
+      return String;
 
-   procedure Add_Refuel_Action
-     (Ship : Ship_Handle_Class)
+   ---------------
+   -- Add_Cargo --
+   ---------------
+
+   procedure Add_Cargo
+     (Ship     : Ship_Class;
+      Cargo    : Minerva.Db.Cargo_Type;
+      Quantity : Non_Negative_Real)
    is
-      Cargo : Athena.Cargo.Cargo_Container;
+      use all type Minerva.Db.Cargo_Type;
+      New_Col : constant Non_Negative_Real :=
+                  (if Cargo = Colonists
+                   then Ship.Colonists + Quantity
+                   else Ship.Colonists);
+      New_Ind : constant Non_Negative_Real :=
+                  (if Cargo = Industry
+                   then Ship.Industry + Quantity
+                   else Ship.Industry);
+      New_Mat : constant Non_Negative_Real :=
+                  (if Cargo = Material
+                   then Ship.Material + Quantity
+                   else Ship.Material);
    begin
-      Cargo.Add_Cargo
-        (Item     =>
-           Athena.Cargo.Commodities.Commodity_Cargo
-             (Athena.Handles.Commodity.Fuel),
-         Quantity => Ship.Tank_Size);
-   end Add_Refuel_Action;
+      Ship.Update_Ship
+        .Set_Colonists (New_Col)
+        .Set_Industry (New_Ind)
+        .Set_Material (New_Mat)
+        .Done;
+   end Add_Cargo;
 
-   ---------------------
-   -- Available_Power --
-   ---------------------
+   ---------------------------
+   -- Available_Cargo_Space --
+   ---------------------------
 
-   function Available_Power
-     (Ship : Ship_Handle_Class)
-      return Non_Negative_Real
-   is
-      Power : Non_Negative_Real := 0.0;
-
-      procedure Add_Power (Module : Athena.Handles.Module.Module_Handle);
-
-      ---------------
-      -- Add_Power --
-      ---------------
-
-      procedure Add_Power (Module : Athena.Handles.Module.Module_Handle) is
-      begin
-         Power := Power +
-           Module.Component.Power_Output * Module.Condition;
-      end Add_Power;
-
-   begin
-      Ship.Iterate_Power_Modules (Add_Power'Access);
-      return Power;
-   end Available_Power;
-
-   -----------------
-   -- Drive_Power --
-   -----------------
-
-   function Drive_Power
-     (Ship : Ship_Handle_Class)
-      return Non_Negative_Real
-   is
-      Total : Non_Negative_Real := 0.0;
-
-      procedure Add_Power (Drive : Athena.Handles.Module.Module_Handle);
-
-      ---------------
-      -- Add_Power --
-      ---------------
-
-      procedure Add_Power (Drive : Athena.Handles.Module.Module_Handle) is
-      begin
-         if Drive.Condition > 0.0 then
-            Total := Total + Drive.Component.Active_Power_Consumption;
-         end if;
-      end Add_Power;
-
-   begin
-      Ship.Iterate_Maneuver_Drives (Add_Power'Access);
-      return Total;
-   end Drive_Power;
-
-   -----------------------
-   -- Get_Impulse_Speed --
-   -----------------------
-
-   function Get_Impulse_Speed
-     (Ship : Ship_Handle_Class)
-      return Non_Negative_Real
-   is
-      Total_Impulse : Non_Negative_Real := 0.0;
-
-      procedure Add_Impulse
-        (Drive : Athena.Handles.Module.Module_Handle);
-
-      -----------------
-      -- Add_Impulse --
-      -----------------
-
-      procedure Add_Impulse
-        (Drive : Athena.Handles.Module.Module_Handle)
-      is
-      begin
-         Total_Impulse :=
-           Total_Impulse + Drive.Component.Impulse * Drive.Condition;
-      end Add_Impulse;
-
-   begin
-      Ship.Iterate_Maneuver_Drives (Add_Impulse'Access);
-
-      return Total_Impulse
-        / Ship.Current_Mass
-        * 1.0e4;
-   end Get_Impulse_Speed;
-
-   -----------------------
-   -- Get_Impulse_Speed --
-   -----------------------
-
-   function Get_Impulse_Speed
-     (Fleet : Fleet_Handle_Class)
-      return Non_Negative_Real
-   is
-      Result : Non_Negative_Real := Non_Negative_Real'Last;
-
-      procedure Check_Minimum (Reference : Athena.Handles.Ship_Reference);
-
-      -------------------
-      -- Check_Minimum --
-      -------------------
-
-      procedure Check_Minimum (Reference : Athena.Handles.Ship_Reference) is
-         Speed : constant Non_Negative_Real :=
-                   Get_Impulse_Speed (Athena.Handles.Ship.Get (Reference));
-      begin
-         Result := Real'Min (Result, Speed);
-      end Check_Minimum;
-
-   begin
-      Fleet.Iterate_Ships (Check_Minimum'Access);
-      return Result;
-   end Get_Impulse_Speed;
-
-   --------------------
-   -- Get_Jump_Speed --
-   --------------------
-
-   function Get_Jump_Speed
-     (Ship : Ship_Handle_Class)
+   function Available_Cargo_Space
+     (Ship : Ship_Class)
       return Non_Negative_Real
    is
    begin
-      if Ship.Jump_Drive.Has_Element then
-         return Ship.Jump_Drive.Component.Jump
-           * Ship.Jump_Drive.Condition
-           / Ship.Current_Mass
-           * 1.0e4;
-      else
-         return 0.0;
-      end if;
-   end Get_Jump_Speed;
+      return Total_Cargo_Space (Ship)
+        - Ship.Colonists - Ship.Industry - Ship.Material;
+   end Available_Cargo_Space;
 
-   --------------------
-   -- Get_Jump_Speed --
-   --------------------
+   -------------------
+   -- Current_Cargo --
+   -------------------
 
-   function Get_Jump_Speed
-     (Fleet : Fleet_Handle_Class)
+   function Current_Cargo
+     (Ship  : Ship_Class;
+      Cargo : Minerva.Db.Cargo_Type)
       return Non_Negative_Real
    is
-      Result : Non_Negative_Real := Non_Negative_Real'Last;
-
-      procedure Check_Minimum (Reference : Athena.Handles.Ship_Reference);
-
-      -------------------
-      -- Check_Minimum --
-      -------------------
-
-      procedure Check_Minimum (Reference : Athena.Handles.Ship_Reference) is
-         Speed : constant Non_Negative_Real :=
-                   Get_Jump_Speed (Athena.Handles.Ship.Get (Reference));
-      begin
-         Result := Real'Min (Result, Speed);
-      end Check_Minimum;
-
+      use all type Minerva.Db.Cargo_Type;
    begin
-      Fleet.Iterate_Ships (Check_Minimum'Access);
-      return Result;
-   end Get_Jump_Speed;
+      case Cargo is
+         when Colonists =>
+            return Ship.Colonists;
+         when Industry =>
+            return Ship.Industry;
+         when Material =>
+            return Ship.Material;
+      end case;
+   end Current_Cargo;
 
-   --------------------------
-   -- Get_Maintenance_Cost --
-   --------------------------
+   ------------------
+   -- Current_Mass --
+   ------------------
 
-   function Get_Maintenance_Cost
-     (Ship : Ship_Handle_Class)
-      return Athena.Money.Money_Type
-   is
-      use Athena.Money;
-
-      Total : Money_Type := Zero;
-
-      procedure Add_Maintenance
-        (Module : Athena.Handles.Design_Module.Design_Module_Handle);
-
-      ---------------------
-      -- Add_Maintenance --
-      ---------------------
-
-      procedure Add_Maintenance
-        (Module : Athena.Handles.Design_Module.Design_Module_Handle)
-      is
-      begin
-         Total := Total
-           + To_Money (To_Real (Adjust_Price (Module.Component.Price, 0.1)));
-      end Add_Maintenance;
-
+   function Current_Mass (Ship : Ship_Class) return Non_Negative_Real is
    begin
-      Ship.Design.Iterate_Design_Modules
-        (Add_Maintenance'Access);
-      return Total + To_Money (Ship.Design.Tonnage / 20.0);
-   end Get_Maintenance_Cost;
+      return Dry_Mass (Ship) + Ship.Colonists + Ship.Industry + Ship.Material;
+   end Current_Mass;
 
    ----------------
-   -- Idle_Power --
+   -- Drive_Mass --
    ----------------
 
-   function Idle_Power
-     (Ship : Ship_Handle_Class)
-      return Non_Negative_Real
-   is
-      Power : Non_Negative_Real := 0.0;
-
-      procedure Add_Power
-        (Module : Athena.Handles.Design_Module.Design_Module_Handle);
-
-      ---------------
-      -- Add_Power --
-      ---------------
-
-      procedure Add_Power
-        (Module : Athena.Handles.Design_Module.Design_Module_Handle)
-      is
-      begin
-         Power := Power + Module.Component.Idle_Power_Consumption;
-      end Add_Power;
-
+   function Drive_Mass (Ship : Ship_Class) return Non_Negative_Real is
+      use type Minerva.Db.Record_Type;
+      Mass  : Non_Negative_Real := 0.0;
    begin
-      Ship.Design.Iterate_Design_Modules
-        (Add_Power'Access);
-      return Power;
-   end Idle_Power;
+      for Module of
+        Minerva.Ship_Module.Select_By_Ship (Ship)
+      loop
+         declare
+            use Minerva.Design_Component;
+            Component : constant Design_Component_Class :=
+                          Module.Design_Component;
+         begin
+            if Component.Top_Record = Minerva.Db.R_Drive_Component then
+               Mass := Mass + Component.Mass;
+            end if;
+         end;
+      end loop;
+      return Mass;
+   end Drive_Mass;
+
+   --------------
+   -- Dry_Mass --
+   --------------
+
+   function Dry_Mass (Ship : Ship_Class) return Non_Negative_Real is
+   begin
+      return Athena.Ships.Designs.Dry_Mass (Ship.Ship_Design);
+   end Dry_Mass;
+
+   ---------------------
+   -- Has_Destination --
+   ---------------------
+
+   function Has_Destination
+     (Located : Minerva.Has_Movement.Has_Movement_Class)
+      return Boolean
+   is
+   begin
+      return Located.Destination.Has_Element;
+   end Has_Destination;
+
+   ---------------------
+   -- Has_Destination --
+   ---------------------
+
+   function Has_Destination
+     (Located : Minerva.Has_Movement.Has_Movement_Class;
+      Star    : Minerva.Star.Star_Class)
+      return Boolean
+   is
+   begin
+      return Has_Destination (Located)
+        and then Located.Destination.Identifier = Star.Identifier;
+   end Has_Destination;
+
+   ----------------
+   -- Has_Orders --
+   ----------------
+
+   function Has_Orders (Ship : Ship_Class) return Boolean is
+   begin
+      return Ship.Last_Order >= Ship.First_Order;
+   end Has_Orders;
+
+   -----------------------
+   -- Has_Star_Location --
+   -----------------------
+
+   function Has_Star_Location
+     (Located : Minerva.Has_Movement.Has_Movement_Class)
+      return Boolean is
+   begin
+      return Located.Star.Has_Element
+        and then (not Located.Destination.Has_Element
+                  or else Located.Progress = 0.0);
+   end Has_Star_Location;
+
+   -----------------------
+   -- Has_Star_Location --
+   -----------------------
+
+   function Has_Star_Location
+     (Located : Minerva.Has_Movement.Has_Movement_Class;
+      Star : Minerva.Star.Star_Class)
+      return Boolean
+   is
+   begin
+      return Has_Star_Location (Located)
+        and then Located.Star.Identifier = Star.Identifier;
+   end Has_Star_Location;
 
    --------------
    -- Is_Armed --
    --------------
 
-   function Is_Armed
-     (Ship : Ship_Handle_Class)
-      return Boolean
-   is
+   function Is_Armed (Ship : Ship_Class) return Boolean is
    begin
-      return Ship.Design.Is_Armed;
+      return Minerva.Weapon_Component.First_By_Ship_Design
+        (Ship.Ship_Design)
+        .Has_Element;
    end Is_Armed;
 
-   ----------------
-   -- Jump_Power --
-   ----------------
+   -------------
+   -- Is_Idle --
+   -------------
 
-   function Jump_Power
-     (Ship : Ship_Handle_Class)
-      return Non_Negative_Real
-   is
+   function Is_Idle (Ship : Ship_Class) return Boolean is
    begin
-      if Ship.Jump_Drive.Has_Element
-        and then Ship.Jump_Drive.Condition > 0.0
-      then
-         return Ship.Jump_Drive.Component.Active_Power_Consumption;
-      else
-         return 0.0;
-      end if;
-   end Jump_Power;
-
-   ----------
-   -- Mass --
-   ----------
-
-   function Mass
-     (Ship : Ship_Handle_Class)
-      return Non_Negative_Real
-   is
-   begin
-      return Ship.Current_Mass;
-   end Mass;
+      return not Has_Destination (Ship) and then not Has_Orders (Ship);
+   end Is_Idle;
 
    --------------
-   -- New_Name --
+   -- Log_Ship --
    --------------
 
-   function New_Name
-     (Empire    : Athena.Handles.Empire.Empire_Handle;
-      Base_Name : String)
-      return String
+   procedure Log_Fleet
+     (Fleet : Fleet_Class;
+      Message : String)
    is
    begin
-      for I in 1 .. 9999 loop
+      Athena.Logging.Log
+        (Fleet.Empire.Name
+         & "/" & Fleet.Identifier & " " & Fleet.Name
+         & ": " & Message);
+   end Log_Fleet;
+
+   --------------
+   -- Log_Ship --
+   --------------
+
+   procedure Log_Ship
+     (Ship    : Ship_Class;
+      Message : String)
+   is
+   begin
+      Athena.Logging.Log
+        (Ship.Empire.Name
+         & "/" & Ship.Identifier & " " & Ship.Name
+         & ": " & Message);
+   end Log_Ship;
+
+   ---------------------
+   -- Maximum_Shields --
+   ---------------------
+
+   function Maximum_Shields (Ship : Ship_Class) return Non_Negative_Real is
+      use Athena.Elementary_Functions;
+      Max : Non_Negative_Real := 0.0;
+      Mass : constant Non_Negative_Real := Current_Mass (Ship);
+      M    : constant Non_Negative_Real :=
+               Mass ** (1.0 / 3.0);
+   begin
+      for Module of
+        Minerva.Ship_Module.Select_By_Ship (Ship)
+      loop
          declare
-            Name : constant String :=
-                     Base_Name & " "
-                     & WL.Numerics.Roman.Roman_Image (I);
-            Ship : constant Athena.Handles.Ship.Ship_Handle :=
-                     Athena.Empires.Find_Ship_With_Name
-                       (Empire, Name);
+            use type Minerva.Db.Record_Type;
+            use Minerva.Design_Component;
+            Component : constant Design_Component_Class :=
+                          Module.Design_Component;
          begin
-            if not Ship.Has_Element then
-               return Name;
+            if Component.Top_Record = Minerva.Db.R_Shield_Component then
+               declare
+                  This_Shield : constant Non_Negative_Real :=
+                                  Component.Mass * Module.Condition
+                                    * Module.Tec_Level / M * 20.0;
+               begin
+                  Max := Max + This_Shield;
+               end;
             end if;
          end;
       end loop;
-      return Base_Name;
-   end New_Name;
+      return Max;
+   end Maximum_Shields;
+
+   -------------------
+   -- Maximum_Speed --
+   -------------------
+
+   function Maximum_Speed (Ship : Ship_Class) return Non_Negative_Real is
+      use type Minerva.Db.Record_Type;
+      Mass  : constant Non_Negative_Real := Current_Mass (Ship);
+      Speed : Non_Negative_Real := 0.0;
+   begin
+      pragma Assert (Mass > 0.0);
+
+      for Module of
+        Minerva.Ship_Module.Select_By_Ship (Ship)
+      loop
+         declare
+            use Minerva.Design_Component;
+            Component : constant Design_Component_Class :=
+                          Module.Design_Component;
+         begin
+            if Component.Top_Record = Minerva.Db.R_Drive_Component then
+               Speed := Speed
+                 + 20.0 * Module.Condition * Module.Tec_Level * Component.Mass;
+            end if;
+         end;
+      end loop;
+
+      return Speed / Mass;
+   end Maximum_Speed;
+
+   -------------------
+   -- Maximum_Speed --
+   -------------------
+
+   function Maximum_Speed (Fleet : Fleet_Class) return Non_Negative_Real is
+   begin
+      return Result : Non_Negative_Real := Non_Negative_Real'Last do
+         for Ship of Minerva.Ship.Select_By_Fleet (Fleet) loop
+            declare
+               This_Speed : constant Non_Negative_Real :=
+                              Maximum_Speed (Ship);
+            begin
+               if This_Speed < Result then
+                  Result := This_Speed;
+               end if;
+            end;
+         end loop;
+      end return;
+   end Maximum_Speed;
+
+   --------------------
+   -- New_Fleet_Name --
+   --------------------
+
+   function New_Fleet_Name
+     (Empire : Minerva.Empire.Empire_Class;
+      Base   : String)
+      return String
+   is
+      function Valid (S : String) return Boolean
+      is (not Minerva.Fleet.First_By_Asset_Empire_Name
+          (Empire, S)
+          .Has_Element);
+   begin
+      return Nice_Name (Base, Valid'Access);
+   end New_Fleet_Name;
+
+   -------------------
+   -- New_Ship_Name --
+   -------------------
+
+   function New_Ship_Name
+     (Empire : Minerva.Empire.Empire_Class;
+      Base   : String)
+      return String
+   is
+      function Valid (S : String) return Boolean
+      is (not Minerva.Ship.First_By_Asset_Empire_Name
+          (Empire, S)
+          .Has_Element);
+   begin
+      return Nice_Name (Base, Valid'Access);
+   end New_Ship_Name;
+
+   ----------------
+   -- Next_Order --
+   ----------------
+
+   procedure Next_Order (Ship : Ship_Class) is
+   begin
+      if Ship.First_Order = Ship.Last_Order then
+         Ship.Update_Ship
+           .Set_First_Order (1)
+           .Set_Last_Order (0)
+           .Done;
+      else
+         Ship.Update_Ship
+           .Set_First_Order (Ship.First_Order + 1)
+           .Done;
+      end if;
+   end Next_Order;
+
+   ---------------
+   -- Nice_Name --
+   ---------------
+
+   function Nice_Name
+     (Base : String;
+      Valid : not null access
+        function (S : String) return Boolean)
+      return String
+   is
+      Index : Positive := 1;
+      Nice  : String := Base;
+      Capitalize : Boolean := True;
+   begin
+      for Ch of Nice loop
+         if Capitalize then
+            Ch := Ada.Characters.Handling.To_Upper (Ch);
+            Capitalize := False;
+         elsif Ch in ' ' | '_' | '-' then
+            Ch := ' ';
+            Capitalize := True;
+         end if;
+      end loop;
+
+      loop
+         declare
+            Name : constant String := Nice & ' '
+                     & WL.Numerics.Roman.Roman_Image (Index);
+         begin
+            if Valid (Name) then
+               return Name;
+            end if;
+         end;
+         Index := Index + 1;
+      end loop;
+
+   end Nice_Name;
 
    ----------------
    -- On_Arrival --
    ----------------
 
-   procedure On_Arrival
-     (Ship : Ship_Handle_Class)
-   is
-      Have_Encounter : Boolean := False;
-      Encounter      : Athena.Handles.Encounter.Encounter_Handle;
-
-      procedure Check_Relation (Ship_Ref : Athena.Handles.Ship_Reference);
-      procedure Add_Hostile (Ship_Ref : Athena.Handles.Ship_Reference);
-
-      -----------------
-      -- Add_Hostile --
-      -----------------
-
-      procedure Add_Hostile (Ship_Ref : Athena.Handles.Ship_Reference) is
-         use type Athena.Handles.Empire.Empire_Handle;
-         Other : constant Athena.Handles.Ship.Ship_Handle :=
-                   Athena.Handles.Ship.Get (Ship_Ref);
-      begin
-         if Ship.Owner /= Other.Owner
-           and then Athena.Treaties.At_War
-             (Ship.Owner, Other.Owner)
-         then
-            Encounter.Add_Actor (Other);
-         end if;
-      end Add_Hostile;
-
-      --------------------
-      -- Check_Relation --
-      --------------------
-
-      procedure Check_Relation (Ship_Ref : Athena.Handles.Ship_Reference) is
-         use type Athena.Handles.Empire.Empire_Handle;
-         Other : constant Athena.Handles.Ship.Ship_Handle :=
-                   Athena.Handles.Ship.Get (Ship_Ref);
-      begin
-         if Ship.Owner /= Other.Owner then
-
-            if Athena.Treaties.At_War
-              (Ship.Owner, Other.Owner)
-            then
-               Ship.Log ("hostile ship detected: " & Other.Short_Name);
-               Have_Encounter := True;
-            else
-               Ship.Log ("foreign ship detected: " & Other.Short_Name);
-            end if;
-         end if;
-      end Check_Relation;
-
+   procedure On_Arrival (Ship : Ship_Class) is
    begin
-      Encounter :=
-        Athena.Handles.Encounter.Find_Active_Encounter
-          (Ship.Star_Location, Ship.Owner);
-      if Encounter.Has_Element then
-         Encounter.Add_Actor (Ship);
-      else
-         Ship.Star_Location.Iterate_Orbiting_Ships (Check_Relation'Access);
-
-         if Have_Encounter then
-            Encounter :=
-              Athena.Handles.Encounter.Create (Ship.Star_Location);
-            Ship.Star_Location.Iterate_Orbiting_Ships (Add_Hostile'Access);
-            Encounter.Add_Actor (Ship);
-         end if;
-      end if;
+      Log_Ship (Ship, "arrives at " & Ship.Destination.Name);
+      Ship.Update_Ship
+        .Set_Star (Ship.Destination)
+        .Set_Destination (Minerva.Star.Empty_Handle)
+        .Set_Progress (0.0)
+        .Done;
    end On_Arrival;
 
-   -------------
-   -- Tonnage --
-   -------------
+   ----------------
+   -- On_Arrival --
+   ----------------
 
-   function Tonnage
-     (Ship : Ship_Handle_Class) return Non_Negative_Real
-   is
+   procedure On_Arrival (Fleet : Fleet_Class) is
+      Star : constant Minerva.Star.Star_Class := Fleet.Destination;
    begin
-      return Athena.Handles.Ship.Design (Ship).Tonnage;
-   end Tonnage;
+      Log_Fleet (Fleet, "arrives at " & Star.Name);
+      for Ship of Minerva.Ship.Select_By_Fleet (Fleet) loop
+         declare
+            Update : constant Minerva.Ship.Ship_Update_Handle'Class :=
+                       Ship.Update_Ship;
+         begin
+            Minerva.Ship.Done (Update.Set_Star (Star));
+         end;
+
+         --  Ship.Update_Ship
+         --    .Set_Star (Star)
+         --    .Done;
+      end loop;
+      Fleet.Update_Fleet
+        .Set_Star (Star)
+        .Set_Destination (Minerva.Star.Empty_Handle)
+        .Set_Progress (0.0)
+        .Done;
+   end On_Arrival;
+
+   ------------------
+   -- Remove_Cargo --
+   ------------------
+
+   procedure Remove_Cargo
+     (Ship     : Ship_Class;
+      Cargo    : Minerva.Db.Cargo_Type;
+      Quantity : Non_Negative_Real)
+   is
+      use all type Minerva.Db.Cargo_Type;
+      New_Col : constant Non_Negative_Real :=
+                  (if Cargo = Colonists
+                   then Ship.Colonists - Quantity
+                   else Ship.Colonists);
+      New_Ind : constant Non_Negative_Real :=
+                  (if Cargo = Industry
+                   then Ship.Industry - Quantity
+                   else Ship.Industry);
+      New_Mat : constant Non_Negative_Real :=
+                  (if Cargo = Material
+                   then Ship.Material - Quantity
+                   else Ship.Material);
+   begin
+      Ship.Update_Ship
+        .Set_Colonists (New_Col)
+        .Set_Industry (New_Ind)
+        .Set_Material (New_Mat)
+        .Done;
+   end Remove_Cargo;
+
+   -----------------------
+   -- Total_Cargo_Space --
+   -----------------------
+
+   function Total_Cargo_Space (Ship : Ship_Class) return Non_Negative_Real is
+      use type Minerva.Db.Record_Type;
+      Space : Non_Negative_Real := 0.0;
+   begin
+      for Module of
+        Minerva.Ship_Module.Select_By_Ship (Ship)
+      loop
+         declare
+            use Minerva.Design_Component;
+            Component : constant Design_Component_Class :=
+                          Module.Design_Component;
+         begin
+            if Component.Top_Record = Minerva.Db.R_Cargo_Component then
+               Space := Space + Module.Condition * Module.Tec_Level
+                 * (Component.Mass + (Component.Mass ** 2) / 20.0);
+            end if;
+         end;
+      end loop;
+      return Space;
+   end Total_Cargo_Space;
+
+   -----------------
+   -- Weapon_Mass --
+   -----------------
+
+   function Weapon_Mass (Ship : Ship_Class) return Non_Negative_Real is
+   begin
+      return Mass : Non_Negative_Real := 0.0 do
+         for Weapon of
+           Minerva.Weapon_Component.Select_By_Ship_Design
+             (Ship.Ship_Design)
+         loop
+            Mass := Mass + Weapon.Mass;
+         end loop;
+      end return;
+   end Weapon_Mass;
 
 end Athena.Ships;

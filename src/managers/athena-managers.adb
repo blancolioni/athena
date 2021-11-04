@@ -2,48 +2,40 @@ with WL.String_Maps;
 
 with Athena.Logging;
 
-with Athena.Handles.Empire;
+with Minerva.Manager;
 
---  with Athena.Handles.Manager;
---
 with Athena.Managers.Attack;
 with Athena.Managers.Colonization;
---  with Athena.Managers.Defend;
+with Athena.Managers.Defend;
 with Athena.Managers.Development;
 with Athena.Managers.Exploration;
---  with Athena.Managers.Research;
+with Athena.Managers.Research;
 with Athena.Managers.Transportation;
---  with Athena.Managers.Upgrade;
---
+with Athena.Managers.Upgrade;
+
 package body Athena.Managers is
 
    package Manager_Maps is
-     new WL.String_Maps (Root_Manager_Type'Class);
+     new WL.String_Maps (Athena_Manager_Script'Class);
 
    Manager_Map : Manager_Maps.Map;
 
-   -------------------
-   -- Create_Orders --
-   -------------------
+   package Message_Maps is
+     new WL.String_Maps (Message_Lists.List, Message_Lists."=");
 
-   procedure Create_Orders
-     (Manager : in out Root_Manager_Type'Class)
-   is
-   begin
-      Manager.Has_Next_Update := False;
-      Manager.Dispatch_Create_Orders;
-   end Create_Orders;
+   Message_Map : Message_Maps.Map;
 
    ------------
    -- Exists --
    ------------
 
    function Exists
-     (Name   : String)
+     (Class  : String;
+      Name   : String)
       return Boolean
    is
    begin
-      return Manager_Map.Contains (Name);
+      return Manager_Map.Contains (Class & "--" & Name);
    end Exists;
 
    -----------------
@@ -51,15 +43,33 @@ package body Athena.Managers is
    -----------------
 
    function Get_Manager
-     (Name   : String;
-      Empire : Athena.Handles.Empire_Reference)
-      return Root_Manager_Type'Class
+     (Class  : String;
+      Name   : String;
+      Empire : Minerva.Empire.Empire_Class)
+      return Athena_Manager_Script'Class
    is
+      Key : constant String := Class & "--" & Name;
+      Message_Key : constant String :=
+                      Class & "--" & Empire.Identifier;
+      Manager : constant Minerva.Empire_Manager.Empire_Manager_Class :=
+                  Minerva.Empire_Manager.Get_By_Empire_Manager
+                    (Empire  => Empire,
+                     Manager => Minerva.Manager.Get_By_Tag (Name));
    begin
-      return Manager : Root_Manager_Type'Class :=
-        Manager_Map.Element (Name)
+      return Script : Athena_Manager_Script'Class :=
+        Manager_Map.Element (Key)
       do
-         Manager.Initialize (Name, Empire);
+         Script.Initialize (Manager, Name, Empire);
+         if Message_Map.Contains (Message_Key) then
+            declare
+               Msgs : Message_Lists.List renames Message_Map (Message_Key);
+            begin
+               for Msg of Msgs loop
+                  Script.Process_Message (Msg);
+               end loop;
+            end;
+            Message_Map.Delete (Message_Key);
+         end if;
       end return;
    end Get_Manager;
 
@@ -68,13 +78,15 @@ package body Athena.Managers is
    ----------------
 
    procedure Initialize
-     (Manager : in out Root_Manager_Type;
+     (Script  : in out Athena_Manager_Script;
+      Manager : Minerva.Empire_Manager.Empire_Manager_Class;
       Name    : String;
-      Empire  : Athena.Handles.Empire_Reference)
+      Empire  : Minerva.Empire.Empire_Class)
    is
    begin
-      Manager.Name := Ada.Strings.Unbounded.To_Unbounded_String (Name);
-      Manager.Empire := Empire;
+      Script.Name := Ada.Strings.Unbounded.To_Unbounded_String (Name);
+      Script.Manager := Manager.To_Empire_Manager_Handle;
+      Script.Empire := Empire.To_Empire_Handle;
    end Initialize;
 
    -------------------
@@ -84,25 +96,41 @@ package body Athena.Managers is
    procedure Load_Managers is
    begin
 
-      Manager_Map.Insert
-        (Athena.Handles.Colonization_Manager'Image,
-         Colonization.Default_Colonization_Manager);
+      --  Manager_Map.Insert
+      --    (Minerva.Colonization_Manager'Image,
+      --     Colonization.Default_Colonization_Manager);
 
       Manager_Map.Insert
-        (Athena.Handles.Development_Manager'Image,
+        ("attack--attack",
+         Attack.Default_Attack_Manager);
+
+      Manager_Map.Insert
+        ("develop--develop",
          Development.Default_Development_Manager);
 
       Manager_Map.Insert
-        (Athena.Handles.Exploration_Manager'Image,
+        ("colonize--colonize",
+         Colonization.Default_Colonization_Manager);
+
+      Manager_Map.Insert
+        ("defend--defend",
+         Defend.Default_Defend_Manager);
+
+      Manager_Map.Insert
+        ("explore--explore",
          Exploration.Default_Exploration_Manager);
 
       Manager_Map.Insert
-        (Athena.Handles.Transport_Manager'Image,
+        ("transport--transport",
          Transportation.Default_Transportation_Manager);
 
       Manager_Map.Insert
-        (Athena.Handles.Attack_Manager'Image,
-         Attack.Default_Attack_Manager);
+        ("research--research",
+         Research.Default_Research_Manager);
+
+      Manager_Map.Insert
+        ("upgrade--upgrade",
+         Upgrade.Default_Upgrade_Manager);
 
       --     Manager_Orders.Insert
    --       ("attack", Athena.Managers.Attack.Create_Orders'Access);
@@ -127,12 +155,12 @@ package body Athena.Managers is
    ---------
 
    procedure Log
-     (Manager : Root_Manager_Type'Class;
+     (Manager : Athena_Manager_Script'Class;
       Message : String)
    is
    begin
       Athena.Logging.Log
-        (Athena.Handles.Empire.Get (Manager.Empire).Name
+        (Manager.Empire.Name
          & "/"
          & Manager.Identifier
          & ": "
@@ -144,39 +172,17 @@ package body Athena.Managers is
    ------------------
 
    procedure Send_Message
-     (To      : in out Root_Manager_Type'Class;
-      Message : Message_Type'Class)
+     (Destination : String;
+      Empire      : Minerva.Empire.Empire_Class;
+      Message     : Message_Type'Class)
    is
+      Key : constant String :=
+              Destination & "--" & Empire.Identifier;
    begin
-      if not Message_Lists.Has_Element (To.Messages.Find (Message)) then
-         To.Messages.Append (Message);
+      if not Message_Map.Contains (Key) then
+         Message_Map.Insert (Key, Message_Lists.Empty_List);
       end if;
+      Message_Map (Key).Append (Message);
    end Send_Message;
-
-   ---------------------
-   -- Set_Next_Update --
-   ---------------------
-
-   procedure Set_Next_Update
-     (Manager   : in out Root_Manager_Type'Class;
-      Update_At : Athena.Calendar.Time)
-   is
-   begin
-      Manager.Has_Next_Update := True;
-      Manager.Next_Update := Update_At;
-   end Set_Next_Update;
-
-   ---------------------------
-   -- Set_Next_Update_Delay --
-   ---------------------------
-
-   procedure Set_Next_Update_Delay
-     (Manager      : in out Root_Manager_Type'Class;
-      Update_Delay : Duration)
-   is
-      use type Athena.Calendar.Time;
-   begin
-      Manager.Set_Next_Update (Athena.Calendar.Clock + Update_Delay);
-   end Set_Next_Update_Delay;
 
 end Athena.Managers;

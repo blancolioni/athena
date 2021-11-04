@@ -1,15 +1,9 @@
-hull = { type = standard material = steel-hull }
-tonnage = 2000
-armor = { type = steel points = 5 }
-fuel_tank = 1000
-default-script = escape
-default-rank = 6
-default-manager = defense
-
-components = {
-    bridge-6
-    computer-5
-    impulse-2
-    chemical-20
-    heavy-turret = { parts = heavy-cannon }
+design = {
+    drive = 1
+    shield = 10
+    laser = { power = 30 }
+    laser = { power = 15 antimissile }
 }
+default-manager = defend
+default-script = defend
+default-rank = 1

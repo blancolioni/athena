@@ -1,0 +1,61 @@
+package Empires is
+
+record Empire : Has_Identifier is
+    unique key Name  : String (64) is Display;
+    Plural    : String (64);
+    Adjective : String (64);
+    Cash      : Money_Type;
+    Debt      : Money_Type;
+    RGB       : Natural;
+end Empire;
+
+record Named_Asset : Has_Name is
+    key Empire;
+    key Asset_Empire_Name with Empire, Name;
+end Named_Asset;
+
+record Empire_Tec is
+    key Empire;
+    Technology;
+    Investment : Long_Float;
+    Level      : Long_Float;
+    unique key Empire_Tec with Empire, Technology;
+end Empire_Tec;
+
+record Manager : Localised is
+    Priority : Positive;
+end Manager;
+
+record Empire_Manager is
+    Name    : String (32) is Display;
+    key Empire;
+    Manager;
+    Enabled : Boolean;
+    Script  : String (32);
+    unique key Empire_Manager with Empire, Manager;
+end Empire_Manager;
+
+record Relationship is
+    key From    : Empire;
+    To          : Empire;
+    Opinion     : Integer;
+    War         : Boolean;
+    Hostile     : Boolean;
+    Allied      : Boolean;
+    Trade       : Boolean;
+    unique key Relationship with From, To;
+    key Allies   with From, Allied;
+    key Hostiles with From, Hostile;
+    key Enemies  with From, War;
+    key Traders  with From, Trade;
+end Relationship;
+
+record War is
+    key Attacker : Empire;
+    key Defender : Empire;
+    Start        : Turn;
+    Finish       : Turn;
+    unique key War with Attacker, Defender, Finish;
+end War;
+
+end Empires;

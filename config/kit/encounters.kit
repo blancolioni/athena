@@ -1,0 +1,31 @@
+with Base;
+with Ships;
+
+package Encounters is
+
+record Encounter : Has_Identifier is
+    key War;
+    key Turn;
+    key Star;
+    Victor : Empire;
+    Size   : Positive;
+    unique key Encounter with Star, Turn;
+end Encounter;
+
+record Antagonist is
+    key Encounter;
+    Empire;
+end Antagonist;
+
+record Participant is
+    key Encounter;
+    Ship;
+    unique key Participant with Encounter, Ship;
+end Participant;
+
+record Ship_Lost is
+    key Encounter;
+    Ship;
+end Ship_Lost;
+
+end Encounters;

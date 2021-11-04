@@ -1,79 +1,90 @@
-with Athena.Handles.Colony.Actions;
-with Athena.Handles.Empire;
+with Athena.Colonies;
+
+with Minerva.Colony;
 
 package body Athena.Managers.Development is
 
    type Development_Manager is
-     new Root_Manager_Type with null record;
+     new Athena_Manager_Script with null record;
 
    overriding function Identifier
      (Manager : Development_Manager)
       return String
    is ("development");
 
-   overriding procedure Dispatch_Create_Orders
-     (Manager : in out Development_Manager);
+   overriding procedure Create_Orders
+     (Manager : Development_Manager);
 
-   ---------------------------------
-   -- Default_Development_Manager --
-   ---------------------------------
+   -------------------
+   -- Create_Orders --
+   -------------------
 
-   function Default_Development_Manager
-     return Root_Manager_Type'Class
-   is
-   begin
-      return Manager : constant Development_Manager :=
-        (Name     => +"develop",
-         Priority => 1080,
-         Empire   => Athena.Handles.Null_Empire_Reference,
-         Has_Next_Update => True,
-         Next_Update => Athena.Calendar.Clock,
-         Messages => Message_Lists.Empty_List);
-   end Default_Development_Manager;
-
-   ----------------------------
-   -- Dispatch_Create_Orders --
-   ----------------------------
-
-   overriding procedure Dispatch_Create_Orders
-     (Manager : in out Development_Manager)
+   overriding procedure Create_Orders
+     (Manager : Development_Manager)
    is
       procedure Check_Colony
-        (Reference : Athena.Handles.Colony_Reference);
+        (Colony : Minerva.Colony.Colony_Class);
 
       ------------------
       -- Check_Colony --
       ------------------
 
       procedure Check_Colony
-        (Reference : Athena.Handles.Colony_Reference)
+        (Colony : Minerva.Colony.Colony_Class)
       is
-         Colony : constant Athena.Handles.Colony.Colony_Handle :=
-                    Athena.Handles.Colony.Get (Reference);
       begin
-         if not Colony.Has_Actions
-           and then Colony.Industry < Colony.Population
-         then
+         if Colony.Industry < Colony.Population then
             declare
-               Required : constant Non_Negative_Real :=
-                            Colony.Population - Colony.Industry;
+               Wanted : constant Non_Negative_Real :=
+                          Colony.Population - Colony.Industry;
+               Max_Build : constant Non_Negative_Real :=
+                             (Colony.Star.Resource * Colony.Construct
+                              + Colony.Material)
+                             / (5.0 * Colony.Star.Resource + 1.0);
+               Build     : constant Non_Negative_Real :=
+                             Real'Min (Wanted, Max_Build);
             begin
                Manager.Log
-                 ("ordering " & Image (Required)
-                  & " industry for colony on " & Colony.Star.Name);
+                 (Colony.Star.Name
+                  & ": industry: want " & Image (Wanted)
+                  & "; material " & Image (Colony.Material)
+                  & "; construct " & Image (Colony.Construct)
+                  & "; resource " & Image (Colony.Star.Resource * 100.0)
+                  & "%"
+                  & "; max " & Image (Max_Build));
 
-               Colony.Add_Action
-                 (Athena.Handles.Colony.Actions.Build_Industry_Action
-                    (Quantity => Colony.Population));
+               if Build > 0.0 then
+                  Athena.Colonies.Build_Industry
+                    (Colony   => Colony,
+                     Priority => Manager.Priority,
+                     Quantity => Build);
+               end if;
             end;
          end if;
       end Check_Colony;
 
    begin
-      Athena.Handles.Empire.Get (Manager.Empire)
-        .Iterate_Colonies (Check_Colony'Access);
-      Manager.Set_Next_Update_Delay
-        (Athena.Calendar.Days (1));
-   end Dispatch_Create_Orders;
+      for Colony of
+        Minerva.Colony.Select_By_Empire
+          (Manager.Empire)
+      loop
+         Check_Colony (Colony);
+      end loop;
+   end Create_Orders;
+
+   ---------------------------------
+   -- Default_Development_Manager --
+   ---------------------------------
+
+   function Default_Development_Manager
+     return Athena_Manager_Script'Class
+   is
+   begin
+      return Manager : constant Development_Manager :=
+        (Name     => +"develop",
+         Empire   => Minerva.Empire.Empty_Handle,
+         Manager  => Minerva.Empire_Manager.Empty_Handle,
+         Priority => 1080);
+   end Default_Development_Manager;
 
 end Athena.Managers.Development;

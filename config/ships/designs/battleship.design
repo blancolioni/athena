@@ -1,14 +1,10 @@
-hull = { type = standard material = steel-hull }
-tonnage = 1000
-armor = { type = steel points = 1 }
-fuel_tank = 500
-default-script = escape
-default-rank = 9
-default-manager = attack
-
-components = {
-    bridge-6
-    computer-5
-    impulse-2
-    jump-1
+design = {
+    # D250,S80,L60x3,M10x5@as/5/0/0.3
+    drive = 50
+    shield = 80
+    laser = { power = 120 }
+    missile = { power = 10 rails = 5 launches = 5 warhead = 30% }
 }
+default-manager = attack
+default-script = attack
+default-rank = 4

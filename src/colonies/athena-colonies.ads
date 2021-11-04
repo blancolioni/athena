@@ -1,75 +1,97 @@
-with Athena.Cargo;
+with Athena.Real_Images;
 
-with Athena.Handles.Colony;
-with Athena.Handles.Empire;
-with Athena.Handles.Star;
+with Minerva.Colony;
+with Minerva.Empire;
+with Minerva.Star;
+
+with Minerva.Db;
 
 package Athena.Colonies is
 
+   subtype Colony_Class is Minerva.Colony.Colony_Class;
+
+   function Get_Colony
+     (Star : Minerva.Star.Star_Class)
+      return Colony_Class;
+
+   procedure Capture_Colony
+     (Colony    : Colony_Class;
+      New_Owner : Minerva.Empire.Empire_Class);
+
+   function Best_Colony
+     (Owned_By : Minerva.Empire.Empire_Class;
+      Score    : not null access
+        function (Colony : Colony_Class) return Real)
+      return Colony_Class;
+
+   function Find_Colony
+     (Owned_By : Minerva.Empire.Empire_Class;
+      Test     : not null access function
+        (Colony : Minerva.Colony.Colony_Class) return Boolean)
+      return Minerva.Colony.Colony_Class;
+
+   procedure Remove_Cargo
+     (Colony   : Colony_Class;
+      Cargo    : Minerva.Db.Cargo_Type;
+      Quantity : in out Non_Negative_Real)
+     with Post => Quantity <= Quantity'Old;
+
+   procedure Add_Cargo
+     (Colony   : Colony_Class;
+      Cargo    : Minerva.Db.Cargo_Type;
+      Quantity : in out Non_Negative_Real)
+     with Post => Quantity <= Quantity'Old;
+
+   procedure New_Colony
+     (Star        : Minerva.Star.Star_Class;
+      Empire      : Minerva.Empire.Empire_Class;
+      Initial_Pop : in out Non_Negative_Real)
+     with Post => Initial_Pop <= Initial_Pop'Old;
+
    procedure Produce_Material
-     (Colony   : Athena.Handles.Colony.Colony_Handle'Class;
+     (Colony   : Colony_Class;
       Quantity : Non_Negative_Real);
 
+   procedure Request_Material
+     (Colony   : Colony_Class;
+      Material : in out Non_Negative_Real)
+     with Post => Material <= Material'Old;
+
+   procedure Request_Construct
+     (Colony    : Colony_Class;
+      Construct : in out Non_Negative_Real)
+     with Post => Construct <= Construct'Old;
+
    function Can_Provide
-     (Colony      : Athena.Handles.Colony.Colony_Handle;
+     (Colony      : Colony_Class;
       Construct   : Non_Negative_Real := 0.0;
       Material    : Non_Negative_Real := 0.0)
       return Boolean;
 
    procedure Use_Assets
-     (Colony      : Athena.Handles.Colony.Colony_Handle;
+     (Colony      : Colony_Class;
+      Description : String;
       Construct   : Non_Negative_Real := 0.0;
-      Material    : Non_Negative_Real := 0.0;
-      Description : String);
+      Material    : Non_Negative_Real := 0.0);
 
-   procedure For_All_Colonies
-     (Owned_By : Athena.Handles.Empire.Empire_Handle;
-      Process  : not null access
-        procedure (Colony : Athena.Handles.Colony.Colony_Handle));
+   procedure Build_Industry
+     (Colony   : Colony_Class;
+      Priority : Integer;
+      Quantity : Non_Negative_Real);
 
-   function Find_Colony
-     (Owned_By : Athena.Handles.Empire.Empire_Handle;
-      Test     : not null access
-        function (Colony : Athena.Handles.Colony.Colony_Handle) return Boolean)
-      return Athena.Handles.Colony.Colony_Handle;
+   procedure Produce_Material
+     (Colony   : Colony_Class;
+      Priority : Integer;
+      Quantity : Non_Negative_Real)
+   is null;
 
-   function Best_Colony
-     (Owned_By : Athena.Handles.Empire.Empire_Handle;
-      Score    : not null access
-        function (Colony : Athena.Handles.Colony.Colony_Handle) return Real)
-      return Athena.Handles.Colony.Colony_Handle;
+   procedure Log_Colony
+     (Colony  : Colony_Class;
+      Message : String);
 
-   function Nearest_Colony
-     (Owned_By : Athena.Handles.Empire.Empire_Handle;
-      To_Star  : Athena.Handles.Star.Star_Handle)
-      return Athena.Handles.Colony.Colony_Handle;
+private
 
-   function Get_Colony
-     (At_Star : Athena.Handles.Star.Star_Handle)
-      return Athena.Handles.Colony.Colony_Handle;
-
-   procedure Capture_Colony
-     (Colony      : Athena.Handles.Colony.Colony_Handle;
-      Captured_By : Athena.Handles.Empire.Empire_Handle);
-
-   function New_Colony
-     (At_Star  : Athena.Handles.Star.Star_Handle;
-      Owner    : Athena.Handles.Empire.Empire_Handle;
-      Pop      : Non_Negative_Real;
-      Industry : Non_Negative_Real;
-      Material : Non_Negative_Real)
-      return Athena.Handles.Colony.Colony_Handle;
-
-   procedure Load_Cargo_From_Colony
-     (From  : Athena.Handles.Colony.Colony_Handle;
-      To    : Athena.Cargo.Cargo_Holder_Interface'Class;
-      Cargo : Athena.Cargo.Cargo_Interface'Class;
-      Max   : Non_Negative_Real);
-
-   procedure Unload_Cargo_To_Colony
-     (To    : Athena.Handles.Colony.Colony_Handle;
-      From  : Athena.Cargo.Cargo_Holder_Interface'Class;
-      Cargo : Athena.Cargo.Cargo_Interface'Class;
-      Max   : Non_Negative_Real);
+   function Image (X : Real) return String
+                      renames Athena.Real_Images.Approximate_Image;
 
 end Athena.Colonies;

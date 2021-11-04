@@ -1,0 +1,18 @@
+with Base;
+with Empires;
+
+package Orders is
+
+record Order is
+    Turn;
+    key Empire;
+    Priority     : Positive;
+    key Priority_Order with Turn, Empire, Priority;
+end Order;
+
+record Research_Order : Order is
+    Technology;
+    Construct : Long_Float;
+end Research_Order;
+
+end Orders;

@@ -3,27 +3,31 @@ source_dir = src
 source_dir = src/colonies
 source_dir = src/configure
 source_dir = src/driver
-source_dir = src/economy
 source_dir = src/empires
 source_dir = src/encounters
-source_dir = src/handles
+source_dir = src/kit
 source_dir = src/library
 source_dir = src/managers
 source_dir = src/orders
 source_dir = src/reports
-source_dir = src/sessions
+source_dir = src/server
 source_dir = src/ships
 source_dir = src/stars
+source_dir = src/technology
 source_dir = src/ui
 source_dir = src/ui/nazar
 source_dir = src/ui/models
 source_dir = src/updates
+source_dir = src/vm
 source_dir = src/voronoi
 depend = { project = Tropos version = any }
 depend = { project = Wlib version = any }
 depend = { project = nazar version = any }
 depend = { project = nazargtk version = any }
-depend = { project = ../minerva/minerva external = yes }
+depend = { project = kit version = any }
+depend = { project = marlowe version = any }
+depend = { project = ../timon/timon external = yes }
+depend = { project = pdp11 version = any }
 depend = { project = aws external = yes }
 depend = { project = GtkAda external = yes }
 language = Ada

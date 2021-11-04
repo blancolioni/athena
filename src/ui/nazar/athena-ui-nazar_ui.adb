@@ -8,9 +8,11 @@ with Nazar.Models.Text;
 
 with Nazar.Views.Draw;
 
+with Nazar.Gtk_Main;
 with Nazar.Main;
 with Nazar.Signals;
 
+with Athena.UI.Models.Encounters;
 with Athena.UI.Models.Galaxy;
 
 with Athena.Paths;
@@ -43,9 +45,10 @@ package body Athena.UI.Nazar_UI is
      new Athena_User_Interface
      and Nazar.Signals.User_Data_Interface with
       record
-         Top            : Nazar.Views.Nazar_View;
-         Models         : Model_Lists.List;
-         Galaxy_View    : Nazar.Views.Draw.Nazar_Draw_View;
+         Top              : Nazar.Views.Nazar_View;
+         Models           : Model_Lists.List;
+         Galaxy_View      : Nazar.Views.Draw.Nazar_Draw_View;
+         Home_System_View : Nazar.Views.Draw.Nazar_Draw_View;
       end record;
 
    overriding procedure Start
@@ -55,15 +58,19 @@ package body Athena.UI.Nazar_UI is
      (User_Data : Nazar.Signals.User_Data_Interface'Class)
      with Unreferenced;
 
+   procedure Image
+     (Category : String;
+      Name     : String)
+     with Unreferenced;
+
    ----------------------
    -- Get_Encounter_UI --
    ----------------------
 
    function Get_Encounter_UI
-     (Encounter : Athena.Handles.Encounter.Encounter_Handle)
+     (Encounter : Minerva.Encounter.Encounter_Class)
       return Athena_User_Interface'Class
    is
-      pragma Unreferenced (Encounter);
       Builder : constant Nazar.Builder.Nazar_Builder :=
                   Nazar.Builder.Nazar_Builder_New
                     (Creator     => Nazar.Builder.Gtk_Creator.Get_Gtk_Creator,
@@ -80,8 +87,9 @@ package body Athena.UI.Nazar_UI is
          Builder.Get_View ("turn-label").Set_Model (Result.Turn_Model);
          Result.Models.Append (Nazar.Models.Nazar_Model (Result.Turn_Model));
 
-         --  Result.Encounter_Model :=
-         --    Athena.UI.Models.Encounters.Encounter_Model (Encounter);
+         Result.Encounter_Model :=
+           Athena.UI.Models.Encounters.Encounter_Model (Encounter);
+
          Result.Models.Append
            (Nazar.Models.Nazar_Model (Result.Encounter_Model));
          Result.Encounter_View :=
@@ -98,7 +106,7 @@ package body Athena.UI.Nazar_UI is
    ------------
 
    function Get_UI
-     (Empire : Athena.Handles.Empire.Empire_Handle)
+     (Empire : Minerva.Empire.Empire_Class)
       return Athena_User_Interface'Class
    is
       Builder : constant Nazar.Builder.Nazar_Builder :=
@@ -107,6 +115,7 @@ package body Athena.UI.Nazar_UI is
            Config_Path => Athena.Paths.Config_File ("ui/athena.nazar"));
    begin
       Nazar.Main.Init;
+
       return Result : Athena_Nazar_UI do
          Result.Top := Builder.Get_View ("Athena");
 
@@ -153,6 +162,22 @@ package body Athena.UI.Nazar_UI is
 
       end return;
    end Get_UI;
+
+   -----------
+   -- Image --
+   -----------
+
+   procedure Image
+     (Category : String;
+      Name     : String)
+   is
+   begin
+      Nazar.Gtk_Main.Add_Image
+        (Resource_Name => Name,
+         File_Path     =>
+           Athena.Paths.Config_File
+             ("ui/images/" & Category & "/" & Name & ".png"));
+   end Image;
 
    -------------------------
    -- Next_Encounter_Tick --

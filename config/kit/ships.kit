@@ -1,0 +1,167 @@
+with Base;
+with Empires;
+with Orders;
+with Stars;
+
+package Ships is
+
+record Ship_Knowledge is
+    key Star_Knowledge;
+    Owner : Empire;
+    Turn;
+    Identifier  : Fixed_String (8);
+    Name        : String (32);
+    Mass        : Long_Float;
+    Weapon_Mass : Long_Float;
+    Drive       : Long_Float;
+    key Ship_Knowledge with Star_Knowledge, Turn;
+    unique key Observed_Ship with Star_Knowledge, Identifier;
+end Ship_Knowledge;
+
+record Has_Movement is
+    key Star;
+    key Destination : Star;
+    Progress        : Long_Float;
+end Has_Movement;
+
+record Fleet : Has_Identifier, Has_Movement, Named_Asset is
+    key Manager : Empire_Manager;
+    Mass        : Long_Float;
+    Speed       : Long_Float;
+end Fleet;
+
+type Cargo_Type is (Colonists, Industry, Material);
+
+record Transport_Order : Order is
+    From      : Star;
+    To        : Star;
+    Cargo     : Cargo_Type;
+    Quantity  : Long_Float;
+end Transport_Order;
+
+record Fleet_Order : Order is
+    Fleet;
+    Destination : Star;
+end Fleet_Order;
+
+record Ship_Design : Has_Name, Has_Identifier is
+    Default_Script  : String (16);
+    Default_Manager : Manager;
+    Default_Rank    : Natural;
+end Ship_Design;
+
+record Design_Component : Has_Identifier is
+    key Ship_Design;
+    Technology;
+    Mass : Long_Float;
+end Design_Component;
+
+record Drive_Component : Design_Component;
+
+record Shield_Component : Design_Component;
+
+record Cargo_Component : Design_Component;
+
+record Repair_Component : Design_Component;
+
+record Weapon_Component : Design_Component is
+    Anti_Missile : Boolean;
+    Power        : Long_Float;
+end Weapon_Component;
+
+record Laser_Component : Weapon_Component is
+end Laser_Component;
+
+record Missile_Component : Weapon_Component is
+    Rails     : Positive;
+    Launches  : Positive;
+    Warhead   : Long_Float;
+end Missile_Component;
+
+record Design_Module is
+    key Ship_Design;
+    Design_Component;
+end Design_Module;
+
+record System_Designs is
+    unique key Empire;
+    Scout      : Ship_Design;
+    Recon      : Ship_Design;
+    Transport  : Ship_Design;
+    Defender   : Ship_Design;
+    Destroyer  : Ship_Design;
+    Cruiser    : Ship_Design;
+    Battleship : Ship_Design;
+    Carrier    : Ship_Design;
+end System_Designs;
+
+record Ship : Has_Identifier, Has_Movement, Named_Asset is
+    key Fleet;
+    key Empire_Manager;
+    Ship_Design;
+    key Alive   : Boolean;
+    First_Order : Natural;
+    Last_Order  : Natural;
+    Experience  : Long_Float;
+    Colonists   : Long_Float;
+    Industry    : Long_Float;
+    Material    : Long_Float;
+    Script      : String (16);
+    key Ship_Star with Empire, Star;
+    key Ship_Destination with Empire, Destination;
+end Ship;
+
+record Ship_Module : Has_Identifier is
+    key Ship;
+    Design_Component;
+    Tec_Level : Long_Float;
+    Condition : Long_Float;
+    Damage    : Long_Float;
+end Ship_Module;
+
+type Ship_Action is (Load, Unload, Move);
+
+record Ship_Order is
+    Action : Ship_Action;
+    Ship;
+    Sequence : Positive;
+    Cargo    : Cargo_Type;
+    Quantity : Long_Float;
+    Star;
+    unique key Ship_Order with Ship, Sequence;
+end Ship_Order;
+
+record Upgrade_Order : Order is
+    Ship_Module;
+end Upgrade_Order;
+
+record Repair_Order : Order is
+    Ship_Module;
+end Repair_Order;
+
+record Ship_Build_Order : Order is
+    Ship_Design;
+    Manager  : Empire_Manager;
+    Fleet;
+    Send_To  : Star;
+    Count    : Positive;
+end Ship_Build_Order;
+
+record Journey is
+    key Turn;
+    Empire;
+    From       : Star;
+    To         : Star;
+    Mass       : Long_Float;
+    Progress   : Long_Float;
+end Journey;
+
+record Ship_Journey : Journey is
+    key Ship;
+end Ship_Journey;
+
+record Fleet_Journey : Journey is
+    key Fleet;
+end Fleet_Journey;
+
+end Ships;

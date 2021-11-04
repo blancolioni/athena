@@ -50,6 +50,10 @@ package body Athena.Color is
       end if;
    end From_String;
 
+   ---------------------
+   -- Parse_Hex_Color --
+   ---------------------
+
    function Parse_Hex_Color (Spec : String) return Athena_Color is
       Valid_Spec : constant String :=
                      Filter (Spec, "0123456789ABCDEFabcdef");
@@ -133,6 +137,21 @@ package body Athena.Color is
       end if;
    end Parse_Hex_Color;
 
+   --------------
+   -- To_Color --
+   --------------
+
+   function To_Color
+     (RGB : Natural)
+      return Athena_Color
+   is
+   begin
+      return (Red => Real (RGB / 65536 mod 256) / 255.0,
+              Green => Real (RGB / 256 mod 256) / 255.0,
+              Blue  => Real (RGB mod 256) / 255.0,
+              Alpha => 1.0);
+   end To_Color;
+
    --------------------
    -- To_Html_String --
    --------------------
@@ -152,5 +171,19 @@ package body Athena.Color is
       return "rgb(" & Trim (R'Image) & "," & Trim (G'Image)
         & "," & Trim (B'Image) & ")";
    end To_Html_String;
+
+   ----------------
+   -- To_Natural --
+   ----------------
+
+   function To_Natural
+     (Color : Athena_Color)
+      return Natural
+   is
+   begin
+      return Natural (Color.Red * 255.0) * 65536
+        + Natural (Color.Green * 255.0) * 256
+        + Natural (Color.Blue * 255.0);
+   end To_Natural;
 
 end Athena.Color;

@@ -1,14 +1,6 @@
-hull = { type = standard material = steel-hull }
-tonnage = 1000
-fuel_tank = 540
+design = {
+    drive = 1
+}
+default-manager = explore
 default-script = escape
 default-rank = 9
-default-manager = exploration
-
-components = {
-    bridge-6
-    computer-5
-    thruster-1
-    jump-1
-    chemical-10
-}

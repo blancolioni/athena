@@ -1,37 +1,24 @@
-with Ada.Calendar;
+with Ada.Exceptions;
 with Ada.Text_IO;
 
-with WL.Processes;
-
-with Athena.Options;
-
-with Athena.Calendar;
 with Athena.Logging;
-with Athena.Logs;
-with Athena.Real_Images;
-
+with Athena.Managers;
+with Athena.Options;
 with Athena.Server;
-
---  with Athena.Encounters;
-with Athena.Updates.Control;
-
---  with Athena.Handles.Empire;
---  with Athena.Handles.Encounter;
+with Athena.Turns;
+with Athena.Updates;
 
 with Athena.UI.Launch;
 
-with Athena.Handles.Design;
-with Athena.Handles.Empire;
-with Athena.Handles.State;
+with Minerva.Db.Database;
 
-with Athena.Reports.Empires;
+with Minerva.Empire;
+with Minerva.Encounter;
+with Minerva.Star;
+with Minerva.Turn;
 
 procedure Athena.Driver is
-
-   --  Database_Open : Boolean := False;
-   --
 begin
-
    Athena.Server.Initialize;
 
    if Athena.Options.Create then
@@ -41,232 +28,108 @@ begin
       return;
    end if;
 
-   if Athena.Options.Report_Designs then
-      Athena.Handles.State.Load_State;
-
-      declare
-         procedure Report_Design
-           (Handle : Athena.Handles.Design.Design_Handle);
-
-         -------------------
-         -- Report_Design --
-         -------------------
-
-         procedure Report_Design
-           (Handle : Athena.Handles.Design.Design_Handle)
-         is
-         begin
-            Ada.Text_IO.Put_Line
-              (Handle.Name
-               & ": tonnage"
-               & Natural'Image (Natural (Handle.Tonnage))
-               & "; free space"
-               & Natural'Image (Natural (Handle.Free_Space)));
-         end Report_Design;
-
-      begin
-         Athena.Handles.Design.Iterate (Report_Design'Access);
-      end;
-      return;
-   end if;
-
-   if Athena.Options.Report_Empire then
-
-      if Athena.Options.Empire_Name = "" then
-         Ada.Text_IO.Put_Line
-           (Ada.Text_IO.Standard_Error,
-            "missing required argument --empire-name");
-         return;
-      end if;
-
-      Athena.Handles.State.Load_State;
-
-      declare
-         Empire : constant Athena.Handles.Empire.Empire_Handle :=
-           Athena.Handles.Empire.Get_By_Name
-             (Athena.Options.Empire_Name);
-         Writer : Athena.Reports.Writer_Interface'Class :=
-           Athena.Reports.Standard_Writer;
-      begin
-
-         if not Empire.Has_Element then
-            Ada.Text_IO.Put_Line
-              (Ada.Text_IO.Standard_Error,
-               "cannot find an empire called " & Athena.Options.Empire_Name);
-            return;
-         end if;
-
-         Athena.Reports.Empires.Report (Writer, Empire);
-         return;
-      end;
-   end if;
-
    if Athena.Options.Add_Empire then
-      declare
-         Name : constant String := Athena.Options.Name;
-      begin
-         if Name = "" then
-            Ada.Text_IO.Put_Line
-              (Ada.Text_IO.Standard_Error,
-               "missing argument: name");
-            return;
-         end if;
-
-         Athena.Logging.Start_Logging ("add-empire");
-
-         Athena.Handles.State.Load_State;
-
-         Athena.Server.Add_Empire
-           (Name      => Name,
-            Plural    => Athena.Options.Plural,
-            Adjective => Athena.Options.Adjective,
-            Capital   => Athena.Options.Capital,
-            Color     => Athena.Options.Color);
-
-         Athena.Handles.State.Save_State;
-
-      end;
+      Minerva.Db.Database.Open;
+      Athena.Server.Add_Empire
+        (Name      => Athena.Options.Name,
+         Plural    => Athena.Options.Plural,
+         Adjective => Athena.Options.Adjective,
+         Capital   => Athena.Options.Capital,
+         Color     => Athena.Options.Color);
+      Minerva.Db.Database.Close;
       return;
    end if;
 
    if Athena.Options.Update then
+      Minerva.Db.Database.Open;
 
-      Athena.Logging.Start_Logging ("update");
-      Athena.Handles.State.Load_State;
+      Athena.Managers.Load_Managers;
 
-      declare
-         Process     : WL.Processes.Process_Type;
-         Update_Days : constant Natural := Athena.Options.Update_Count;
-         Start       : constant Ada.Calendar.Time := Ada.Calendar.Clock;
-      begin
-         if Update_Days > 0 then
-            Process.Start_Bar ("Updating", Update_Days * 24, True);
-
-            for Day_Index in 1 .. Update_Days loop
-               for Hour_Index in 1 .. 24 loop
-                  for Minute_Index in 1 .. 60 loop
-                     Athena.Calendar.Advance (60.0);
-                     Athena.Updates.Control.Execute_Pending_Updates;
-                  end loop;
-                  Process.Tick;
-               end loop;
-               Process.Tick;
-            end loop;
-            Process.Finish;
-
-            declare
-               use Ada.Calendar;
-            begin
-               Ada.Text_IO.Put_Line
-                 ("advanced" & Update_Days'Image & " day"
-                  & (if Update_Days = 1 then "" else "s")
-                  & " in "
-                  & Athena.Real_Images.Approximate_Image
-                    (Real (Clock - Start))
-                  & "s");
-            end;
-
-         end if;
-
-      end;
-
-      Athena.Handles.State.Save_State;
-      Athena.Logging.Stop_Logging;
-
+      for I in 1 .. Athena.Options.Update_Count loop
+         Ada.Text_IO.Put_Line
+           ("starting update " & Athena.Turns.Current_Turn_Image);
+         Athena.Updates.Run_Update;
+         Ada.Text_IO.Put_Line ("update finished");
+      end loop;
+      Minerva.Db.Database.Close;
       return;
    end if;
 
-   --     if Athena.Options.View_Encounter then
-   --
-   --        if Athena.Options.Star_Name = "" then
-   --           Ada.Text_IO.Put_Line
-   --             (Ada.Text_IO.Standard_Error,
-   --              "missing option: --star-name");
-   --           return;
-   --        end if;
-   --
-   --        if Athena.Options.Turn = 0 then
-   --           Ada.Text_IO.Put_Line
-   --             (Ada.Text_IO.Standard_Error,
-   --              "missing option: --turn");
-   --           return;
-   --        end if;
-   --
-   --        Athena.Handles.State.Load_State;
-   --        Database_Open := True;
-   --
-   --  --        declare
-   --  --           Star : constant Athena.Handles.Star.Star_Handle :=
-   --  --                    Athena.Stars.Find_Star (Athena.Options.Star_Name);
-   --  --           Turn : constant Athena.Handles.Turn.Turn_Class :=
-   --  --                    Athena.Turns.Get_Turn (Athena.Options.Turn);
-   --  --
-   --  --        begin
-   --  --           if not Star.Has_Element then
-   --  --              Ada.Text_IO.Put_Line
-   --  --                (Ada.Text_IO.Standard_Error,
-   --  --                 "cannot find star: " & Athena.Options.Star_Name);
-   --  --           elsif not Turn.Has_Element then
-   --  --              Ada.Text_IO.Put_Line
-   --  --                (Ada.Text_IO.Standard_Error,
-   --  --                 "no such turn: " & Athena.Options.Turn'Image);
-   --  --           else
-   --
-   --        declare
-   --        Encounter : constant Athena.Handles.Encounter.Encounter_Handle :=
-   --                         Athena.Encounters.Find
-   --                           (Athena.Options.Star_Name,
-   --                            Athena.Options.Turn);
-   --        begin
-   --           if Encounter.Has_Element then
-   --              declare
-   --                 UI : Athena.UI.Athena_User_Interface'Class :=
-   --                        Athena.UI.Launch.Get_Encounter_UI
-   --                          (Encounter);
-   --              begin
-   --                 UI.Start;
-   --              end;
-   --           end if;
-   --        end;
-   --
-   --        Athena.Handles.State.Save_State;
-   --        Database_Open := False;
-   --
-   --        return;
-   --     end if;
+   if Athena.Options.View_Encounter then
 
-   Athena.Logging.Start_Logging ("gui");
-   Athena.Handles.State.Load_State;
+      if Athena.Options.Star_Name = "" then
+         Ada.Text_IO.Put_Line
+           (Ada.Text_IO.Standard_Error,
+            "missing option: --star-name");
+         return;
+      end if;
 
-   Athena.Updates.Control.Start_Updates;
-   Athena.Updates.Control.Set_Advance_Speed
-     (Advance_Per_Second => Athena.Calendar.Days (1));
-   Athena.Updates.Control.Resume_Updates;
+      if Athena.Options.Turn = 0 then
+         Ada.Text_IO.Put_Line
+           (Ada.Text_IO.Standard_Error,
+            "missing option: --turn");
+         return;
+      end if;
 
+      Minerva.Db.Database.Open;
+
+      declare
+         Star : constant Minerva.Star.Star_Class :=
+                  Minerva.Star.First_By_Name
+                    (Athena.Options.Star_Name);
+         Turn : constant Minerva.Turn.Turn_Class :=
+                  Athena.Turns.Get_Turn (Athena.Options.Turn);
+         Encounter : constant Minerva.Encounter.Encounter_Class :=
+                       Minerva.Encounter.Get_By_Encounter (Star, Turn);
+      begin
+         if not Star.Has_Element then
+            Ada.Text_IO.Put_Line
+              (Ada.Text_IO.Standard_Error,
+               "cannot find star: " & Athena.Options.Star_Name);
+            return;
+         elsif not Turn.Has_Element then
+            Ada.Text_IO.Put_Line
+              (Ada.Text_IO.Standard_Error,
+               "no such turn: " & Athena.Options.Turn'Image);
+            return;
+         elsif not Encounter.Has_Element then
+            Ada.Text_IO.Put_Line
+              (Ada.Text_IO.Standard_Error,
+               "cannot find encounter at "
+               & Star.Name
+               & " on turn" & Athena.Options.Turn'Image);
+            return;
+         end if;
+
+         declare
+            UI : Athena.UI.Athena_User_Interface'Class :=
+                   Athena.UI.Launch.Get_Encounter_UI
+                     (Encounter);
+         begin
+            UI.Start;
+         end;
+      end;
+
+      Minerva.Db.Database.Close;
+      return;
+
+   end if;
+
+   Minerva.Db.Database.Open;
    declare
-      UI : Athena.UI.Athena_User_Interface'Class :=
-        Athena.UI.Launch.Get_UI
-          (Athena.Handles.Empire.Get_By_Name
-             (Athena.Options.Empire_Name));
+      Client_UI : Athena.UI.Athena_User_Interface'Class :=
+                    Athena.UI.Launch.Get_UI
+                      (Minerva.Empire.Get_By_Name
+                         (Athena.Options.Empire_Name));
    begin
-      UI.Start;
+      Client_UI.Start;
    end;
-
-   Athena.Updates.Control.Stop_Updates;
-
-   Athena.Handles.State.Save_State;
-
-   Athena.Logging.Stop_Logging;
+   Minerva.Db.Database.Close;
 
 exception
-
-   when others =>
-      --  if Database_Open then
-      --     Athena.Handles.State.Save_State;
-      --  end if;
-      --
-      Athena.Logs.Flush_Logs (True);
-      Athena.Logging.Stop_Logging;
+   when E : others =>
+      Ada.Text_IO.Put_Line
+        ("exception: " & Ada.Exceptions.Exception_Message (E));
+      Minerva.Db.Database.Close;
       raise;
-
 end Athena.Driver;

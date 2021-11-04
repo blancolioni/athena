@@ -1,66 +1,47 @@
 with Ada.Containers.Doubly_Linked_Lists;
 
-with Athena.Cargo.Colonists;
-with Athena.Cargo.Commodities;
+with Athena.Logging;
+
 with Athena.Colonies;
 with Athena.Empires;
 with Athena.Stars;
 
+with Athena.Knowledge.Stars;
 with Athena.Managers.Transportation;
 
-with Athena.Handles.Colony;
-with Athena.Handles.Commodity;
-with Athena.Handles.Empire;
-with Athena.Handles.Knowledge;
-with Athena.Handles.Star;
+with Minerva.Colony;
+with Minerva.Empire;
+with Minerva.Star;
+
+with Minerva.Db;
 
 package body Athena.Managers.Colonization is
 
    type Colonization_Manager is
-     new Root_Manager_Type with null record;
+     new Athena_Manager_Script with null record;
 
    overriding function Identifier
      (Manager : Colonization_Manager)
       return String
    is ("colonization");
 
-   overriding procedure Dispatch_Create_Orders
-     (Manager : in out Colonization_Manager);
+   overriding procedure Create_Orders
+     (Manager : Colonization_Manager);
 
-   ----------------------------------
-   -- Default_Colonization_Manager --
-   ----------------------------------
+   -------------------
+   -- Create_Orders --
+   -------------------
 
-   function Default_Colonization_Manager
-     return Root_Manager_Type'Class
-   is
-   begin
-      return Manager : constant Colonization_Manager :=
-        Colonization_Manager'
-          (Name     => +"explore",
-           Empire   => <>,
-           Priority => 1030,
-           Next_Update => Athena.Calendar.Clock,
-           Has_Next_Update => True,
-           Messages => <>);
-   end Default_Colonization_Manager;
-
-   ----------------------------
-   -- Dispatch_Create_Orders --
-   ----------------------------
-
-   overriding procedure Dispatch_Create_Orders
-     (Manager : in out Colonization_Manager)
+   overriding procedure Create_Orders
+     (Manager : Colonization_Manager)
    is
 
-      Empire      : constant Athena.Handles.Empire.Empire_Handle :=
-                      Athena.Handles.Empire.Get (Manager.Empire);
-      Knowledge   : constant Athena.Handles.Knowledge.Knowledge_Handle :=
-                      Empire.Knowledge;
+      Empire      : constant Minerva.Empire.Empire_Handle := Manager.Empire;
+      Knowledge   : Athena.Knowledge.Stars.Star_Knowledge;
 
       type Target_Record is
          record
-            Star  : Athena.Handles.Star.Star_Handle;
+            Star  : Minerva.Star.Star_Handle;
             Score : Non_Negative_Real;
          end record;
 
@@ -76,7 +57,7 @@ package body Athena.Managers.Colonization is
       Targets : Target_Lists.List;
 
       procedure Check_Colonization_Target
-        (Star : Athena.Handles.Star.Star_Handle;
+        (Star : Minerva.Star.Star_Class;
          Stop : out Boolean);
 
       -------------------------------
@@ -84,14 +65,14 @@ package body Athena.Managers.Colonization is
       -------------------------------
 
       procedure Check_Colonization_Target
-        (Star : Athena.Handles.Star.Star_Handle;
+        (Star : Minerva.Star.Star_Class;
          Stop : out Boolean)
       is
       begin
 
          Stop := False;
 
-         if Star.Has_Owner then
+         if Star.Owner.Has_Element then
             return;
          end if;
 
@@ -107,11 +88,10 @@ package body Athena.Managers.Colonization is
                            (Star, Athena.Empires.Capital (Empire));
             Rec : constant Target_Record :=
                     Target_Record'
-                      (Star  => Star,
+                      (Star  => Star.To_Star_Handle,
                        Score =>
-                         1000.0 * Star.Resource
-                       * Star.Habitability ** 2
-                       / Distance ** 2);
+                         (Star.Resource + Star.Habitability)
+                       / Distance);
          begin
             Manager.Log
               ("colonization target " & Star.Name
@@ -126,53 +106,72 @@ package body Athena.Managers.Colonization is
       end Check_Colonization_Target;
 
    begin
+      Knowledge.Load (Manager.Empire);
+
       Knowledge.Iterate_Uncolonized
         (Check_Colonization_Target'Access);
 
       if not Targets.Is_Empty then
          Target_Sorting.Sort (Targets);
-         Manager.Log
+         Athena.Logging.Log
            ("colonizing: " & Targets.First_Element.Star.Name
             & " score " & Image (Targets.First_Element.Score));
 
          declare
-            function Pop (Of_Colony : Athena.Handles.Colony.Colony_Handle)
+            function Pop (Of_Colony : Minerva.Colony.Colony_Class)
                           return Real
             is (Of_Colony.Population);
 
-            From : constant Athena.Handles.Colony.Colony_Handle :=
+            From : constant Minerva.Colony.Colony_Class :=
                      Athena.Colonies.Best_Colony
                        (Empire, Pop'Access);
-            Cargo : Athena.Cargo.Cargo_Container;
          begin
             Manager.Log ("colonizing from " & From.Star.Name);
 
-            Cargo.Add_Cargo
-              (Item     => Athena.Cargo.Colonists.Colonist_Cargo (Empire),
-               Quantity => 100.0);
-
-            Cargo.Add_Cargo
-              (Item     =>
-                 Athena.Cargo.Commodities.Commodity_Cargo
-                   (Athena.Handles.Commodity.Food),
-               Quantity => 100.0);
-
-            Empire.Send_Message
-              (Athena.Handles.Transport_Manager,
-               Athena.Managers.Transportation.Transport_Message
-                 (Empire   => Empire.Reference,
-                  From     => From.Star.Reference,
-                  To       => Targets.First_Element.Star.Reference,
-                  Cargo    => Cargo,
-                  Priority => Manager.Priority));
-
+            Send_Message
+              (Destination => "transport",
+               Empire      => Empire,
+               Message     =>
+                 Athena.Managers.Transportation.Transport_Message
+                   (Empire   => Empire,
+                    From     => From.Star,
+                    To       => Targets.First_Element.Star,
+                    Cargo    => Minerva.Db.Colonists,
+                    Quantity => 10.0,
+                    Priority => Manager.Priority));
+            Send_Message
+              (Destination => "transport",
+               Empire      => Empire,
+               Message     =>
+                 Athena.Managers.Transportation.Transport_Message
+                   (Empire   => Empire,
+                    From     => From.Star,
+                    To       => Targets.First_Element.Star,
+                    Cargo    => Minerva.Db.Material,
+                    Quantity => 10.0,
+                    Priority => Manager.Priority));
          end;
 
-         --  Knowledge.Set_Colonizing
-         --    (Targets.First_Element.Star, True);
+         Knowledge.Set_Colonizing
+           (Targets.First_Element.Star, True);
       end if;
 
-      Manager.Set_Next_Update_Delay (Athena.Calendar.Days (5.0));
-   end Dispatch_Create_Orders;
+   end Create_Orders;
+
+   ----------------------------------
+   -- Default_Colonization_Manager --
+   ----------------------------------
+
+   function Default_Colonization_Manager
+     return Athena_Manager_Script'Class
+   is
+   begin
+      return Manager : constant Colonization_Manager :=
+        Colonization_Manager'
+          (Name     => +"explore",
+           Empire   => <>,
+           Priority => 1030,
+           Manager => <>);
+   end Default_Colonization_Manager;
 
 end Athena.Managers.Colonization;

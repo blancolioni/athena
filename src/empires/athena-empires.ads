@@ -1,40 +1,94 @@
 with Athena.Money;
 
-with Athena.Handles.Colony;
-with Athena.Handles.Empire;
-with Athena.Handles.Design;
-with Athena.Handles.Ship;
-with Athena.Handles.Star;
-with Athena.Handles.Technology;
+with Minerva.Colony;
+with Minerva.Empire;
+with Minerva.Manager;
+with Minerva.Ship_Design;
+with Minerva.Star;
+with Minerva.Technology;
 
 package Athena.Empires is
 
+   function Current_Tec_Level
+     (Empire     : Minerva.Empire.Empire_Class;
+      Technology : Minerva.Technology.Technology_Class)
+      return Non_Negative_Real;
+
    procedure Add_Investment
-     (Empire     : Athena.Handles.Empire.Empire_Handle;
-      Technology : Athena.Handles.Technology.Technology_Handle;
+     (Empire     : Minerva.Empire.Empire_Class;
+      Technology : Minerva.Technology.Technology_Class;
       Construct  : Non_Negative_Real);
 
    procedure Pay
-     (Empire      : Athena.Handles.Empire.Empire_Handle;
+     (Empire      : Minerva.Empire.Empire_Class;
       Amount      : Athena.Money.Money_Type;
       Description : String);
 
    procedure Earn
-     (Empire      : Athena.Handles.Empire.Empire_Handle;
+     (Empire      : Minerva.Empire.Empire_Class;
       Amount      : Athena.Money.Money_Type;
       Description : String);
 
    function Capital
-     (Of_Empire : Athena.Handles.Empire.Empire_Handle)
-      return Athena.Handles.Star.Star_Handle;
+     (Of_Empire : Minerva.Empire.Empire_Class)
+      return Minerva.Star.Star_Class;
 
    function Capital
-     (Of_Empire : Athena.Handles.Empire.Empire_Handle)
-      return Athena.Handles.Colony.Colony_Handle;
+     (Of_Empire : Minerva.Empire.Empire_Class)
+      return Minerva.Colony.Colony_Handle;
 
-   function Find_Ship_With_Name
-     (Owner : Athena.Handles.Empire.Empire_Handle;
-      Name  : String)
-      return Athena.Handles.Ship.Ship_Handle;
+   procedure Enable_Manager
+     (Empire  : Minerva.Empire.Empire_Class;
+      Manager : Minerva.Manager.Manager_Class);
+
+   procedure Disable_Manager
+     (Empire  : Minerva.Empire.Empire_Class;
+      Manager : Minerva.Manager.Manager_Class);
+
+   procedure Set_Manager_Script
+     (Empire  : Minerva.Empire.Empire_Class;
+      Manager : Minerva.Manager.Manager_Class;
+      Script  : String);
+
+   procedure Visit
+     (Empire : Minerva.Empire.Empire_Class;
+      Star   : Minerva.Star.Star_Class);
+
+   function Visited
+     (Empire : Minerva.Empire.Empire_Class;
+      Star   : Minerva.Star.Star_Class)
+      return Boolean;
+
+   function Standard_Battleship_Design
+     (Empire : Minerva.Empire.Empire_Class)
+      return Minerva.Ship_Design.Ship_Design_Class;
+
+   function Standard_Carrier_Design
+     (Empire : Minerva.Empire.Empire_Class)
+      return Minerva.Ship_Design.Ship_Design_Class;
+
+   function Standard_Cruiser_Design
+     (Empire : Minerva.Empire.Empire_Class)
+      return Minerva.Ship_Design.Ship_Design_Class;
+
+   function Standard_Defender_Design
+     (Empire : Minerva.Empire.Empire_Class)
+      return Minerva.Ship_Design.Ship_Design_Class;
+
+   function Standard_Destroyer_Design
+     (Empire : Minerva.Empire.Empire_Class)
+      return Minerva.Ship_Design.Ship_Design_Class;
+
+   function Standard_Recon_Design
+     (Empire : Minerva.Empire.Empire_Class)
+      return Minerva.Ship_Design.Ship_Design_Class;
+
+   function Standard_Scout_Design
+     (Empire : Minerva.Empire.Empire_Class)
+      return Minerva.Ship_Design.Ship_Design_Class;
+
+   function Standard_Transport_Design
+     (Empire : Minerva.Empire.Empire_Class)
+      return Minerva.Ship_Design.Ship_Design_Class;
 
 end Athena.Empires;

@@ -1,4 +1,5 @@
-with Athena.Db.Next_Identifier;
+with Minerva.Db;
+with Minerva.Next_Identifier;
 
 package body Athena.Identifiers is
 
@@ -9,9 +10,7 @@ package body Athena.Identifiers is
       procedure Next_Identifier (Id : out Object_Identifier);
 
    private
-      Current : Athena.Db.Next_Identifier_Reference :=
-        Athena.Db.Null_Next_Identifier_Reference;
-
+      Current : Minerva.Next_Identifier.Next_Identifier_Handle;
    end Identifier_Source;
 
    -----------------------
@@ -47,30 +46,32 @@ package body Athena.Identifiers is
             end if;
          end Inc;
 
-         use Athena.Db;
          Next_Id : Object_Identifier;
 
       begin
-         if Current = Null_Next_Identifier_Reference then
-            Current :=
-              Athena.Db.Next_Identifier.First_Reference_By_Top_Record
-                (Athena.Db.R_Next_Identifier);
+         if not Current.Has_Element then
+            declare
+               use Minerva.Next_Identifier;
+               Class : constant Next_Identifier_Class :=
+                         First_By_Top_Record
+                           (Minerva.Db.R_Next_Identifier);
+            begin
+               if Class.Has_Element then
+                  Current := Class.To_Next_Identifier_Handle;
+               else
+                  Current := Create (Template);
+               end if;
+            end;
          end if;
 
-         if Current = Null_Next_Identifier_Reference then
-            Current :=
-              Athena.Db.Next_Identifier.Create
-                (Template);
-         end if;
-
-         Next_Id := Athena.Db.Next_Identifier.Get (Current).Next;
+         Next_Id := Current.Next;
          Id := Next_Id;
 
          for Ch of reverse Next_Id loop
             exit when not Inc (Ch);
          end loop;
 
-         Athena.Db.Next_Identifier.Update_Next_Identifier (Current)
+         Current.Update_Next_Identifier
            .Set_Next (Next_Id)
            .Done;
 

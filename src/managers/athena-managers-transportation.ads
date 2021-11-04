@@ -1,16 +1,19 @@
-with Athena.Cargo;
+with Minerva.Star;
+
+with Minerva.Db;
 
 package Athena.Managers.Transportation is
 
    function Default_Transportation_Manager
-     return Root_Manager_Type'Class;
+     return Athena_Manager_Script'Class;
 
    function Transport_Message
-     (Empire   : Athena.Handles.Empire_Reference;
-      From     : Athena.Handles.Star_Reference;
-      To       : Athena.Handles.Star_Reference;
-      Cargo    : Athena.Cargo.Cargo_Container;
-      Priority : Athena.Handles.Order_Priority)
+     (Empire   : Minerva.Empire.Empire_Class;
+      From     : Minerva.Star.Star_Class;
+      To       : Minerva.Star.Star_Class;
+      Cargo    : Minerva.Db.Cargo_Type;
+      Quantity : Non_Negative_Real;
+      Priority : Integer)
       return Message_Type'Class;
 
 end Athena.Managers.Transportation;

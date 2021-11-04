@@ -1,39 +1,24 @@
-init = {
-	pop = ~2M
-    installations = {
-        farm (size = 800)
-		mine (size = 75)
-		coal-power (size = 12)
-        plastic-factory (size = 10)
-        basic-electronics-factory (size = 10)
-        steel-factory (size = 10)
-        steel-hull-factory (size = 1)
-    }
-	cash = 1K
-    stock = {
-        food = ~10K
-		coal = ~200
-		power= ~2K
-        hydrocarbons = ~100
-        plastic = ~10
-        copper = ~100
-        silicon = ~100
-        iron = ~200
-    }
-    ships = {
-       scout = 2
-       transport = 1
-       freighter = 1
-       defender = 1
-       destroyer = 10
-       }
-}
-
 standard-designs = {
-    scout = scout
-    transport = transport
-    freighter = freighter
+    battleship = battleship
+    cruiser = cruiser
     defender = defender
     destroyer = destroyer
     recon = recon
+    scout = scout
+    transport = transport
+}
+
+init = {
+    cash = 1000
+    pop = ~1000
+    ind = 800
+    material = 1000
+}
+
+ships = {
+    scout = 2
+    transport = 2
+    defender = 1
+    recon = 2
+    destroyer = 10
 }
